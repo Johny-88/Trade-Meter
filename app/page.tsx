@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 
 type Rule = {
   id: string
@@ -148,6 +148,8 @@ export default function Home() {
   const [newRule, setNewRule] = useState('')
   const [minScore, setMinScore] = useState(75)
   const [rules, setRules] = useState<Rule[]>(starterRules.map(createRule))
+  const [topOffset, setTopOffset] = useState(0)
+  const liveScoreRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY)
@@ -186,6 +188,30 @@ export default function Home() {
   const rating = useMemo(() => getRating(score), [score])
   const styles = toneMap[rating.tone]
   const qualifies = score >= minScore
+
+  useLayoutEffect(() => {
+    const updateOffset = () => {
+      if (!liveScoreRef.current) return
+      setTopOffset(liveScoreRef.current.offsetHeight + 16)
+    }
+
+    updateOffset()
+    window.addEventListener('resize', updateOffset)
+
+    return () => {
+      window.removeEventListener('resize', updateOffset)
+    }
+  }, [
+    score,
+    checkedCount,
+    missingCount,
+    totalCount,
+    minScore,
+    qualifies,
+    rating.label,
+    rating.desc,
+    rating.action,
+  ])
 
   const loadStarterRules = () => {
     setRules(starterRules.map(createRule))
@@ -229,7 +255,10 @@ export default function Home() {
         <div className="absolute bottom-0 left-1/3 h-72 w-72 rounded-full bg-violet-500/10 blur-3xl" />
       </div>
 
-      <div className="fixed inset-x-0 top-0 z-50 px-3 pt-2 md:px-4">
+      <div
+        ref={liveScoreRef}
+        className="fixed inset-x-0 top-0 z-50 px-3 pt-2 md:px-4"
+      >
         <div className="mx-auto max-w-7xl overflow-hidden rounded-[22px] border border-white/10 bg-slate-950/88 shadow-2xl backdrop-blur-xl">
           <div className={`bg-gradient-to-r ${styles.soft} p-2.5 md:p-3`}>
             <div className="grid gap-2 md:grid-cols-[220px_minmax(0,1fr)_auto] md:items-center">
@@ -313,7 +342,10 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="relative mx-auto max-w-7xl px-4 pb-6 pt-[148px] md:px-6 md:pt-[156px] lg:px-8 lg:pb-8 lg:pt-[160px]">
+      <div
+        className="relative mx-auto max-w-7xl px-4 pb-6 md:px-6 lg:px-8 lg:pb-8"
+        style={{ paddingTop: topOffset }}
+      >
         <div className="mb-6 rounded-[28px] border border-white/10 bg-white/5 p-5 shadow-2xl backdrop-blur-xl md:p-6">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div className="max-w-3xl">
