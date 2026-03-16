@@ -3,21 +3,89 @@
 import { useEffect, useMemo, useState } from 'react'
 
 type Rule = {
-  id: number
+  id: string
   text: string
   checked: boolean
 }
 
-const STORAGE_KEY = 'trade-meter-v2'
+type Tone = 'emerald' | 'lime' | 'amber' | 'orange' | 'red'
+
+const STORAGE_KEY = 'trade-meter-pro-v2'
 
 const starterRules = [
   'Trend is clear on my timeframe',
   'Entry is at a key level',
   'Risk is acceptable',
   'Stop loss is defined before entry',
-  'No revenge trading emotion present',
   'Trade matches my strategy exactly',
+  'No emotional impulse is present',
 ]
+
+const toneMap: Record<
+  Tone,
+  {
+    ring: string
+    soft: string
+    badge: string
+    pill: string
+    button: string
+  }
+> = {
+  emerald: {
+    ring: 'text-emerald-400',
+    soft: 'from-emerald-500/20 to-emerald-400/5',
+    badge: 'border-emerald-500/25 bg-emerald-500/10 text-emerald-300',
+    pill: 'border-emerald-500/20 bg-emerald-500/10 text-emerald-200',
+    button: 'bg-emerald-400 text-slate-950 hover:opacity-90',
+  },
+  lime: {
+    ring: 'text-lime-400',
+    soft: 'from-lime-500/20 to-lime-400/5',
+    badge: 'border-lime-500/25 bg-lime-500/10 text-lime-300',
+    pill: 'border-lime-500/20 bg-lime-500/10 text-lime-200',
+    button: 'bg-lime-400 text-slate-950 hover:opacity-90',
+  },
+  amber: {
+    ring: 'text-amber-400',
+    soft: 'from-amber-500/20 to-amber-400/5',
+    badge: 'border-amber-500/25 bg-amber-500/10 text-amber-300',
+    pill: 'border-amber-500/20 bg-amber-500/10 text-amber-200',
+    button: 'bg-amber-400 text-slate-950 hover:opacity-90',
+  },
+  orange: {
+    ring: 'text-orange-400',
+    soft: 'from-orange-500/20 to-orange-400/5',
+    badge: 'border-orange-500/25 bg-orange-500/10 text-orange-300',
+    pill: 'border-orange-500/20 bg-orange-500/10 text-orange-200',
+    button: 'bg-orange-400 text-slate-950 hover:opacity-90',
+  },
+  red: {
+    ring: 'text-red-400',
+    soft: 'from-red-500/20 to-red-400/5',
+    badge: 'border-red-500/25 bg-red-500/10 text-red-300',
+    pill: 'border-red-500/20 bg-red-500/10 text-red-200',
+    button: 'bg-red-400 text-slate-950 hover:opacity-90',
+  },
+}
+
+function makeId() {
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+}
+
+function createRule(text: string): Rule {
+  return {
+    id: makeId(),
+    text,
+    checked: false,
+  }
+}
+
+function parseRules(text: string) {
+  return text
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+}
 
 function getRating(score: number) {
   if (score >= 90) {
@@ -25,28 +93,28 @@ function getRating(score: number) {
       label: 'A+ Setup',
       desc: 'Everything is aligned. This is the kind of trade worth waiting for.',
       emoji: '😎',
-      action: 'Take only if execution is clean.',
-      tone: 'emerald',
+      action: 'High-quality setup. Execute only if the entry itself is still clean.',
+      tone: 'emerald' as Tone,
     }
   }
 
   if (score >= 75) {
     return {
       label: 'Good Setup',
-      desc: 'Most conditions are aligned. Solid quality, but stay precise.',
+      desc: 'Most conditions are aligned. Solid quality, but precision still matters.',
       emoji: '🙂',
-      action: 'Valid trade if entry stays disciplined.',
-      tone: 'lime',
+      action: 'This can qualify, but do not get careless with execution.',
+      tone: 'lime' as Tone,
     }
   }
 
   if (score >= 55) {
     return {
       label: 'Average Setup',
-      desc: 'Some things are there, but not enough to feel fully confident.',
+      desc: 'Some conditions are there, but it is not fully convincing.',
       emoji: '😐',
-      action: 'Be selective. This may be a pass.',
-      tone: 'yellow',
+      action: 'Be selective. This is where unnecessary trades usually happen.',
+      tone: 'amber' as Tone,
     }
   }
 
@@ -55,52 +123,17 @@ function getRating(score: number) {
       label: 'Weak Setup',
       desc: 'Too many key conditions are missing.',
       emoji: '⚠️',
-      action: 'Most likely not worth the risk.',
-      tone: 'orange',
+      action: 'Most likely not worth the risk. Patience is the better trade.',
+      tone: 'orange' as Tone,
     }
   }
 
   return {
     label: 'No Trade',
-    desc: 'This is low-quality and should usually be avoided.',
+    desc: 'This setup is low-quality and should usually be avoided.',
     emoji: '🚫',
-    action: 'Stay out. Protect capital.',
-    tone: 'red',
-  }
-}
-
-function toneClasses(tone: string) {
-  switch (tone) {
-    case 'emerald':
-      return {
-        badge: 'border-emerald-500/30 bg-emerald-500/15 text-emerald-300',
-        glow: 'from-emerald-500/25 to-emerald-400/5',
-        progress: 'from-emerald-400 to-emerald-500',
-      }
-    case 'lime':
-      return {
-        badge: 'border-lime-500/30 bg-lime-500/15 text-lime-300',
-        glow: 'from-lime-500/25 to-lime-400/5',
-        progress: 'from-lime-300 to-lime-500',
-      }
-    case 'yellow':
-      return {
-        badge: 'border-yellow-500/30 bg-yellow-500/15 text-yellow-300',
-        glow: 'from-yellow-500/25 to-yellow-400/5',
-        progress: 'from-yellow-300 to-yellow-500',
-      }
-    case 'orange':
-      return {
-        badge: 'border-orange-500/30 bg-orange-500/15 text-orange-300',
-        glow: 'from-orange-500/25 to-orange-400/5',
-        progress: 'from-orange-300 to-orange-500',
-      }
-    default:
-      return {
-        badge: 'border-red-500/30 bg-red-500/15 text-red-300',
-        glow: 'from-red-500/25 to-red-400/5',
-        progress: 'from-red-300 to-red-500',
-      }
+    action: 'Protect capital. Passing is also a winning decision.',
+    tone: 'red' as Tone,
   }
 }
 
@@ -108,13 +141,8 @@ export default function Home() {
   const [title, setTitle] = useState('Trade Meter')
   const [bulkRules, setBulkRules] = useState(starterRules.join('\n'))
   const [newRule, setNewRule] = useState('')
-  const [rules, setRules] = useState<Rule[]>(
-    starterRules.map((text, index) => ({
-      id: Date.now() + index,
-      text,
-      checked: false,
-    }))
-  )
+  const [minScore, setMinScore] = useState(75)
+  const [rules, setRules] = useState<Rule[]>(starterRules.map(createRule))
 
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY)
@@ -122,9 +150,12 @@ export default function Home() {
 
     try {
       const parsed = JSON.parse(saved)
-      if (parsed.title) setTitle(parsed.title)
-      if (parsed.bulkRules) setBulkRules(parsed.bulkRules)
-      if (Array.isArray(parsed.rules) && parsed.rules.length > 0) {
+
+      if (typeof parsed.title === 'string') setTitle(parsed.title)
+      if (typeof parsed.bulkRules === 'string') setBulkRules(parsed.bulkRules)
+      if (typeof parsed.minScore === 'number') setMinScore(parsed.minScore)
+
+      if (Array.isArray(parsed.rules)) {
         setRules(parsed.rules)
       }
     } catch {}
@@ -136,33 +167,55 @@ export default function Home() {
       JSON.stringify({
         title,
         bulkRules,
+        minScore,
         rules,
       })
     )
-  }, [title, bulkRules, rules])
+  }, [title, bulkRules, minScore, rules])
 
   const checkedCount = rules.filter((rule) => rule.checked).length
   const totalCount = rules.length
-  const score = totalCount ? Math.round((checkedCount / totalCount) * 100) : 0
+  const missingCount = Math.max(totalCount - checkedCount, 0)
+  const score = totalCount > 0 ? Math.round((checkedCount / totalCount) * 100) : 0
   const rating = useMemo(() => getRating(score), [score])
-  const palette = toneClasses(rating.tone)
+  const styles = toneMap[rating.tone]
+  const qualifies = score >= minScore
+
+  const circleRadius = 64
+  const circumference = 2 * Math.PI * circleRadius
+  const dashOffset = circumference - (score / 100) * circumference
 
   const applyRules = () => {
-    const cleanedRules = bulkRules
-      .split('\n')
-      .map((line) => line.trim())
-      .filter(Boolean)
-
-    setRules(
-      cleanedRules.map((text, index) => ({
-        id: Date.now() + index,
-        text,
-        checked: false,
-      }))
-    )
+    const cleaned = parseRules(bulkRules)
+    setRules(cleaned.map(createRule))
   }
 
-  const toggleRule = (id: number) => {
+  const loadStarterRules = () => {
+    const text = starterRules.join('\n')
+    setBulkRules(text)
+    setRules(starterRules.map(createRule))
+  }
+
+  const clearAllRules = () => {
+    setBulkRules('')
+    setRules([])
+  }
+
+  const resetChecks = () => {
+    setRules((prev) => prev.map((rule) => ({ ...rule, checked: false })))
+  }
+
+  const addRule = () => {
+    const trimmed = newRule.trim()
+    if (!trimmed) return
+
+    const rule = createRule(trimmed)
+    setRules((prev) => [...prev, rule])
+    setBulkRules((prev) => (prev.trim() ? `${prev}\n${trimmed}` : trimmed))
+    setNewRule('')
+  }
+
+  const toggleRule = (id: string) => {
     setRules((prev) =>
       prev.map((rule) =>
         rule.id === id ? { ...rule, checked: !rule.checked } : rule
@@ -170,22 +223,7 @@ export default function Home() {
     )
   }
 
-  const addRule = () => {
-    const trimmed = newRule.trim()
-    if (!trimmed) return
-
-    const newItem = {
-      id: Date.now(),
-      text: trimmed,
-      checked: false,
-    }
-
-    setRules((prev) => [...prev, newItem])
-    setBulkRules((prev) => (prev.trim() ? `${prev}\n${trimmed}` : trimmed))
-    setNewRule('')
-  }
-
-  const deleteRule = (id: number) => {
+  const deleteRule = (id: string) => {
     setRules((prev) => {
       const updated = prev.filter((rule) => rule.id !== id)
       setBulkRules(updated.map((rule) => rule.text).join('\n'))
@@ -193,96 +231,147 @@ export default function Home() {
     })
   }
 
-  const resetChecks = () => {
-    setRules((prev) => prev.map((rule) => ({ ...rule, checked: false })))
-  }
-
-  const loadStarterRules = () => {
-    setBulkRules(starterRules.join('\n'))
-    setRules(
-      starterRules.map((text, index) => ({
-        id: Date.now() + index,
-        text,
-        checked: false,
-      }))
-    )
-  }
-
   return (
-    <main className="min-h-screen bg-slate-950 text-white">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.10),transparent_30%),radial-gradient(circle_at_top_right,rgba(59,130,246,0.10),transparent_30%)]" />
+    <main className="min-h-screen overflow-hidden bg-slate-950 text-white">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -top-24 left-0 h-72 w-72 rounded-full bg-emerald-500/10 blur-3xl" />
+        <div className="absolute right-0 top-0 h-72 w-72 rounded-full bg-sky-500/10 blur-3xl" />
+        <div className="absolute bottom-0 left-1/3 h-72 w-72 rounded-full bg-violet-500/10 blur-3xl" />
+      </div>
 
       <div className="relative mx-auto max-w-7xl px-4 py-6 md:px-6 lg:px-8 lg:py-8">
-        <div className="mb-6 flex flex-col gap-3 rounded-3xl border border-slate-800 bg-slate-900/70 p-5 backdrop-blur md:flex-row md:items-center md:justify-between">
-          <div>
-            <div className="mb-2 text-xs uppercase tracking-[0.3em] text-slate-400">
-              Trading Discipline Tool
-            </div>
-            <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
-              {title}
-            </h1>
-            <p className="mt-2 max-w-2xl text-sm text-slate-400 md:text-base">
-              Build your personal trade checklist, score every setup, and stop
-              taking low-quality entries out of emotion.
-            </p>
-          </div>
+        <div className="mb-6 rounded-[28px] border border-white/10 bg-white/5 p-5 shadow-2xl backdrop-blur-xl md:p-6">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+            <div className="max-w-3xl">
+              <div className="mb-2 inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.3em] text-slate-300">
+                Trading Discipline App
+              </div>
 
-          <div className={`rounded-2xl border px-4 py-3 text-sm ${palette.badge}`}>
-            {rating.action}
+              <h1 className="mt-2 text-3xl font-bold tracking-tight md:text-5xl">
+                {title}
+              </h1>
+
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300 md:text-base">
+                Build your own pre-trade checklist, score every setup in seconds,
+                and stop entering trades that do not truly meet your standards.
+              </p>
+            </div>
+
+            <div className={`rounded-2xl border px-4 py-3 text-sm ${styles.badge}`}>
+              {rating.action}
+            </div>
           </div>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-[380px_minmax(0,1fr)]">
           <aside className="lg:sticky lg:top-6 lg:self-start">
-            <div className="overflow-hidden rounded-[28px] border border-slate-800 bg-slate-900/80 shadow-2xl backdrop-blur">
-              <div className={`bg-gradient-to-br p-5 ${palette.glow}`}>
-                <div className="mb-3 flex items-center justify-between">
-                  <div className="text-sm uppercase tracking-[0.25em] text-slate-400">
-                    Trade Quality
+            <div className="overflow-hidden rounded-[30px] border border-white/10 bg-white/5 shadow-2xl backdrop-blur-xl">
+              <div className={`bg-gradient-to-br ${styles.soft} p-5 md:p-6`}>
+                <div className="mb-4 flex items-center justify-between">
+                  <div className="text-sm uppercase tracking-[0.25em] text-slate-300">
+                    Live Score
                   </div>
-                  <div className={`rounded-full border px-3 py-1 text-xs font-semibold ${palette.badge}`}>
+                  <div className={`rounded-full border px-3 py-1 text-xs font-semibold ${styles.badge}`}>
                     {rating.label}
                   </div>
                 </div>
 
-                <div className="mb-4 flex items-end gap-3">
-                  <div className="text-6xl font-black leading-none">{score}</div>
-                  <div className="pb-2 text-2xl font-bold text-slate-300">%</div>
-                  <div className="pb-1 text-4xl">{rating.emoji}</div>
+                <div className="mb-5 flex items-center justify-center">
+                  <div className="relative h-44 w-44">
+                    <svg className="h-full w-full -rotate-90" viewBox="0 0 160 160">
+                      <circle
+                        cx="80"
+                        cy="80"
+                        r={circleRadius}
+                        fill="transparent"
+                        stroke="rgba(255,255,255,0.08)"
+                        strokeWidth="12"
+                      />
+                      <circle
+                        cx="80"
+                        cy="80"
+                        r={circleRadius}
+                        fill="transparent"
+                        stroke="currentColor"
+                        strokeWidth="12"
+                        strokeLinecap="round"
+                        strokeDasharray={circumference}
+                        strokeDashoffset={dashOffset}
+                        className={`${styles.ring} transition-all duration-500`}
+                      />
+                    </svg>
+
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <div className="text-4xl font-black">{score}%</div>
+                      <div className="mt-1 text-3xl">{rating.emoji}</div>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="mb-4 h-4 overflow-hidden rounded-full bg-slate-800">
-                  <div
-                    className={`h-full rounded-full bg-gradient-to-r transition-all duration-300 ${palette.progress}`}
-                    style={{ width: `${score}%` }}
+                <div className="text-center">
+                  <div className="text-xl font-semibold">{rating.label}</div>
+                  <p className="mt-2 text-sm leading-6 text-slate-300">{rating.desc}</p>
+                </div>
+              </div>
+
+              <div className="border-t border-white/10 p-5 md:p-6">
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="rounded-2xl border border-white/10 bg-slate-950/50 p-4">
+                    <div className="text-[11px] uppercase tracking-[0.2em] text-slate-500">
+                      Confirmed
+                    </div>
+                    <div className="mt-2 text-2xl font-bold">{checkedCount}</div>
+                  </div>
+
+                  <div className="rounded-2xl border border-white/10 bg-slate-950/50 p-4">
+                    <div className="text-[11px] uppercase tracking-[0.2em] text-slate-500">
+                      Missing
+                    </div>
+                    <div className="mt-2 text-2xl font-bold">{missingCount}</div>
+                  </div>
+
+                  <div className="rounded-2xl border border-white/10 bg-slate-950/50 p-4">
+                    <div className="text-[11px] uppercase tracking-[0.2em] text-slate-500">
+                      Rules
+                    </div>
+                    <div className="mt-2 text-2xl font-bold">{totalCount}</div>
+                  </div>
+                </div>
+
+                <div className="mt-5 rounded-3xl border border-white/10 bg-slate-950/50 p-4">
+                  <div className="mb-2 text-sm font-semibold text-slate-200">
+                    Minimum score to qualify
+                  </div>
+
+                  <div className="mb-3 flex items-center justify-between text-sm text-slate-400">
+                    <span>Your rule</span>
+                    <span className="font-semibold text-white">{minScore}%</span>
+                  </div>
+
+                  <input
+                    type="range"
+                    min={50}
+                    max={95}
+                    step={5}
+                    value={minScore}
+                    onChange={(e) => setMinScore(Number(e.target.value))}
+                    className="w-full accent-emerald-400"
                   />
-                </div>
 
-                <p className="text-sm leading-6 text-slate-300">{rating.desc}</p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3 border-t border-slate-800 p-5">
-                <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
-                  <div className="text-xs uppercase tracking-[0.2em] text-slate-500">
-                    Confirmed
+                  <div
+                    className={`mt-4 rounded-2xl border px-4 py-3 text-sm font-medium ${
+                      qualifies
+                        ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-200'
+                        : 'border-red-500/20 bg-red-500/10 text-red-200'
+                    }`}
+                  >
+                    {qualifies
+                      ? 'This trade passes your minimum quality requirement.'
+                      : 'This trade does not yet qualify under your rule.'}
                   </div>
-                  <div className="mt-2 text-3xl font-bold">{checkedCount}</div>
                 </div>
 
-                <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
-                  <div className="text-xs uppercase tracking-[0.2em] text-slate-500">
-                    Total Rules
-                  </div>
-                  <div className="mt-2 text-3xl font-bold">{totalCount}</div>
-                </div>
-              </div>
-
-              <div className="border-t border-slate-800 p-5">
-                <div className="mb-3 text-sm font-semibold text-slate-200">
-                  Score Guide
-                </div>
-
-                <div className="space-y-2 text-sm">
+                <div className="mt-5 space-y-2 text-sm">
                   <div className="flex items-center justify-between rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-red-200">
                     <span>No Trade</span>
                     <span>0–34%</span>
@@ -291,7 +380,7 @@ export default function Home() {
                     <span>Weak</span>
                     <span>35–54%</span>
                   </div>
-                  <div className="flex items-center justify-between rounded-xl border border-yellow-500/20 bg-yellow-500/10 px-3 py-2 text-yellow-200">
+                  <div className="flex items-center justify-between rounded-xl border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-amber-200">
                     <span>Average</span>
                     <span>55–74%</span>
                   </div>
@@ -309,156 +398,171 @@ export default function Home() {
           </aside>
 
           <section className="space-y-6">
-            <div className="rounded-[28px] border border-slate-800 bg-slate-900/80 p-5 shadow-2xl backdrop-blur md:p-6">
-              <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-                <div className="w-full">
+            <div className="rounded-[30px] border border-white/10 bg-white/5 p-5 shadow-2xl backdrop-blur-xl md:p-6">
+              <div className="mb-6 flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+                <div className="w-full max-w-xl">
                   <label className="mb-2 block text-sm text-slate-300">
-                    Tool Name
+                    App Name
                   </label>
+
                   <input
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    className="w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition focus:border-slate-500"
+                    className="w-full rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 text-white outline-none transition focus:border-slate-500"
                   />
                 </div>
 
-                <button
-                  onClick={loadStarterRules}
-                  className="rounded-2xl border border-slate-700 px-4 py-3 font-semibold text-white transition hover:bg-slate-800"
-                >
-                  Load Starter Rules
-                </button>
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    onClick={loadStarterRules}
+                    className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 font-semibold text-white transition hover:bg-white/10"
+                  >
+                    Load Starter Rules
+                  </button>
+
+                  <button
+                    onClick={resetChecks}
+                    className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 font-semibold text-white transition hover:bg-white/10"
+                  >
+                    Reset Checks
+                  </button>
+
+                  <button
+                    onClick={clearAllRules}
+                    className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 font-semibold text-red-200 transition hover:bg-red-500/20"
+                  >
+                    Clear All
+                  </button>
+                </div>
               </div>
 
-              <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
+              <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
                 <div>
                   <label className="mb-2 block text-sm text-slate-300">
-                    Write one rule per line
+                    Rule Builder — one rule per line
                   </label>
+
                   <textarea
                     value={bulkRules}
                     onChange={(e) => setBulkRules(e.target.value)}
-                    className="min-h-[260px] w-full rounded-3xl border border-slate-700 bg-slate-950 px-4 py-4 text-white outline-none transition focus:border-slate-500"
-                    placeholder="Trend is clear
-Entry is at key level
-Risk is acceptable"
+                    className="min-h-[280px] w-full rounded-[26px] border border-white/10 bg-slate-950/60 px-4 py-4 text-white outline-none transition focus:border-slate-500"
+                    placeholder={`Trend is clear on my timeframe
+Entry is at a key level
+Risk is acceptable
+Trade matches my strategy exactly`}
                   />
 
                   <div className="mt-4 flex flex-wrap gap-3">
                     <button
                       onClick={applyRules}
-                      className="rounded-2xl bg-white px-5 py-3 font-semibold text-black transition hover:opacity-90"
+                      className={`rounded-2xl px-5 py-3 font-semibold transition ${styles.button}`}
                     >
                       Apply Rules
                     </button>
 
-                    <button
-                      onClick={resetChecks}
-                      className="rounded-2xl border border-slate-700 px-5 py-3 font-semibold text-white transition hover:bg-slate-800"
-                    >
-                      Reset Checks
-                    </button>
+                    <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-300">
+                      Your page auto-saves after every change
+                    </div>
                   </div>
                 </div>
 
-                <div className="rounded-3xl border border-slate-800 bg-slate-950/70 p-4">
-                  <div className="mb-3 text-lg font-semibold">Quick Add Rule</div>
+                <div className="rounded-[26px] border border-white/10 bg-slate-950/50 p-4 md:p-5">
+                  <div className="text-lg font-semibold">Quick Add Rule</div>
+                  <p className="mt-1 text-sm text-slate-400">
+                    Add a new condition without rewriting your full list.
+                  </p>
 
-                  <div className="flex flex-col gap-3">
+                  <div className="mt-4 flex flex-col gap-3">
                     <input
                       value={newRule}
                       onChange={(e) => setNewRule(e.target.value)}
-                      placeholder="Example: Reward is at least 2R"
-                      className="w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition focus:border-slate-500"
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') addRule()
                       }}
+                      placeholder="Example: Reward is at least 2R"
+                      className="w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white outline-none transition focus:border-slate-500"
                     />
 
                     <button
                       onClick={addRule}
-                      className="rounded-2xl bg-emerald-500 px-5 py-3 font-semibold text-black transition hover:opacity-90"
+                      className={`rounded-2xl px-5 py-3 font-semibold transition ${styles.button}`}
                     >
                       Add Rule
                     </button>
                   </div>
 
-                  <div className="mt-6">
-                    <div className="mb-3 text-sm font-semibold text-slate-200">
-                      Why this tool helps
+                  <div className="mt-6 space-y-3">
+                    <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-300">
+                      Good rules reduce hesitation and emotional entries.
                     </div>
-
-                    <div className="space-y-3 text-sm text-slate-400">
-                      <div className="rounded-2xl border border-slate-800 bg-slate-900 px-4 py-3">
-                        It forces you to slow down before entry.
-                      </div>
-                      <div className="rounded-2xl border border-slate-800 bg-slate-900 px-4 py-3">
-                        It makes your own rules visible and measurable.
-                      </div>
-                      <div className="rounded-2xl border border-slate-800 bg-slate-900 px-4 py-3">
-                        It reduces impulsive trades driven by boredom or emotion.
-                      </div>
+                    <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-300">
+                      Your score should reflect quality, not excitement.
+                    </div>
+                    <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-300">
+                      A skipped low-quality trade is still a professional decision.
                     </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="rounded-[28px] border border-slate-800 bg-slate-900/80 p-5 shadow-2xl backdrop-blur md:p-6">
-              <div className="mb-5 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+            <div className="rounded-[30px] border border-white/10 bg-white/5 p-5 shadow-2xl backdrop-blur-xl md:p-6">
+              <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <div>
                   <h2 className="text-2xl font-bold">Checklist</h2>
                   <p className="mt-1 text-sm text-slate-400">
-                    Tick only the conditions that are truly present in this trade.
+                    Tick only what is truly present in this setup.
                   </p>
                 </div>
 
-                <div className="rounded-2xl border border-slate-800 bg-slate-950/70 px-4 py-2 text-sm text-slate-300">
-                  {checkedCount} / {totalCount} confirmed
+                <div className={`rounded-full border px-4 py-2 text-sm font-medium ${styles.pill}`}>
+                  {checkedCount} of {totalCount} confirmed
                 </div>
               </div>
 
               {rules.length === 0 ? (
-                <div className="rounded-3xl border border-dashed border-slate-700 bg-slate-950/70 p-10 text-center text-slate-400">
+                <div className="rounded-[26px] border border-dashed border-white/10 bg-slate-950/50 p-10 text-center text-slate-400">
                   No rules yet. Add your rules and press Apply Rules.
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {rules.map((rule) => (
+                  {rules.map((rule, index) => (
                     <div
                       key={rule.id}
-                      className={`group flex items-center gap-3 rounded-3xl border p-4 transition ${
+                      className={`group flex items-center gap-3 rounded-[24px] border p-4 transition ${
                         rule.checked
-                          ? 'border-emerald-500/30 bg-emerald-500/10'
-                          : 'border-slate-800 bg-slate-950/70 hover:border-slate-700'
+                          ? 'border-emerald-500/20 bg-emerald-500/10'
+                          : 'border-white/10 bg-slate-950/50 hover:bg-white/5'
                       }`}
                     >
                       <button
                         onClick={() => toggleRule(rule.id)}
                         className="flex flex-1 items-center gap-4 text-left"
                       >
-                        <span
-                          className={`flex h-9 w-9 items-center justify-center rounded-xl border text-lg ${
+                        <div
+                          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border text-sm font-bold ${
                             rule.checked
-                              ? 'border-emerald-400 bg-emerald-400 text-black'
-                              : 'border-slate-700 bg-slate-900 text-slate-500'
+                              ? 'border-emerald-400 bg-emerald-400 text-slate-950'
+                              : 'border-white/10 bg-white/5 text-slate-400'
                           }`}
                         >
-                          {rule.checked ? '✓' : ''}
-                        </span>
+                          {rule.checked ? '✓' : index + 1}
+                        </div>
 
-                        <span
-                          className={`text-base ${
-                            rule.checked ? 'text-white' : 'text-slate-200'
-                          }`}
-                        >
-                          {rule.text}
-                        </span>
+                        <div className="flex-1">
+                          <div
+                            className={`text-base ${
+                              rule.checked ? 'text-white' : 'text-slate-200'
+                            }`}
+                          >
+                            {rule.text}
+                          </div>
+                        </div>
                       </button>
 
                       <button
                         onClick={() => deleteRule(rule.id)}
-                        className="rounded-xl border border-slate-800 px-3 py-2 text-sm text-slate-400 transition hover:bg-slate-800 hover:text-white"
+                        className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-400 transition hover:bg-white/10 hover:text-white"
                       >
                         Delete
                       </button>
