@@ -230,7 +230,7 @@ export default function Home() {
       </div>
 
       <div className="fixed inset-x-0 top-0 z-50 px-3 pt-2 md:px-4">
-        <div className="mx-auto max-w-7xl rounded-[22px] border border-white/10 bg-slate-950/88 shadow-2xl backdrop-blur-xl">
+        <div className="mx-auto max-w-7xl overflow-hidden rounded-[22px] border border-white/10 bg-slate-950/88 shadow-2xl backdrop-blur-xl">
           <div className={`bg-gradient-to-r ${styles.soft} p-2.5 md:p-3`}>
             <div className="grid gap-2 md:grid-cols-[220px_minmax(0,1fr)_auto] md:items-center">
               <div className="rounded-[18px] border border-white/10 bg-slate-950/50 p-2.5">
@@ -313,7 +313,7 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="relative mx-auto max-w-7xl px-4 pb-6 pt-[122px] md:px-6 md:pt-[132px] lg:px-8 lg:pb-8">
+      <div className="relative mx-auto max-w-7xl px-4 pb-6 pt-[148px] md:px-6 md:pt-[156px] lg:px-8 lg:pb-8 lg:pt-[160px]">
         <div className="mb-6 rounded-[28px] border border-white/10 bg-white/5 p-5 shadow-2xl backdrop-blur-xl md:p-6">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div className="max-w-3xl">
