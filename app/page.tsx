@@ -250,81 +250,186 @@ export default function Home() {
         </div>
 
         <div className="space-y-6">
-          <div className="sticky top-3 z-20 overflow-hidden rounded-[30px] border border-white/10 bg-white/5 shadow-2xl backdrop-blur-xl">
-            <div className={`bg-gradient-to-br ${styles.soft} p-4 md:p-5`}>
-              <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                <div className="text-sm uppercase tracking-[0.25em] text-slate-300">
-                  Live Score
-                </div>
-                <div className={`w-fit rounded-full border px-3 py-1 text-xs font-semibold ${styles.badge}`}>
-                  {rating.label}
-                </div>
-              </div>
+          <div className="sticky top-3 z-20 overflow-hidden rounded-[26px] border border-white/10 bg-white/5 shadow-2xl backdrop-blur-xl">
+  <div className={`bg-gradient-to-br ${styles.soft} p-3 md:p-4`}>
+    <div className="mb-3 flex items-center justify-between gap-3">
+      <div className="text-xs uppercase tracking-[0.22em] text-slate-300">
+        Live Score
+      </div>
+      <div className={`w-fit rounded-full border px-2.5 py-1 text-[11px] font-semibold ${styles.badge}`}>
+        {rating.label}
+      </div>
+    </div>
 
-              <div className="grid gap-4 lg:grid-cols-[180px_minmax(0,1fr)] lg:items-center">
-                <div className="flex items-center justify-center">
-                  <div className="relative h-32 w-32 md:h-36 md:w-36">
-                    <svg className="h-full w-full -rotate-90" viewBox="0 0 120 120">
-                      <circle
-                        cx="60"
-                        cy="60"
-                        r={circleRadius}
-                        fill="transparent"
-                        stroke="rgba(255,255,255,0.08)"
-                        strokeWidth="10"
-                      />
-                      <circle
-                        cx="60"
-                        cy="60"
-                        r={circleRadius}
-                        fill="transparent"
-                        stroke="currentColor"
-                        strokeWidth="10"
-                        strokeLinecap="round"
-                        strokeDasharray={circumference}
-                        strokeDashoffset={dashOffset}
-                        className={`${styles.ring} transition-all duration-500`}
-                      />
-                    </svg>
+    <div className="grid gap-3 md:grid-cols-[120px_minmax(0,1fr)] md:items-center">
+      <div className="flex items-center justify-center">
+        <div className="relative h-24 w-24 md:h-28 md:w-28">
+          <svg className="h-full w-full -rotate-90" viewBox="0 0 120 120">
+            <circle
+              cx="60"
+              cy="60"
+              r={circleRadius}
+              fill="transparent"
+              stroke="rgba(255,255,255,0.08)"
+              strokeWidth="10"
+            />
+            <circle
+              cx="60"
+              cy="60"
+              r={circleRadius}
+              fill="transparent"
+              stroke="currentColor"
+              strokeWidth="10"
+              strokeLinecap="round"
+              strokeDasharray={circumference}
+              strokeDashoffset={dashOffset}
+              className={`${styles.ring} transition-all duration-500`}
+            />
+          </svg>
 
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <div className="text-3xl font-black md:text-4xl">{score}%</div>
-                      <div className="mt-1 text-2xl md:text-3xl">{rating.emoji}</div>
-                    </div>
-                  </div>
-                </div>
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <div className="text-2xl font-black md:text-3xl">{score}%</div>
+            <div className="mt-0.5 text-xl md:text-2xl">{rating.emoji}</div>
+          </div>
+        </div>
+      </div>
 
-                <div>
-                  <div className="text-center lg:text-left">
-                    <div className="text-lg font-semibold md:text-xl">{rating.label}</div>
-                    <p className="mt-2 text-sm leading-6 text-slate-300">{rating.desc}</p>
-                  </div>
+      <div className="space-y-3">
+        <div className="text-center md:text-left">
+          <div className="text-base font-semibold md:text-lg">{rating.label}</div>
+          <p className="mt-1 text-xs leading-5 text-slate-300 md:text-sm">
+            {rating.desc}
+          </p>
+        </div>
 
-                  <div className="mt-4 grid grid-cols-3 gap-2 md:gap-3">
-                    <div className="rounded-2xl border border-white/10 bg-slate-950/50 p-3">
-                      <div className="text-[10px] uppercase tracking-[0.2em] text-slate-500 md:text-[11px]">
-                        Confirmed
-                      </div>
-                      <div className="mt-1 text-xl font-bold md:text-2xl">{checkedCount}</div>
-                    </div>
-
-                    <div className="rounded-2xl border border-white/10 bg-slate-950/50 p-3">
-                      <div className="text-[10px] uppercase tracking-[0.2em] text-slate-500 md:text-[11px]">
-                        Missing
-                      </div>
-                      <div className="mt-1 text-xl font-bold md:text-2xl">{missingCount}</div>
-                    </div>
-
-                    <div className="rounded-2xl border border-white/10 bg-slate-950/50 p-3">
-                      <div className="text-[10px] uppercase tracking-[0.2em] text-slate-500 md:text-[11px]">
-                        Rules
-                      </div>
-                      <div className="mt-1 text-xl font-bold md:text-2xl">{totalCount}</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+        <div className="grid grid-cols-3 gap-2">
+          <div className="rounded-2xl border border-white/10 bg-slate-950/50 p-2.5">
+            <div className="text-[9px] uppercase tracking-[0.2em] text-slate-500 md:text-[10px]">
+              Confirmed
             </div>
+            <div className="mt-1 text-lg font-bold md:text-xl">{checkedCount}</div>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-slate-950/50 p-2.5">
+            <div className="text-[9px] uppercase tracking-[0.2em] text-slate-500 md:text-[10px]">
+              Missing
+            </div>
+            <div className="mt-1 text-lg font-bold md:text-xl">{missingCount}</div>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-slate-950/50 p-2.5">
+            <div className="text-[9px] uppercase tracking-[0.2em] text-slate-500 md:text-[10px]">
+              Rules
+            </div>
+            <div className="mt-1 text-lg font-bold md:text-xl">{totalCount}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div className="border-t border-white/10 p-3 md:p-4">
+    <div className="flex flex-wrap gap-2 text-xs">
+      <div className="rounded-full border border-red-500/20 bg-red-500/10 px-2.5 py-1 text-red-200">
+        No Trade 0–34%
+      </div>
+      <div className="rounded-full border border-orange-500/20 bg-orange-500/10 px-2.5 py-1 text-orange-200">
+        Weak 35–54%
+      </div>
+      <div className="rounded-full border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 text-amber-200">
+        Average 55–74%
+      </div>
+      <div className="rounded-full border border-lime-500/20 bg-lime-500/10 px-2.5 py-1 text-lime-200">
+        Good 75–89%
+      </div>
+      <div className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-emerald-200">
+        A+ 90–100%
+      </div>
+    </div>
+
+    <div className="mt-3 grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+      <div className="rounded-[22px] border border-white/10 bg-slate-950/50 p-3">
+        <div className="mb-2 text-sm font-semibold text-slate-200">
+          Minimum score
+        </div>
+
+        <div className="mb-2 flex items-center justify-between text-xs text-slate-400">
+          <span>Your rule</span>
+          <span className="font-semibold text-white">{minScore}%</span>
+        </div>
+
+        <input
+          type="range"
+          min={50}
+          max={95}
+          step={5}
+          value={minScore}
+          onChange={(e) => setMinScore(Number(e.target.value))}
+          className="w-full accent-emerald-400"
+        />
+
+        <div
+          className={`mt-3 rounded-2xl border px-3 py-2 text-xs font-medium ${
+            qualifies
+              ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-200'
+              : 'border-red-500/20 bg-red-500/10 text-red-200'
+          }`}
+        >
+          {qualifies ? 'Trade qualifies.' : 'Trade does not qualify yet.'}
+        </div>
+      </div>
+
+      <div className="rounded-[22px] border border-white/10 bg-slate-950/50 p-3">
+        <div className="mb-2 text-sm font-semibold text-slate-200">
+          Add rule
+        </div>
+
+        <div className="flex items-center gap-2">
+          <input
+            value={newRule}
+            onChange={(e) => setNewRule(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') addRule()
+            }}
+            placeholder="Example: Reward is at least 2R"
+            className="w-full rounded-2xl border border-white/10 bg-slate-950/70 px-3 py-2.5 text-sm text-white outline-none transition focus:border-slate-500"
+          />
+
+          <button
+            onClick={addRule}
+            aria-label="Add rule"
+            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl text-xl font-bold transition ${styles.button}`}
+          >
+            +
+          </button>
+        </div>
+
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button
+            onClick={loadStarterRules}
+            className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-white transition hover:bg-white/10"
+          >
+            Load Starter
+          </button>
+
+          <button
+            onClick={resetChecks}
+            className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-white transition hover:bg-white/10"
+          >
+            Reset
+          </button>
+
+          <button
+            onClick={clearAllRules}
+            className="rounded-2xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs font-semibold text-red-200 transition hover:bg-red-500/20"
+          >
+            Clear
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
             <div className="border-t border-white/10 p-4 md:p-5">
               <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
