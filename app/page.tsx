@@ -181,7 +181,7 @@ export default function Home() {
   const styles = toneMap[rating.tone]
   const qualifies = score >= minScore
 
-  const circleRadius = 34
+  const circleRadius = 30
   const circumference = 2 * Math.PI * circleRadius
   const dashOffset = circumference - (score / 100) * circumference
 
@@ -227,7 +227,99 @@ export default function Home() {
         <div className="absolute bottom-0 left-1/3 h-72 w-72 rounded-full bg-violet-500/10 blur-3xl" />
       </div>
 
-      <div className="relative mx-auto max-w-7xl px-4 py-6 md:px-6 lg:px-8 lg:py-8">
+      {/* FIXED LIVE SCORE BAR */}
+      <div className="fixed inset-x-0 top-0 z-50 px-3 pt-2 md:px-4">
+        <div className="mx-auto max-w-7xl rounded-[22px] border border-white/10 bg-slate-950/88 shadow-2xl backdrop-blur-xl">
+          <div className={`bg-gradient-to-r ${styles.soft} p-2.5 md:p-3`}>
+            <div className="grid gap-2 md:grid-cols-[84px_minmax(0,1fr)_auto] md:items-center">
+              <div className="mx-auto flex items-center justify-center md:mx-0">
+                <div className="relative h-[72px] w-[72px] md:h-[78px] md:w-[78px]">
+                  <svg className="h-full w-full -rotate-90" viewBox="0 0 100 100">
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r={circleRadius}
+                      fill="transparent"
+                      stroke="rgba(255,255,255,0.08)"
+                      strokeWidth="8"
+                    />
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r={circleRadius}
+                      fill="transparent"
+                      stroke="currentColor"
+                      strokeWidth="8"
+                      strokeLinecap="round"
+                      strokeDasharray={circumference}
+                      strokeDashoffset={dashOffset}
+                      className={`${styles.ring} transition-all duration-500`}
+                    />
+                  </svg>
+
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <div className="text-[18px] font-black md:text-[20px]">{score}%</div>
+                    <div className="mt-0.5 text-[16px] md:text-[18px]">{rating.emoji}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="min-w-0 text-center md:text-left">
+                <div className="flex flex-wrap items-center justify-center gap-2 md:justify-start">
+                  <div
+                    className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold md:text-[11px] ${styles.badge}`}
+                  >
+                    {rating.label}
+                  </div>
+
+                  <div
+                    className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold md:text-[11px] ${
+                      qualifies
+                        ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-200'
+                        : 'border-red-500/20 bg-red-500/10 text-red-200'
+                    }`}
+                  >
+                    {qualifies ? 'Qualified' : 'Not Qualified'}
+                  </div>
+                </div>
+
+                <div className="mt-1 text-xs font-semibold text-white md:text-sm">
+                  {rating.action}
+                </div>
+
+                <p className="mt-1 line-clamp-2 text-[11px] leading-4 text-slate-300 md:text-xs md:leading-5">
+                  {rating.desc}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2">
+                <div className="rounded-2xl border border-white/10 bg-slate-950/50 px-2.5 py-2 text-center">
+                  <div className="text-[8px] uppercase tracking-[0.16em] text-slate-500 md:text-[9px]">
+                    Yes
+                  </div>
+                  <div className="mt-0.5 text-sm font-bold md:text-base">{checkedCount}</div>
+                </div>
+
+                <div className="rounded-2xl border border-white/10 bg-slate-950/50 px-2.5 py-2 text-center">
+                  <div className="text-[8px] uppercase tracking-[0.16em] text-slate-500 md:text-[9px]">
+                    No
+                  </div>
+                  <div className="mt-0.5 text-sm font-bold md:text-base">{missingCount}</div>
+                </div>
+
+                <div className="rounded-2xl border border-white/10 bg-slate-950/50 px-2.5 py-2 text-center">
+                  <div className="text-[8px] uppercase tracking-[0.16em] text-slate-500 md:text-[9px]">
+                    Total
+                  </div>
+                  <div className="mt-0.5 text-sm font-bold md:text-base">{totalCount}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="relative mx-auto max-w-7xl px-4 pb-6 pt-[122px] md:px-6 md:pt-[132px] lg:px-8 lg:pb-8">
         <div className="mb-6 rounded-[28px] border border-white/10 bg-white/5 p-5 shadow-2xl backdrop-blur-xl md:p-6">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div className="max-w-3xl">
@@ -252,95 +344,6 @@ export default function Home() {
         </div>
 
         <div className="space-y-4">
-          <div className="sticky top-2 z-40 rounded-[24px] border border-white/10 bg-slate-950/80 shadow-2xl backdrop-blur-xl">
-            <div className={`bg-gradient-to-r ${styles.soft} p-3 md:p-4`}>
-              <div className="grid gap-3 md:grid-cols-[92px_minmax(0,1fr)_auto] md:items-center">
-                <div className="mx-auto flex items-center justify-center md:mx-0">
-                  <div className="relative h-20 w-20 md:h-24 md:w-24">
-                    <svg className="h-full w-full -rotate-90" viewBox="0 0 100 100">
-                      <circle
-                        cx="50"
-                        cy="50"
-                        r={circleRadius}
-                        fill="transparent"
-                        stroke="rgba(255,255,255,0.08)"
-                        strokeWidth="8"
-                      />
-                      <circle
-                        cx="50"
-                        cy="50"
-                        r={circleRadius}
-                        fill="transparent"
-                        stroke="currentColor"
-                        strokeWidth="8"
-                        strokeLinecap="round"
-                        strokeDasharray={circumference}
-                        strokeDashoffset={dashOffset}
-                        className={`${styles.ring} transition-all duration-500`}
-                      />
-                    </svg>
-
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <div className="text-xl font-black md:text-2xl">{score}%</div>
-                      <div className="mt-0.5 text-lg md:text-xl">{rating.emoji}</div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="min-w-0 text-center md:text-left">
-                  <div className="flex flex-wrap items-center justify-center gap-2 md:justify-start">
-                    <div
-                      className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${styles.badge}`}
-                    >
-                      {rating.label}
-                    </div>
-
-                    <div
-                      className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${
-                        qualifies
-                          ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-200'
-                          : 'border-red-500/20 bg-red-500/10 text-red-200'
-                      }`}
-                    >
-                      {qualifies ? 'Qualified' : 'Not Qualified'}
-                    </div>
-                  </div>
-
-                  <div className="mt-2 text-sm font-semibold text-white md:text-base">
-                    {rating.action}
-                  </div>
-
-                  <p className="mt-1 text-xs leading-5 text-slate-300 md:text-sm">
-                    {rating.desc}
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="rounded-2xl border border-white/10 bg-slate-950/50 px-3 py-2 text-center">
-                    <div className="text-[9px] uppercase tracking-[0.18em] text-slate-500 md:text-[10px]">
-                      Yes
-                    </div>
-                    <div className="mt-1 text-base font-bold md:text-lg">{checkedCount}</div>
-                  </div>
-
-                  <div className="rounded-2xl border border-white/10 bg-slate-950/50 px-3 py-2 text-center">
-                    <div className="text-[9px] uppercase tracking-[0.18em] text-slate-500 md:text-[10px]">
-                      No
-                    </div>
-                    <div className="mt-1 text-base font-bold md:text-lg">{missingCount}</div>
-                  </div>
-
-                  <div className="rounded-2xl border border-white/10 bg-slate-950/50 px-3 py-2 text-center">
-                    <div className="text-[9px] uppercase tracking-[0.18em] text-slate-500 md:text-[10px]">
-                      Total
-                    </div>
-                    <div className="mt-1 text-base font-bold md:text-lg">{totalCount}</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
           <div className="rounded-[24px] border border-white/10 bg-white/5 p-3 shadow-2xl backdrop-blur-xl md:p-4">
             <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
               <div className="rounded-[22px] border border-white/10 bg-slate-950/50 p-3">
@@ -462,7 +465,7 @@ export default function Home() {
                 No rules yet. Add rules using the + button above.
               </div>
             ) : (
-              <div className="max-h-[640px] space-y-2 overflow-y-auto pr-1">
+              <div className="space-y-2">
                 {rules.map((rule, index) => (
                   <div
                     key={rule.id}
