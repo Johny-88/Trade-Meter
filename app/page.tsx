@@ -274,7 +274,9 @@ export default function Home() {
                   <div className="text-2xl font-black leading-none md:text-[30px]">
                     {score}%
                   </div>
-                  <div className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold md:text-[11px] ${styles.badge}`}>
+                  <div
+                    className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold md:text-[11px] ${styles.badge}`}
+                  >
                     {rating.label}
                   </div>
                 </div>
@@ -315,26 +317,26 @@ export default function Home() {
                 </p>
               </div>
 
-              <div className="grid grid-cols-3 gap-2">
-                <div className="rounded-2xl border border-white/10 bg-slate-950/50 px-2.5 py-2 text-center">
-                  <div className="text-[8px] uppercase tracking-[0.16em] text-slate-500 md:text-[9px]">
+              <div className="flex items-center justify-center gap-1.5 md:justify-end">
+                <div className="min-w-[52px] rounded-xl border border-white/10 bg-slate-950/50 px-2 py-1.5 text-center">
+                  <div className="text-[7px] uppercase tracking-[0.14em] text-slate-500 md:text-[8px]">
                     Yes
                   </div>
-                  <div className="mt-0.5 text-sm font-bold md:text-base">{checkedCount}</div>
+                  <div className="mt-0.5 text-xs font-bold md:text-sm">{checkedCount}</div>
                 </div>
 
-                <div className="rounded-2xl border border-white/10 bg-slate-950/50 px-2.5 py-2 text-center">
-                  <div className="text-[8px] uppercase tracking-[0.16em] text-slate-500 md:text-[9px]">
+                <div className="min-w-[52px] rounded-xl border border-white/10 bg-slate-950/50 px-2 py-1.5 text-center">
+                  <div className="text-[7px] uppercase tracking-[0.14em] text-slate-500 md:text-[8px]">
                     No
                   </div>
-                  <div className="mt-0.5 text-sm font-bold md:text-base">{missingCount}</div>
+                  <div className="mt-0.5 text-xs font-bold md:text-sm">{missingCount}</div>
                 </div>
 
-                <div className="rounded-2xl border border-white/10 bg-slate-950/50 px-2.5 py-2 text-center">
-                  <div className="text-[8px] uppercase tracking-[0.16em] text-slate-500 md:text-[9px]">
+                <div className="min-w-[52px] rounded-xl border border-white/10 bg-slate-950/50 px-2 py-1.5 text-center">
+                  <div className="text-[7px] uppercase tracking-[0.14em] text-slate-500 md:text-[8px]">
                     Total
                   </div>
-                  <div className="mt-0.5 text-sm font-bold md:text-base">{totalCount}</div>
+                  <div className="mt-0.5 text-xs font-bold md:text-sm">{totalCount}</div>
                 </div>
               </div>
             </div>
@@ -492,7 +494,7 @@ export default function Home() {
               </div>
             ) : (
               <div className="space-y-2">
-                {rules.map((rule, index) => (
+                {rules.map((rule) => (
                   <div
                     key={rule.id}
                     className={`group flex items-center gap-2.5 rounded-[20px] border p-3 transition md:gap-3 md:p-3.5 ${
@@ -512,7 +514,7 @@ export default function Home() {
                             : 'border-white/10 bg-white/5 text-slate-400'
                         }`}
                       >
-                        {rule.checked ? '✓' : index + 1}
+                        {rule.checked ? '✓' : ''}
                       </div>
 
                       <div className="flex-1">
