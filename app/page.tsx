@@ -29,6 +29,7 @@ const toneMap: Record<
     badge: string
     pill: string
     button: string
+    fill: string
   }
 > = {
   emerald: {
@@ -37,6 +38,7 @@ const toneMap: Record<
     badge: 'border-emerald-500/25 bg-emerald-500/10 text-emerald-300',
     pill: 'border-emerald-500/20 bg-emerald-500/10 text-emerald-200',
     button: 'bg-emerald-400 text-slate-950 hover:opacity-90',
+    fill: 'bg-emerald-400',
   },
   lime: {
     ring: 'text-lime-400',
@@ -44,6 +46,7 @@ const toneMap: Record<
     badge: 'border-lime-500/25 bg-lime-500/10 text-lime-300',
     pill: 'border-lime-500/20 bg-lime-500/10 text-lime-200',
     button: 'bg-lime-400 text-slate-950 hover:opacity-90',
+    fill: 'bg-lime-400',
   },
   amber: {
     ring: 'text-amber-400',
@@ -51,6 +54,7 @@ const toneMap: Record<
     badge: 'border-amber-500/25 bg-amber-500/10 text-amber-300',
     pill: 'border-amber-500/20 bg-amber-500/10 text-amber-200',
     button: 'bg-amber-400 text-slate-950 hover:opacity-90',
+    fill: 'bg-amber-400',
   },
   orange: {
     ring: 'text-orange-400',
@@ -58,6 +62,7 @@ const toneMap: Record<
     badge: 'border-orange-500/25 bg-orange-500/10 text-orange-300',
     pill: 'border-orange-500/20 bg-orange-500/10 text-orange-200',
     button: 'bg-orange-400 text-slate-950 hover:opacity-90',
+    fill: 'bg-orange-400',
   },
   red: {
     ring: 'text-red-400',
@@ -65,6 +70,7 @@ const toneMap: Record<
     badge: 'border-red-500/25 bg-red-500/10 text-red-300',
     pill: 'border-red-500/20 bg-red-500/10 text-red-200',
     button: 'bg-red-400 text-slate-950 hover:opacity-90',
+    fill: 'bg-red-400',
   },
 }
 
@@ -181,10 +187,6 @@ export default function Home() {
   const styles = toneMap[rating.tone]
   const qualifies = score >= minScore
 
-  const circleRadius = 30
-  const circumference = 2 * Math.PI * circleRadius
-  const dashOffset = circumference - (score / 100) * circumference
-
   const loadStarterRules = () => {
     setRules(starterRules.map(createRule))
   }
@@ -227,40 +229,32 @@ export default function Home() {
         <div className="absolute bottom-0 left-1/3 h-72 w-72 rounded-full bg-violet-500/10 blur-3xl" />
       </div>
 
-      {/* FIXED LIVE SCORE BAR */}
       <div className="fixed inset-x-0 top-0 z-50 px-3 pt-2 md:px-4">
         <div className="mx-auto max-w-7xl rounded-[22px] border border-white/10 bg-slate-950/88 shadow-2xl backdrop-blur-xl">
           <div className={`bg-gradient-to-r ${styles.soft} p-2.5 md:p-3`}>
-            <div className="grid gap-2 md:grid-cols-[84px_minmax(0,1fr)_auto] md:items-center">
-              <div className="mx-auto flex items-center justify-center md:mx-0">
-                <div className="relative h-[72px] w-[72px] md:h-[78px] md:w-[78px]">
-                  <svg className="h-full w-full -rotate-90" viewBox="0 0 100 100">
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r={circleRadius}
-                      fill="transparent"
-                      stroke="rgba(255,255,255,0.08)"
-                      strokeWidth="8"
-                    />
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r={circleRadius}
-                      fill="transparent"
-                      stroke="currentColor"
-                      strokeWidth="8"
-                      strokeLinecap="round"
-                      strokeDasharray={circumference}
-                      strokeDashoffset={dashOffset}
-                      className={`${styles.ring} transition-all duration-500`}
-                    />
-                  </svg>
+            <div className="grid gap-2 md:grid-cols-[220px_minmax(0,1fr)_auto] md:items-center">
+              <div className="rounded-[18px] border border-white/10 bg-slate-950/50 p-2.5">
+                <div className="mb-1.5 flex items-center justify-between">
+                  <span className="text-[10px] uppercase tracking-[0.18em] text-slate-400 md:text-[11px]">
+                    Live Score
+                  </span>
+                  <span className="text-base md:text-lg">{rating.emoji}</span>
+                </div>
 
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <div className="text-[18px] font-black md:text-[20px]">{score}%</div>
-                    <div className="mt-0.5 text-[16px] md:text-[18px]">{rating.emoji}</div>
+                <div className="mb-1.5 flex items-end justify-between gap-2">
+                  <div className="text-2xl font-black leading-none md:text-[30px]">
+                    {score}%
                   </div>
+                  <div className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold md:text-[11px] ${styles.badge}`}>
+                    {rating.label}
+                  </div>
+                </div>
+
+                <div className="h-2.5 overflow-hidden rounded-full bg-white/10">
+                  <div
+                    className={`h-full rounded-full transition-all duration-500 ${styles.fill}`}
+                    style={{ width: `${score}%` }}
+                  />
                 </div>
               </div>
 
