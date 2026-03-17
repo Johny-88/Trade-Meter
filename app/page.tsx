@@ -411,8 +411,8 @@ export default function Home() {
   const qualificationSummary = hasMissingRequired
     ? `Blocked • Mandatory rule missing • ${score}% scored vs ${minScore}% minimum`
     : qualifies
-    ? `Qualified by threshold • Quality: ${scoreBand.label} • ${score}% vs ${minScore}% minimum`
-    : `Below threshold • Quality: ${scoreBand.label} • ${score}% vs ${minScore}% minimum`
+    ? `Qualified by threshold • ${score}% vs ${minScore}% minimum`
+    : `Below threshold • ${score}% vs ${minScore}% minimum`
 
   useLayoutEffect(() => {
     const updateOffset = () => {
