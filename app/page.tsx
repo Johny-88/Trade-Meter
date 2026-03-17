@@ -2,23 +2,57 @@
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 
+type Weight = 5 | 10 | 20
+
 type Rule = {
   id: string
   text: string
   checked: boolean
+  weight: Weight
+  required: boolean
+}
+
+type StarterRule = {
+  text: string
+  weight: Weight
+  required: boolean
 }
 
 type Tone = 'emerald' | 'lime' | 'amber' | 'orange' | 'red'
 
 const STORAGE_KEY = 'trade-meter-pro-v2'
 
-const starterRules = [
-  'Trend is clear on my timeframe',
-  'Entry is at a key level',
-  'Risk is acceptable',
-  'Stop loss is defined before entry',
-  'Trade matches my strategy exactly',
-  'No emotional impulse is present',
+const starterRules: StarterRule[] = [
+  {
+    text: 'Trend is clear on my timeframe',
+    weight: 20,
+    required: true,
+  },
+  {
+    text: 'Entry is at a key level',
+    weight: 10,
+    required: false,
+  },
+  {
+    text: 'Risk is acceptable',
+    weight: 20,
+    required: true,
+  },
+  {
+    text: 'Stop loss is defined before entry',
+    weight: 20,
+    required: true,
+  },
+  {
+    text: 'Trade matches my strategy exactly',
+    weight: 20,
+    required: true,
+  },
+  {
+    text: 'No emotional impulse is present',
+    weight: 20,
+    required: true,
+  },
 ]
 
 const toneMap: Record<
@@ -78,11 +112,44 @@ function makeId() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 }
 
-function createRule(text: string): Rule {
+function getRuleDefaults(text: string) {
+  const starterRule = starterRules.find((rule) => rule.text === text)
+
+  if (starterRule) {
+    return {
+      weight: starterRule.weight,
+      required: starterRule.required,
+    }
+  }
+
+  return {
+    weight: 10 as Weight,
+    required: false,
+  }
+}
+
+function createRule(input: string | StarterRule): Rule {
+  const text = typeof input === 'string' ? input : input.text
+  const defaults = typeof input === 'string' ? getRuleDefaults(input) : input
+
   return {
     id: makeId(),
     text,
     checked: false,
+    weight: defaults.weight,
+    required: defaults.required,
+  }
+}
+
+function normalizeRule(rule: Partial<Rule> & { text: string }): Rule {
+  const defaults = getRuleDefaults(rule.text)
+
+  return {
+    id: typeof rule.id === 'string' && rule.id ? rule.id : makeId(),
+    text: rule.text,
+    checked: Boolean(rule.checked),
+    weight: rule.weight === 5 || rule.weight === 10 || rule.weight === 20 ? rule.weight : defaults.weight,
+    required: typeof rule.required === 'boolean' ? rule.required : defaults.required,
   }
 }
 
@@ -93,7 +160,17 @@ function parseRules(text: string) {
     .filter(Boolean)
 }
 
-function getRating(score: number) {
+function getRating(score: number, hasMissingRequired = false) {
+  if (hasMissingRequired) {
+    return {
+      label: 'No Trade',
+      desc: 'A required rule is missing, so this setup should not be taken yet.',
+      emoji: '🚫',
+      action: 'A mandatory condition is missing. Protect capital and wait.',
+      tone: 'red' as Tone,
+    }
+  }
+
   if (score >= 90) {
     return {
       label: 'A+ Setup',
@@ -147,7 +224,7 @@ export default function Home() {
   const title = 'Trade Meter'
   const [newRule, setNewRule] = useState('')
   const [minScore, setMinScore] = useState(75)
-  const [rules, setRules] = useState<Rule[]>(starterRules.map(createRule))
+  const [rules, setRules] = useState<Rule[]>(starterRules.map((rule) => createRule(rule)))
   const [topOffset, setTopOffset] = useState(0)
   const liveScoreRef = useRef<HTMLDivElement | null>(null)
 
@@ -163,9 +240,9 @@ export default function Home() {
       }
 
       if (Array.isArray(parsed.rules)) {
-        setRules(parsed.rules)
+        setRules(parsed.rules.map((rule) => normalizeRule(rule)))
       } else if (typeof parsed.bulkRules === 'string') {
-        setRules(parseRules(parsed.bulkRules).map(createRule))
+        setRules(parseRules(parsed.bulkRules).map((rule) => createRule(rule)))
       }
     } catch {}
   }, [])
@@ -184,10 +261,17 @@ export default function Home() {
   const checkedCount = rules.filter((rule) => rule.checked).length
   const totalCount = rules.length
   const missingCount = Math.max(totalCount - checkedCount, 0)
-  const score = totalCount > 0 ? Math.round((checkedCount / totalCount) * 100) : 0
-  const rating = useMemo(() => getRating(score), [score])
+  const totalPoints = rules.reduce((sum, rule) => sum + rule.weight, 0)
+  const checkedPoints = rules.reduce(
+    (sum, rule) => sum + (rule.checked ? rule.weight : 0),
+    0
+  )
+  const missingRequiredRules = rules.filter((rule) => rule.required && !rule.checked)
+  const hasMissingRequired = missingRequiredRules.length > 0
+  const score = totalPoints > 0 ? Math.round((checkedPoints / totalPoints) * 100) : 0
+  const rating = useMemo(() => getRating(score, hasMissingRequired), [score, hasMissingRequired])
   const styles = toneMap[rating.tone]
-  const qualifies = score >= minScore
+  const qualifies = score >= minScore && !hasMissingRequired
 
   useLayoutEffect(() => {
     const updateOffset = () => {
@@ -214,7 +298,7 @@ export default function Home() {
   ])
 
   const loadStarterRules = () => {
-    setRules(starterRules.map(createRule))
+    setRules(starterRules.map((rule) => createRule(rule)))
   }
 
   const clearAllRules = () => {
@@ -304,7 +388,11 @@ export default function Home() {
                         : 'border-red-500/20 bg-red-500/10 text-red-200'
                     }`}
                   >
-                    {qualifies ? 'Qualified to your score' : 'Not qualified to your score'}
+                    {qualifies
+                      ? 'Qualified to your score'
+                      : hasMissingRequired
+                      ? 'Blocked by a required rule'
+                      : 'Not qualified to your score'}
                   </div>
                 </div>
 
@@ -401,8 +489,16 @@ export default function Home() {
                 >
                   {qualifies
                     ? 'This trade passes your minimum quality requirement.'
+                    : hasMissingRequired
+                    ? 'This trade is blocked until all required rules are present.'
                     : 'This trade does not yet qualify under your rule.'}
                 </div>
+
+                {hasMissingRequired && (
+                  <div className="mt-2 rounded-2xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-[11px] leading-5 text-red-200 md:text-xs">
+                    Required missing: {missingRequiredRules.map((rule) => rule.text).join(', ')}
+                  </div>
+                )}
 
                 <div className="mt-3 flex flex-wrap gap-2 text-[11px] md:text-xs">
                   <div className="rounded-full border border-red-500/20 bg-red-500/10 px-2.5 py-1 text-red-200">
