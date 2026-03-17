@@ -150,20 +150,20 @@ const importanceOptions: { value: Importance; label: string }[] = [
 function getImportanceBadge(importance: Importance) {
   if (importance === 'mandatory') {
     return {
-      label: 'Mandatory • 20 pts',
+      label: 'Mandatory',
       className: 'border-red-500/20 bg-red-500/10 text-red-200',
     }
   }
 
   if (importance === 'bonus') {
     return {
-      label: 'Bonus • 5 pts',
+      label: 'Bonus',
       className: 'border-sky-500/20 bg-sky-500/10 text-sky-200',
     }
   }
 
   return {
-    label: 'Important • 10 pts',
+    label: 'Important',
     className: 'border-amber-500/20 bg-amber-500/10 text-amber-200',
   }
 }
