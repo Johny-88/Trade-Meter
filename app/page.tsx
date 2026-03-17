@@ -320,21 +320,21 @@ export default function Home() {
               <div className="grid grid-cols-3 gap-1.5 md:flex md:items-center md:justify-end">
                 <div className="flex min-w-0 items-center justify-between rounded-xl border border-white/10 bg-slate-950/50 px-2.5 py-2 md:min-w-[52px] md:block md:px-2 md:py-1.5 md:text-center">
                   <div className="text-[7px] uppercase tracking-[0.14em] text-slate-500 md:text-[8px]">
-                    Yes
+                    Present rules
                   </div>
                   <div className="text-xs font-bold leading-none md:mt-0.5 md:text-sm">{checkedCount}</div>
                 </div>
 
                 <div className="flex min-w-0 items-center justify-between rounded-xl border border-white/10 bg-slate-950/50 px-2.5 py-2 md:min-w-[52px] md:block md:px-2 md:py-1.5 md:text-center">
                   <div className="text-[7px] uppercase tracking-[0.14em] text-slate-500 md:text-[8px]">
-                    No
+                    Missing rules
                   </div>
                   <div className="text-xs font-bold leading-none md:mt-0.5 md:text-sm">{missingCount}</div>
                 </div>
 
                 <div className="flex min-w-0 items-center justify-between rounded-xl border border-white/10 bg-slate-950/50 px-2.5 py-2 md:min-w-[52px] md:block md:px-2 md:py-1.5 md:text-center">
                   <div className="text-[7px] uppercase tracking-[0.14em] text-slate-500 md:text-[8px]">
-                    Total
+                    Total rules
                   </div>
                   <div className="text-xs font-bold leading-none md:mt-0.5 md:text-sm">{totalCount}</div>
                 </div>
