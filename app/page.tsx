@@ -389,7 +389,7 @@ export default function Home() {
 
   const qualificationSummary = hasMissingRequired
     ? score >= minScore
-      ? `Blocked: scored ${score}% but one or more Mandatory rules are missing.`
+      ? `Blocked: scored ${score}% and one or more Mandatory rules are missing.`
       : `Blocked: scored ${score}% (minimum ${minScore}%) and one or more Mandatory rules are missing.`
     : qualifies
     ? `Passed: scored ${score}% and met your minimum requirement of ${minScore}%.`
