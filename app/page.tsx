@@ -560,7 +560,7 @@ export default function Home() {
                     ? 'This trade passes your minimum quality requirement.'
                     : hasMissingRequired
                     ? 'This trade is blocked until all required rules are present.'
-                    : 'This trade does not yet qualify under your rule.'}
+                    : 'This trade does not yet qualify under your rule.'
                 </div>
 
                 {hasMissingRequired && (
