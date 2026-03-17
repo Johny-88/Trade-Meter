@@ -461,7 +461,7 @@ export default function Home() {
                       ? 'Passed your minimum score requirements'
                       : hasMissingRequired
                       ? 'Blocked by one or more missing MANDATORY rules'
-                      : 'Didn't pass your minimum score requirements'}
+                      : 'Did not pass your minimum score requirements'}
                   </div>
                 </div>
 
