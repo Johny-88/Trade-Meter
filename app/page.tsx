@@ -479,7 +479,7 @@ export default function Home() {
               <div>
                 <h2 className="text-xl font-bold md:text-2xl">Checklist</h2>
                 <p className="mt-1 text-sm text-slate-400">
-                  Tick only what is truly present in this setup.
+                  Tick only what is truly present in this setup. Not what you want to see, but what is actually on the charts!!!
                 </p>
               </div>
 
