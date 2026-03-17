@@ -314,13 +314,28 @@ function getDecisionRating(
   if (score < minScore) {
     return {
       label: scoreBand.label,
-      desc: `Quality is currently ${scoreBand.label}. Score: ${score}% vs minimum ${minScore}%.`,
+      desc: `This setup rates as ${scoreBand.label}, but it does not meet your current minimum threshold of ${minScore}%.`,
       emoji: scoreBand.emoji,
-      action: `${scoreBand.label}, but below your minimum threshold. Wait for better alignment.`,
-      tone: score >= Math.max(minScore - 10, 0) ? ('amber' as Tone) : ('red' as Tone),
+      action:
+        score >= 75
+          ? 'Setup quality is strong, but it is still below your minimum threshold. Wait for a cleaner score or lower the threshold only if that change is intentional.'
+          : score >= 55
+          ? 'Setup quality is decent, but it still does not qualify under your current threshold. Be patient and wait for stronger alignment.'
+          : 'This setup is below your current threshold. Wait for better alignment before taking the trade.',
+      tone:
+        score >= 55
+          ? ('amber' as Tone)
+          : score >= 35
+          ? ('orange' as Tone)
+          : ('red' as Tone),
       bandLabel: scoreBand.label,
-      decisionLabel: 'DO NOT TRADE',
-      decisionTone: 'red' as Tone,
+      decisionLabel: 'NOT QUALIFIED BY THRESHOLD',
+      decisionTone:
+        score >= 55
+          ? ('amber' as Tone)
+          : score >= 35
+          ? ('orange' as Tone)
+          : ('red' as Tone),
     }
   }
 
@@ -544,9 +559,9 @@ export default function Home() {
                     {score}%
                   </div>
                   <div
-                    className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] md:text-[11px] ${decisionStyles.badge}`}
+                    className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold md:text-[11px] ${scoreBandStyles.badge}`}
                   >
-                    {rating.decisionLabel}
+                    {scoreBand.label}
                   </div>
                 </div>
 
@@ -561,9 +576,9 @@ export default function Home() {
               <div className="min-w-0 text-center md:text-left">
                 <div className="flex flex-wrap items-center justify-center gap-2 md:justify-start">
                   <div
-                    className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold md:text-[11px] ${scoreBandStyles.badge}`}
+                    className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] md:text-[11px] ${decisionStyles.badge}`}
                   >
-                    {scoreBand.label}
+                    {rating.decisionLabel}
                   </div>
 
                   <div
