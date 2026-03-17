@@ -304,7 +304,7 @@ export default function Home() {
                         : 'border-red-500/20 bg-red-500/10 text-red-200'
                     }`}
                   >
-                    {qualifies ? 'Qualified to your score' : 'Not Qualified to your score'}
+                    {qualifies ? 'Qualified to your score' : 'Not qualified to your score'}
                   </div>
                 </div>
 
