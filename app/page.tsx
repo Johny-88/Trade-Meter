@@ -458,10 +458,10 @@ export default function Home() {
                     }`}
                   >
                     {qualifies
-                      ? 'Qualified to your score'
+                      ? 'Passed your minimum score requirements'
                       : hasMissingRequired
                       ? 'Blocked by one or more missing MANDATORY rules'
-                      : 'Not qualified to your score'}
+                      : 'Didn't pass your minimum score requirements'}
                   </div>
                 </div>
 
