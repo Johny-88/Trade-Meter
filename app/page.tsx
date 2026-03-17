@@ -265,7 +265,7 @@ export default function Home() {
               <div className="rounded-[18px] border border-white/10 bg-slate-950/50 p-2.5">
                 <div className="mb-1.5 flex items-center justify-between">
                   <span className="text-[10px] uppercase tracking-[0.18em] text-slate-400 md:text-[11px]">
-                    Live Score
+                    Your Setup Score
                   </span>
                   <span className="text-base md:text-lg">{rating.emoji}</span>
                 </div>
@@ -377,7 +377,7 @@ export default function Home() {
               <div className="rounded-[22px] border border-white/10 bg-slate-950/50 p-3">
                 <div className="mb-2 flex items-center justify-between">
                   <div className="text-sm font-semibold text-slate-200">
-                    Set your minimum acceptable score
+                    Set your minimum setup quality score
                   </div>
                   <div className="text-sm font-semibold text-white">{minScore}%</div>
                 </div>
