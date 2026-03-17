@@ -399,7 +399,8 @@ export default function Home() {
   )
   const styles = toneMap[rating.tone]
   const scoreBandStyles = toneMap[scoreBand.tone]
-  const qualifies = score >= minScore && !hasMissingRequired
+  const meetsMinScore = score >= minScore
+  const qualifies = meetsMinScore && !hasMissingRequired
 
   const qualificationTone: Tone = hasMissingRequired
     ? 'red'
@@ -409,7 +410,9 @@ export default function Home() {
   const qualificationStyles = toneMap[qualificationTone]
 
   const qualificationSummary = hasMissingRequired
-    ? `Blocked • ${missingRequiredRules.length} Mandatory ${missingRequiredRules.length === 1 ? 'rule' : 'rules'} missing`
+    ? meetsMinScore
+      ? `Blocked • ${missingRequiredRules.length} Mandatory ${missingRequiredRules.length === 1 ? 'rule' : 'rules'} missing`
+      : `Blocked • ${missingRequiredRules.length} Mandatory ${missingRequiredRules.length === 1 ? 'rule' : 'rules'} missing • Below threshold (${score}% vs ${minScore}% minimum)`
     : qualifies
     ? `Qualified by threshold • ${score}% vs ${minScore}% minimum`
     : `Below threshold • ${score}% vs ${minScore}% minimum`
