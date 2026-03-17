@@ -460,7 +460,7 @@ export default function Home() {
                     {qualifies
                       ? 'Qualified to your score'
                       : hasMissingRequired
-                      ? 'Blocked by one or more missing REQUIRED rules'
+                      ? 'Blocked by one or more missing MANDATORY rules'
                       : 'Not qualified to your score'}
                   </div>
                 </div>
