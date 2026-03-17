@@ -377,15 +377,15 @@ export default function Home() {
               <div className="rounded-[22px] border border-white/10 bg-slate-950/50 p-3">
                 <div className="mb-2 flex items-center justify-between">
                   <div className="text-sm font-semibold text-slate-200">
-                    Minimum score
+                    Set your minimum acceptable score
                   </div>
                   <div className="text-sm font-semibold text-white">{minScore}%</div>
                 </div>
 
                 <input
                   type="range"
-                  min={50}
-                  max={95}
+                  min={0}
+                  max={100}
                   step={5}
                   value={minScore}
                   onChange={(e) => setMinScore(Number(e.target.value))}
