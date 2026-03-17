@@ -312,7 +312,7 @@ function getDecisionRating(
   if (score < minScore) {
     return {
       label: scoreBand.label,
-      desc: `This setup scores ${score}%, which is below your minimum requirement of ${minScore}%.`,
+      desc: `Quality is currently ${scoreBand.label}. Score: ${score}% vs minimum ${minScore}%.`,
       emoji: scoreBand.emoji,
       action: `${scoreBand.label}, but below your minimum threshold. Wait for better alignment.`,
       tone: score >= Math.max(minScore - 10, 0) ? ('amber' as Tone) : ('red' as Tone),
@@ -320,8 +320,22 @@ function getDecisionRating(
     }
   }
 
+  if (score >= 75) {
+    return {
+      ...scoreBand,
+      desc: `This setup qualifies under your current minimum of ${minScore}% and rates as ${scoreBand.label}.`,
+      bandLabel: scoreBand.label,
+    }
+  }
+
   return {
     ...scoreBand,
+    desc: `This setup qualifies under your current minimum of ${minScore}%, but its overall quality is still only ${scoreBand.label}.`,
+    action:
+      score >= 55
+        ? 'Qualified by threshold, but be selective. This is still only an Average setup.'
+        : 'Qualified by threshold, but setup quality is still weak. Waiting is usually the better trade.',
+    tone: scoreBand.tone,
     bandLabel: scoreBand.label,
   }
 }
@@ -387,13 +401,18 @@ export default function Home() {
   const scoreBandStyles = toneMap[scoreBand.tone]
   const qualifies = score >= minScore && !hasMissingRequired
 
-  const qualificationSummary = hasMissingRequired
-    ? score >= minScore
-      ? `Blocked: scored ${score}% and one or more Mandatory rules are missing.`
-      : `Blocked: scored ${score}% (minimum ${minScore}%) and one or more Mandatory rules are missing.`
+  const qualificationTone: Tone = hasMissingRequired
+    ? 'red'
     : qualifies
-    ? `Passed: scored ${score}% and met your minimum requirement of ${minScore}%.`
-    : `${scoreBand.label}, but below your minimum threshold of ${minScore}%.`
+    ? scoreBand.tone
+    : rating.tone
+  const qualificationStyles = toneMap[qualificationTone]
+
+  const qualificationSummary = hasMissingRequired
+    ? `Blocked • Mandatory rule missing • ${score}% scored vs ${minScore}% minimum`
+    : qualifies
+    ? `Qualified by threshold • Quality: ${scoreBand.label} • ${score}% vs ${minScore}% minimum`
+    : `Below threshold • Quality: ${scoreBand.label} • ${score}% vs ${minScore}% minimum`
 
   useLayoutEffect(() => {
     const updateOffset = () => {
@@ -524,11 +543,7 @@ export default function Home() {
                   </div>
 
                   <div
-                    className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold md:text-[11px] ${
-                      qualifies
-                        ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-200'
-                        : 'border-red-500/20 bg-red-500/10 text-red-200'
-                    }`}
+                    className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold md:text-[11px] ${qualificationStyles.badge}`}
                   >
                     {qualificationSummary}
                   </div>
