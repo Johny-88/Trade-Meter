@@ -447,8 +447,8 @@ export default function Home() {
 
   const qualificationSummary = hasMissingRequired
     ? meetsMinScore
-      ? `Blocked • ${missingRequiredRules.length} Mandatory ${missingRequiredRules.length === 1 ? 'rule' : 'rules'} missing`
-      : `Blocked • ${missingRequiredRules.length} Mandatory ${missingRequiredRules.length === 1 ? 'rule' : 'rules'} missing • Below threshold (${score}% vs ${minScore}% minimum)`
+      ? `${missingRequiredRules.length} Mandatory ${missingRequiredRules.length === 1 ? 'rule' : 'rules'} missing`
+      : `${missingRequiredRules.length} Mandatory ${missingRequiredRules.length === 1 ? 'rule' : 'rules'} missing • Below threshold (${score}% vs ${minScore}% minimum)`
     : qualifies
     ? `Qualified by threshold • ${score}% vs ${minScore}% minimum`
     : `Below threshold • ${score}% vs ${minScore}% minimum`
