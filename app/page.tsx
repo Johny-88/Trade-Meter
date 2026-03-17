@@ -409,7 +409,7 @@ export default function Home() {
   const qualificationStyles = toneMap[qualificationTone]
 
   const qualificationSummary = hasMissingRequired
-    ? `Blocked • Mandatory rule missing • ${score}% scored vs ${minScore}% minimum`
+    ? `Blocked • ${missingRequiredRules.length} Mandatory ${missingRequiredRules.length === 1 ? 'rule' : 'rules'} missing`
     : qualifies
     ? `Qualified by threshold • ${score}% vs ${minScore}% minimum`
     : `Below threshold • ${score}% vs ${minScore}% minimum`
