@@ -586,8 +586,9 @@ export default function Home() {
         <div className="mb-6 rounded-[28px] border border-white/10 bg-white/5 p-5 shadow-2xl backdrop-blur-xl md:p-6">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div className="max-w-3xl">
-              <div className="mb-2 inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.3em] text-slate-300">
-                Trading Discipline App
+              <div className="mb-2 flex w-fit mx-auto items-center rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.3em] text-slate-300">
+                 Trading Discipline App
+              </div>
               </div>
 
               <h1 className="mt-2 text-3xl font-bold tracking-tight md:text-5xl">
