@@ -627,25 +627,6 @@ export default function Home() {
                   className="w-full accent-emerald-400"
                 />
 
-                <div
-                  className={`mt-3 rounded-2xl border px-3 py-2 text-xs font-medium md:text-sm ${
-                    qualifies
-                      ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-200'
-                      : 'border-red-500/20 bg-red-500/10 text-red-200'
-                  }`}
-                >
-                  {qualifies
-                    ? `This trade passes your minimum quality requirement of ${minScore}%.`
-                    : hasMissingRequired
-                    ? `This trade scored ${score}% but is blocked until all Mandatory rules are present.`
-                    : `This trade scored ${score}% and does not meet your minimum quality requirement of ${minScore}%.`}
-                </div>
-
-                {hasMissingRequired && (
-                  <div className="mt-2 rounded-2xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-[11px] leading-5 text-red-200 md:text-xs">
-                    Mandatory missing: {missingRequiredRules.map((rule) => rule.text).join(', ')}
-                  </div>
-                )}
 
                 <div className="mt-3 flex flex-wrap gap-2 text-[11px] md:text-xs">
                   <div className="rounded-full border border-red-500/20 bg-red-500/10 px-2.5 py-1 text-red-200">
@@ -668,7 +649,7 @@ export default function Home() {
 
               <div className="rounded-[22px] border border-white/10 bg-slate-950/50 p-3">
                 <div className="mb-2 text-sm font-semibold text-slate-200">
-                  Add rule directly to checklist
+                  Add your own rules to checklist
                 </div>
 
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
