@@ -25,28 +25,28 @@ const STORAGE_KEY = 'trade-meter-pro-v2'
 
 const starterRules: StarterRule[] = [
   {
-    text: 'Trend is clear on my timeframe',
-    importance: 'mandatory',
-  },
-  {
-    text: 'Entry is at a key level',
-    importance: 'important',
-  },
-  {
-    text: 'Risk is acceptable',
-    importance: 'mandatory',
+    text: 'No emotional impulse is present',
+    importance: 'Mandatory',
   },
   {
     text: 'Stop loss is defined before entry',
-    importance: 'mandatory',
+    importance: 'Mandatory',
   },
   {
-    text: 'Trade matches my strategy exactly',
-    importance: 'mandatory',
+    text: 'Risk is acceptable',
+    importance: 'Important',
   },
   {
-    text: 'No emotional impulse is present',
-    importance: 'important',
+    text: 'Reward is at least 2R',
+    importance: 'Important',
+  },
+  {
+    text: 'Candlestick setup present',
+    importance: 'Bonus',
+  },
+  {
+    text: 'Retested a previous level',
+    importance: 'Bonus',
   },
 ]
 
