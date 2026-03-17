@@ -153,6 +153,15 @@ function normalizeRule(rule: Partial<Rule> & { text: string }): Rule {
   }
 }
 
+function isStoredRule(value: unknown): value is Partial<Rule> & { text: string } {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'text' in value &&
+    typeof (value as { text?: unknown }).text === 'string'
+  )
+}
+
 function parseRules(text: string) {
   return text
     .split('\n')
@@ -240,9 +249,9 @@ export default function Home() {
       }
 
       if (Array.isArray(parsed.rules)) {
-        setRules(parsed.rules.map((rule) => normalizeRule(rule)))
+        setRules(parsed.rules.filter(isStoredRule).map((rule: Partial<Rule> & { text: string }) => normalizeRule(rule)))
       } else if (typeof parsed.bulkRules === 'string') {
-        setRules(parseRules(parsed.bulkRules).map((rule) => createRule(rule)))
+        setRules(parseRules(parsed.bulkRules).map((rule: string) => createRule(rule)))
       }
     } catch {}
   }, [])
