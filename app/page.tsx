@@ -314,7 +314,7 @@ function getDecisionRating(
   if (score < minScore) {
     return {
       label: scoreBand.label,
-      desc: `This setup rates as ${scoreBand.label}, but it does not meet your current minimum threshold of ${minScore}%.`,
+      desc: `This setup rates as ${scoreBand.label}, and it does not meet your current minimum threshold of ${minScore}%.`,
       emoji: scoreBand.emoji,
       action:
         score >= 75
