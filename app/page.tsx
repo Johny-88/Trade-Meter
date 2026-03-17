@@ -629,7 +629,7 @@ export default function Home() {
               <div className="rounded-[22px] border border-white/10 bg-slate-950/50 p-3">
                 <div className="mb-2 flex items-center justify-between gap-3">
                   <div className="text-sm font-semibold text-slate-200">
-                    Set your minimum setup quality score
+                    Set your minimum setup quality threshold
                   </div>
                   <div className="text-sm font-semibold text-white">{minScore}%</div>
                 </div>
