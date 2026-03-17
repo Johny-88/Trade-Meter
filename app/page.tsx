@@ -107,6 +107,10 @@ function makeId() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 }
 
+function normalizeRuleText(text: string) {
+  return text.trim().replace(/\s+/g, ' ').toLowerCase()
+}
+
 function getImportanceConfig(importance: Importance) {
   if (importance === 'mandatory') {
     return {
@@ -142,6 +146,27 @@ const importanceOptions: { value: Importance; label: string }[] = [
   { value: 'important', label: 'Important' },
   { value: 'bonus', label: 'Bonus' },
 ]
+
+function getImportanceBadge(importance: Importance) {
+  if (importance === 'mandatory') {
+    return {
+      label: 'Mandatory • 20 pts',
+      className: 'border-red-500/20 bg-red-500/10 text-red-200',
+    }
+  }
+
+  if (importance === 'bonus') {
+    return {
+      label: 'Bonus • 5 pts',
+      className: 'border-sky-500/20 bg-sky-500/10 text-sky-200',
+    }
+  }
+
+  return {
+    label: 'Important • 10 pts',
+    className: 'border-amber-500/20 bg-amber-500/10 text-amber-200',
+  }
+}
 
 function getRuleDefaults(text: string) {
   const starterRule = starterRules.find((rule) => rule.text === text)
@@ -209,17 +234,7 @@ function parseRules(text: string) {
     .filter(Boolean)
 }
 
-function getRating(score: number, hasMissingRequired = false) {
-  if (hasMissingRequired) {
-    return {
-      label: 'No Trade',
-      desc: 'A required rule is missing, so this setup should not be taken yet.',
-      emoji: '🚫',
-      action: 'A mandatory condition is missing. Protect capital and wait.',
-      tone: 'red' as Tone,
-    }
-  }
-
+function getScoreBand(score: number) {
   if (score >= 90) {
     return {
       label: 'A+ Setup',
@@ -269,10 +284,53 @@ function getRating(score: number, hasMissingRequired = false) {
   }
 }
 
+function getDecisionRating(
+  score: number,
+  minScore: number,
+  hasMissingRequired: boolean,
+  missingRequiredCount: number
+) {
+  const scoreBand = getScoreBand(score)
+
+  if (hasMissingRequired) {
+    return {
+      label: 'No Trade',
+      desc:
+        score >= minScore
+          ? `This setup has enough points, but ${missingRequiredCount === 1 ? 'one Mandatory rule is' : 'Mandatory rules are'} still missing.`
+          : `This setup is below your minimum score and ${missingRequiredCount === 1 ? 'one Mandatory rule is' : 'Mandatory rules are'} still missing.`,
+      emoji: '🚫',
+      action:
+        score >= minScore
+          ? 'Blocked setup. Do not take it until every Mandatory rule is confirmed.'
+          : 'Blocked setup. It is below your minimum threshold and also missing Mandatory confirmation.',
+      tone: 'red' as Tone,
+      bandLabel: scoreBand.label,
+    }
+  }
+
+  if (score < minScore) {
+    return {
+      label: scoreBand.label,
+      desc: `This setup scores ${score}%, which is below your minimum requirement of ${minScore}%.`,
+      emoji: scoreBand.emoji,
+      action: `${scoreBand.label}, but below your minimum threshold. Wait for better alignment.`,
+      tone: score >= Math.max(minScore - 10, 0) ? ('amber' as Tone) : ('red' as Tone),
+      bandLabel: scoreBand.label,
+    }
+  }
+
+  return {
+    ...scoreBand,
+    bandLabel: scoreBand.label,
+  }
+}
+
 export default function Home() {
   const title = 'Trade Meter'
   const [newRule, setNewRule] = useState('')
   const [newRuleImportance, setNewRuleImportance] = useState<Importance>('important')
+  const [newRuleError, setNewRuleError] = useState('')
   const [minScore, setMinScore] = useState(75)
   const [rules, setRules] = useState<Rule[]>(starterRules.map((rule) => createRule(rule)))
   const [topOffset, setTopOffset] = useState(0)
@@ -316,12 +374,26 @@ export default function Home() {
     (sum, rule) => sum + (rule.checked ? rule.weight : 0),
     0
   )
+  const missingPoints = Math.max(totalPoints - checkedPoints, 0)
   const missingRequiredRules = rules.filter((rule) => rule.required && !rule.checked)
   const hasMissingRequired = missingRequiredRules.length > 0
   const score = totalPoints > 0 ? Math.round((checkedPoints / totalPoints) * 100) : 0
-  const rating = useMemo(() => getRating(score, hasMissingRequired), [score, hasMissingRequired])
+  const scoreBand = useMemo(() => getScoreBand(score), [score])
+  const rating = useMemo(
+    () => getDecisionRating(score, minScore, hasMissingRequired, missingRequiredRules.length),
+    [score, minScore, hasMissingRequired, missingRequiredRules.length]
+  )
   const styles = toneMap[rating.tone]
+  const scoreBandStyles = toneMap[scoreBand.tone]
   const qualifies = score >= minScore && !hasMissingRequired
+
+  const qualificationSummary = hasMissingRequired
+    ? score >= minScore
+      ? `Blocked: scored ${score}% but one or more Mandatory rules are missing.`
+      : `Blocked: scored ${score}% (minimum ${minScore}%) and one or more Mandatory rules are missing.`
+    : qualifies
+    ? `Passed: scored ${score}% and met your minimum requirement of ${minScore}%.`
+    : `${scoreBand.label}, but below your minimum threshold of ${minScore}%.`
 
   useLayoutEffect(() => {
     const updateOffset = () => {
@@ -340,21 +412,27 @@ export default function Home() {
     checkedCount,
     missingCount,
     totalCount,
+    checkedPoints,
+    missingPoints,
+    totalPoints,
     minScore,
     qualifies,
     rating.label,
     rating.desc,
     rating.action,
+    qualificationSummary,
   ])
 
   const loadStarterRules = () => {
     setRules(starterRules.map((rule) => createRule(rule)))
+    setNewRuleError('')
   }
 
   const clearAllRules = () => {
     setRules([])
     setNewRule('')
     setNewRuleImportance('important')
+    setNewRuleError('')
   }
 
   const resetChecks = () => {
@@ -365,10 +443,21 @@ export default function Home() {
     const trimmed = newRule.trim()
     if (!trimmed) return
 
+    const normalizedNewRule = normalizeRuleText(trimmed)
+    const alreadyExists = rules.some(
+      (rule) => normalizeRuleText(rule.text) === normalizedNewRule
+    )
+
+    if (alreadyExists) {
+      setNewRuleError('This rule already exists. Keep each condition only once so the score stays accurate.')
+      return
+    }
+
     const rule = createRule(trimmed, newRuleImportance)
     setRules((prev) => [...prev, rule])
     setNewRule('')
     setNewRuleImportance('important')
+    setNewRuleError('')
   }
 
   const toggleRule = (id: string) => {
@@ -381,23 +470,7 @@ export default function Home() {
 
   const deleteRule = (id: string) => {
     setRules((prev) => prev.filter((rule) => rule.id !== id))
-  }
-
-  const updateRuleImportance = (id: string, importance: Importance) => {
-    const config = getImportanceConfig(importance)
-
-    setRules((prev) =>
-      prev.map((rule) =>
-        rule.id === id
-          ? {
-              ...rule,
-              importance: config.importance,
-              weight: config.weight,
-              required: config.required,
-            }
-          : rule
-      )
-    )
+    setNewRuleError('')
   }
 
   return (
@@ -428,9 +501,9 @@ export default function Home() {
                     {score}%
                   </div>
                   <div
-                    className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold md:text-[11px] ${styles.badge}`}
+                    className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold md:text-[11px] ${scoreBandStyles.badge}`}
                   >
-                    {rating.label}
+                    {scoreBand.label}
                   </div>
                 </div>
 
@@ -445,9 +518,9 @@ export default function Home() {
               <div className="min-w-0 text-center md:text-left">
                 <div className="flex flex-wrap items-center justify-center gap-2 md:justify-start">
                   <div
-                    className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold md:text-[11px] ${styles.badge}`}
+                    className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold md:text-[11px] ${scoreBandStyles.badge}`}
                   >
-                    {rating.label}
+                    {scoreBand.label}
                   </div>
 
                   <div
@@ -457,11 +530,7 @@ export default function Home() {
                         : 'border-red-500/20 bg-red-500/10 text-red-200'
                     }`}
                   >
-                    {qualifies
-                      ? 'Passed your minimum score requirements'
-                      : hasMissingRequired
-                      ? 'Blocked by one or more missing MANDATORY rules'
-                      : 'Did not pass your minimum score requirements'}
+                    {qualificationSummary}
                   </div>
                 </div>
 
@@ -475,25 +544,34 @@ export default function Home() {
               </div>
 
               <div className="grid grid-cols-3 gap-1.5 md:flex md:items-center md:justify-end">
-                <div className="flex min-w-0 items-center justify-between rounded-xl border border-white/10 bg-slate-950/50 px-2.5 py-2 md:min-w-[52px] md:block md:px-2 md:py-1.5 md:text-center">
+                <div className="min-w-0 rounded-xl border border-white/10 bg-slate-950/50 px-2.5 py-2 md:min-w-[96px] md:px-2 md:py-1.5">
                   <div className="text-[7px] uppercase tracking-[0.14em] text-slate-500 md:text-[8px]">
-                    Present rules
+                    Checked
                   </div>
-                  <div className="text-xs font-bold leading-none md:mt-0.5 md:text-sm">{checkedCount}</div>
+                  <div className="mt-1 flex items-center justify-between gap-2 md:block md:text-center">
+                    <div className="text-xs font-bold leading-none md:text-sm">{checkedPoints} pts</div>
+                    <div className="text-[10px] text-slate-400 md:mt-0.5 md:text-[11px]">{checkedCount} rules</div>
+                  </div>
                 </div>
 
-                <div className="flex min-w-0 items-center justify-between rounded-xl border border-white/10 bg-slate-950/50 px-2.5 py-2 md:min-w-[52px] md:block md:px-2 md:py-1.5 md:text-center">
+                <div className="min-w-0 rounded-xl border border-white/10 bg-slate-950/50 px-2.5 py-2 md:min-w-[96px] md:px-2 md:py-1.5">
                   <div className="text-[7px] uppercase tracking-[0.14em] text-slate-500 md:text-[8px]">
-                    Missing rules
+                    Missing
                   </div>
-                  <div className="text-xs font-bold leading-none md:mt-0.5 md:text-sm">{missingCount}</div>
+                  <div className="mt-1 flex items-center justify-between gap-2 md:block md:text-center">
+                    <div className="text-xs font-bold leading-none md:text-sm">{missingPoints} pts</div>
+                    <div className="text-[10px] text-slate-400 md:mt-0.5 md:text-[11px]">{missingCount} rules</div>
+                  </div>
                 </div>
 
-                <div className="flex min-w-0 items-center justify-between rounded-xl border border-white/10 bg-slate-950/50 px-2.5 py-2 md:min-w-[52px] md:block md:px-2 md:py-1.5 md:text-center">
+                <div className="min-w-0 rounded-xl border border-white/10 bg-slate-950/50 px-2.5 py-2 md:min-w-[96px] md:px-2 md:py-1.5">
                   <div className="text-[7px] uppercase tracking-[0.14em] text-slate-500 md:text-[8px]">
-                    Total rules
+                    Total
                   </div>
-                  <div className="text-xs font-bold leading-none md:mt-0.5 md:text-sm">{totalCount}</div>
+                  <div className="mt-1 flex items-center justify-between gap-2 md:block md:text-center">
+                    <div className="text-xs font-bold leading-none md:text-sm">{totalPoints} pts</div>
+                    <div className="text-[10px] text-slate-400 md:mt-0.5 md:text-[11px]">{totalCount} rules</div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -532,7 +610,7 @@ export default function Home() {
           <div className="rounded-[24px] border border-white/10 bg-white/5 p-3 shadow-2xl backdrop-blur-xl md:p-4">
             <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
               <div className="rounded-[22px] border border-white/10 bg-slate-950/50 p-3">
-                <div className="mb-2 flex items-center justify-between">
+                <div className="mb-2 flex items-center justify-between gap-3">
                   <div className="text-sm font-semibold text-slate-200">
                     Set your minimum setup quality score
                   </div>
@@ -557,15 +635,15 @@ export default function Home() {
                   }`}
                 >
                   {qualifies
-                    ? 'This trade passes your minimum quality requirement.'
+                    ? `This trade passes your minimum quality requirement of ${minScore}%.`
                     : hasMissingRequired
-                    ? 'This trade is blocked until all required rules are present.'
-                    : 'This trade does not yet qualify under your rule.'}
+                    ? `This trade scored ${score}% but is blocked until all Mandatory rules are present.`
+                    : `This trade scored ${score}% and does not meet your minimum quality requirement of ${minScore}%.`}
                 </div>
 
                 {hasMissingRequired && (
                   <div className="mt-2 rounded-2xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-[11px] leading-5 text-red-200 md:text-xs">
-                    Required missing: {missingRequiredRules.map((rule) => rule.text).join(', ')}
+                    Mandatory missing: {missingRequiredRules.map((rule) => rule.text).join(', ')}
                   </div>
                 )}
 
@@ -596,7 +674,10 @@ export default function Home() {
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                   <input
                     value={newRule}
-                    onChange={(e) => setNewRule(e.target.value)}
+                    onChange={(e) => {
+                      setNewRule(e.target.value)
+                      if (newRuleError) setNewRuleError('')
+                    }}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') addRule()
                     }}
@@ -626,6 +707,12 @@ export default function Home() {
                     </button>
                   </div>
                 </div>
+
+                {newRuleError && (
+                  <div className="mt-2 rounded-2xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-[11px] leading-5 text-red-200 md:text-xs">
+                    {newRuleError}
+                  </div>
+                )}
 
                 <div className="mt-3 flex flex-wrap gap-2">
                   <button
@@ -663,7 +750,7 @@ export default function Home() {
               </div>
 
               <div className={`rounded-full border px-4 py-2 text-sm font-medium ${styles.pill}`}>
-                {checkedCount} of {totalCount} confirmed
+                {checkedPoints} / {totalPoints} pts • {checkedCount} / {totalCount} rules
               </div>
             </div>
 
@@ -673,64 +760,61 @@ export default function Home() {
               </div>
             ) : (
               <div className="space-y-2">
-                {rules.map((rule) => (
-                  <div
-                    key={rule.id}
-                    className={`group flex items-center gap-2.5 rounded-[20px] border p-3 transition md:gap-3 md:p-3.5 ${
-                      rule.checked
-                        ? 'border-emerald-500/20 bg-emerald-500/10'
-                        : 'border-white/10 bg-slate-950/50 hover:bg-white/5'
-                    }`}
-                  >
-                    <button
-                      onClick={() => toggleRule(rule.id)}
-                      className="flex flex-1 items-center gap-3 text-left md:gap-4"
-                    >
-                      <div
-                        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border text-sm font-bold md:h-11 md:w-11 ${
-                          rule.checked
-                            ? 'border-emerald-400 bg-emerald-400 text-slate-950'
-                            : 'border-white/10 bg-white/5 text-slate-400'
-                        }`}
-                      >
-                        {rule.checked ? '✓' : ''}
-                      </div>
+                {rules.map((rule) => {
+                  const importanceBadge = getImportanceBadge(rule.importance)
 
-                      <div className="flex-1">
+                  return (
+                    <div
+                      key={rule.id}
+                      className={`group flex items-center gap-2.5 rounded-[20px] border p-3 transition md:gap-3 md:p-3.5 ${
+                        rule.checked
+                          ? 'border-emerald-500/20 bg-emerald-500/10'
+                          : 'border-white/10 bg-slate-950/50 hover:bg-white/5'
+                      }`}
+                    >
+                      <button
+                        onClick={() => toggleRule(rule.id)}
+                        className="flex flex-1 items-center gap-3 text-left md:gap-4"
+                      >
                         <div
-                          className={`text-sm leading-5 md:text-base ${
-                            rule.checked ? 'text-white' : 'text-slate-200'
+                          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border text-sm font-bold md:h-11 md:w-11 ${
+                            rule.checked
+                              ? 'border-emerald-400 bg-emerald-400 text-slate-950'
+                              : 'border-white/10 bg-white/5 text-slate-400'
                           }`}
                         >
-                          {rule.text}
+                          {rule.checked ? '✓' : ''}
                         </div>
-                      </div>
-                    </button>
 
-                    <div className="flex items-center gap-2">
-                      <select
-                        value={rule.importance}
-                        onChange={(e) => updateRuleImportance(rule.id, e.target.value as Importance)}
-                        className="h-9 rounded-xl border border-white/10 bg-white/5 px-2.5 text-[11px] text-slate-200 outline-none transition focus:border-slate-500 md:h-10 md:text-xs"
-                        aria-label="Rule importance"
-                      >
-                        {importanceOptions.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
-
-                      <button
-                        onClick={() => deleteRule(rule.id)}
-                        className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-lg text-slate-400 transition hover:bg-white/10 hover:text-white md:h-10 md:w-10"
-                        aria-label="Delete rule"
-                      >
-                        -
+                        <div className="flex-1">
+                          <div
+                            className={`text-sm leading-5 md:text-base ${
+                              rule.checked ? 'text-white' : 'text-slate-200'
+                            }`}
+                          >
+                            {rule.text}
+                          </div>
+                        </div>
                       </button>
+
+                      <div className="flex items-center gap-2">
+                        <div
+                          className={`rounded-xl border px-2.5 py-2 text-[11px] font-medium md:text-xs ${importanceBadge.className}`}
+                        >
+                          {importanceBadge.label}
+                        </div>
+
+                        <button
+                          onClick={() => deleteRule(rule.id)}
+                          className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-lg text-slate-400 transition hover:bg-white/10 hover:text-white md:h-10 md:w-10"
+                          aria-label="Delete rule"
+                        >
+                          -
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             )}
           </div>
