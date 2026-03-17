@@ -3,6 +3,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 
 type Weight = 5 | 10 | 20
+type Importance = 'mandatory' | 'important' | 'bonus'
 
 type Rule = {
   id: string
@@ -10,12 +11,12 @@ type Rule = {
   checked: boolean
   weight: Weight
   required: boolean
+  importance: Importance
 }
 
 type StarterRule = {
   text: string
-  weight: Weight
-  required: boolean
+  importance: Importance
 }
 
 type Tone = 'emerald' | 'lime' | 'amber' | 'orange' | 'red'
@@ -25,33 +26,27 @@ const STORAGE_KEY = 'trade-meter-pro-v2'
 const starterRules: StarterRule[] = [
   {
     text: 'Trend is clear on my timeframe',
-    weight: 20,
-    required: true,
+    importance: 'mandatory',
   },
   {
     text: 'Entry is at a key level',
-    weight: 10,
-    required: false,
+    importance: 'important',
   },
   {
     text: 'Risk is acceptable',
-    weight: 20,
-    required: true,
+    importance: 'mandatory',
   },
   {
     text: 'Stop loss is defined before entry',
-    weight: 20,
-    required: true,
+    importance: 'mandatory',
   },
   {
     text: 'Trade matches my strategy exactly',
-    weight: 20,
-    required: true,
+    importance: 'mandatory',
   },
   {
     text: 'No emotional impulse is present',
-    weight: 20,
-    required: true,
+    importance: 'important',
   },
 ]
 
@@ -112,25 +107,60 @@ function makeId() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 }
 
-function getRuleDefaults(text: string) {
-  const starterRule = starterRules.find((rule) => rule.text === text)
-
-  if (starterRule) {
+function getImportanceConfig(importance: Importance) {
+  if (importance === 'mandatory') {
     return {
-      weight: starterRule.weight,
-      required: starterRule.required,
+      importance,
+      weight: 20 as Weight,
+      required: true,
+    }
+  }
+
+  if (importance === 'bonus') {
+    return {
+      importance,
+      weight: 5 as Weight,
+      required: false,
     }
   }
 
   return {
+    importance: 'important' as Importance,
     weight: 10 as Weight,
     required: false,
   }
 }
 
-function createRule(input: string | StarterRule): Rule {
+function getImportanceFromWeight(weight: Weight, required: boolean) {
+  if (required || weight === 20) return 'mandatory' as Importance
+  if (weight === 5) return 'bonus' as Importance
+  return 'important' as Importance
+}
+
+const importanceOptions: { value: Importance; label: string }[] = [
+  { value: 'mandatory', label: 'Mandatory' },
+  { value: 'important', label: 'Important' },
+  { value: 'bonus', label: 'Bonus' },
+]
+
+function getRuleDefaults(text: string) {
+  const starterRule = starterRules.find((rule) => rule.text === text)
+
+  if (starterRule) {
+    return getImportanceConfig(starterRule.importance)
+  }
+
+  return getImportanceConfig('important')
+}
+
+function createRule(input: string | StarterRule, importance?: Importance): Rule {
   const text = typeof input === 'string' ? input : input.text
-  const defaults = typeof input === 'string' ? getRuleDefaults(input) : input
+  const defaults =
+    typeof input === 'string'
+      ? importance
+        ? getImportanceConfig(importance)
+        : getRuleDefaults(input)
+      : getImportanceConfig(input.importance)
 
   return {
     id: makeId(),
@@ -138,18 +168,28 @@ function createRule(input: string | StarterRule): Rule {
     checked: false,
     weight: defaults.weight,
     required: defaults.required,
+    importance: defaults.importance,
   }
 }
 
 function normalizeRule(rule: Partial<Rule> & { text: string }): Rule {
   const defaults = getRuleDefaults(rule.text)
+  const weight = rule.weight === 5 || rule.weight === 10 || rule.weight === 20 ? rule.weight : defaults.weight
+  const required = typeof rule.required === 'boolean' ? rule.required : defaults.required
+  const importance =
+    rule.importance === 'mandatory' || rule.importance === 'important' || rule.importance === 'bonus'
+      ? rule.importance
+      : getImportanceFromWeight(weight, required)
+
+  const normalizedImportance = getImportanceConfig(importance)
 
   return {
     id: typeof rule.id === 'string' && rule.id ? rule.id : makeId(),
     text: rule.text,
     checked: Boolean(rule.checked),
-    weight: rule.weight === 5 || rule.weight === 10 || rule.weight === 20 ? rule.weight : defaults.weight,
-    required: typeof rule.required === 'boolean' ? rule.required : defaults.required,
+    weight: normalizedImportance.weight,
+    required: normalizedImportance.required,
+    importance: normalizedImportance.importance,
   }
 }
 
@@ -232,6 +272,7 @@ function getRating(score: number, hasMissingRequired = false) {
 export default function Home() {
   const title = 'Trade Meter'
   const [newRule, setNewRule] = useState('')
+  const [newRuleImportance, setNewRuleImportance] = useState<Importance>('important')
   const [minScore, setMinScore] = useState(75)
   const [rules, setRules] = useState<Rule[]>(starterRules.map((rule) => createRule(rule)))
   const [topOffset, setTopOffset] = useState(0)
@@ -313,6 +354,7 @@ export default function Home() {
   const clearAllRules = () => {
     setRules([])
     setNewRule('')
+    setNewRuleImportance('important')
   }
 
   const resetChecks = () => {
@@ -323,9 +365,10 @@ export default function Home() {
     const trimmed = newRule.trim()
     if (!trimmed) return
 
-    const rule = createRule(trimmed)
+    const rule = createRule(trimmed, newRuleImportance)
     setRules((prev) => [...prev, rule])
     setNewRule('')
+    setNewRuleImportance('important')
   }
 
   const toggleRule = (id: string) => {
@@ -338,6 +381,23 @@ export default function Home() {
 
   const deleteRule = (id: string) => {
     setRules((prev) => prev.filter((rule) => rule.id !== id))
+  }
+
+  const updateRuleImportance = (id: string, importance: Importance) => {
+    const config = getImportanceConfig(importance)
+
+    setRules((prev) =>
+      prev.map((rule) =>
+        rule.id === id
+          ? {
+              ...rule,
+              importance: config.importance,
+              weight: config.weight,
+              required: config.required,
+            }
+          : rule
+      )
+    )
   }
 
   return (
@@ -533,7 +593,7 @@ export default function Home() {
                   Add rule directly to checklist
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                   <input
                     value={newRule}
                     onChange={(e) => setNewRule(e.target.value)}
@@ -544,13 +604,27 @@ export default function Home() {
                     className="w-full rounded-2xl border border-white/10 bg-slate-950/70 px-3 py-2.5 text-sm text-white outline-none transition focus:border-slate-500"
                   />
 
-                  <button
-                    onClick={addRule}
-                    aria-label="Add rule"
-                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl text-xl font-bold transition ${styles.button}`}
-                  >
-                    +
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={newRuleImportance}
+                      onChange={(e) => setNewRuleImportance(e.target.value as Importance)}
+                      className="h-10 rounded-2xl border border-white/10 bg-slate-950/70 px-3 text-sm text-white outline-none transition focus:border-slate-500"
+                    >
+                      {importanceOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+
+                    <button
+                      onClick={addRule}
+                      aria-label="Add rule"
+                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl text-xl font-bold transition ${styles.button}`}
+                    >
+                      +
+                    </button>
+                  </div>
                 </div>
 
                 <div className="mt-3 flex flex-wrap gap-2">
@@ -633,12 +707,28 @@ export default function Home() {
                       </div>
                     </button>
 
-                    <button
-                      onClick={() => deleteRule(rule.id)}
-                      className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-slate-400 transition hover:bg-white/10 hover:text-white md:text-sm"
-                    >
-                      Delete
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <select
+                        value={rule.importance}
+                        onChange={(e) => updateRuleImportance(rule.id, e.target.value as Importance)}
+                        className="h-9 rounded-xl border border-white/10 bg-white/5 px-2.5 text-[11px] text-slate-200 outline-none transition focus:border-slate-500 md:h-10 md:text-xs"
+                        aria-label="Rule importance"
+                      >
+                        {importanceOptions.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+
+                      <button
+                        onClick={() => deleteRule(rule.id)}
+                        className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-lg text-slate-400 transition hover:bg-white/10 hover:text-white md:h-10 md:w-10"
+                        aria-label="Delete rule"
+                      >
+                        -
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
