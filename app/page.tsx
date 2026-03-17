@@ -306,6 +306,8 @@ function getDecisionRating(
           : 'Blocked setup. It is below your minimum threshold and also missing Mandatory confirmation.',
       tone: 'red' as Tone,
       bandLabel: scoreBand.label,
+      decisionLabel: 'BLOCKED — DO NOT TRADE',
+      decisionTone: 'red' as Tone,
     }
   }
 
@@ -317,6 +319,8 @@ function getDecisionRating(
       action: `${scoreBand.label}, but below your minimum threshold. Wait for better alignment.`,
       tone: score >= Math.max(minScore - 10, 0) ? ('amber' as Tone) : ('red' as Tone),
       bandLabel: scoreBand.label,
+      decisionLabel: 'DO NOT TRADE',
+      decisionTone: 'red' as Tone,
     }
   }
 
@@ -325,6 +329,8 @@ function getDecisionRating(
       ...scoreBand,
       desc: `This setup qualifies under your current minimum of ${minScore}% and rates as ${scoreBand.label}.`,
       bandLabel: scoreBand.label,
+      decisionLabel: 'TRADE',
+      decisionTone: scoreBand.tone,
     }
   }
 
@@ -334,9 +340,23 @@ function getDecisionRating(
     action:
       score >= 55
         ? 'Qualified by threshold, but be selective. This is still only an Average setup.'
-        : 'Qualified by threshold, but setup quality is still weak. Waiting is usually the better trade.',
+        : score >= 35
+        ? 'Qualified by threshold, but setup quality is still weak. Waiting is usually the better trade.'
+        : 'Qualified by threshold, but quality is still too low. Standing aside is the better decision.',
     tone: scoreBand.tone,
     bandLabel: scoreBand.label,
+    decisionLabel:
+      score >= 55
+        ? 'TRADE CAREFULLY'
+        : score >= 35
+        ? 'WAIT FOR MORE CONFIRMATION'
+        : 'DO NOT TRADE',
+    decisionTone:
+      score >= 55
+        ? ('amber' as Tone)
+        : score >= 35
+        ? ('orange' as Tone)
+        : ('red' as Tone),
   }
 }
 
@@ -399,6 +419,7 @@ export default function Home() {
   )
   const styles = toneMap[rating.tone]
   const scoreBandStyles = toneMap[scoreBand.tone]
+  const decisionStyles = toneMap[rating.decisionTone]
   const meetsMinScore = score >= minScore
   const qualifies = meetsMinScore && !hasMissingRequired
 
@@ -523,9 +544,9 @@ export default function Home() {
                     {score}%
                   </div>
                   <div
-                    className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold md:text-[11px] ${scoreBandStyles.badge}`}
+                    className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] md:text-[11px] ${decisionStyles.badge}`}
                   >
-                    {scoreBand.label}
+                    {rating.decisionLabel}
                   </div>
                 </div>
 
