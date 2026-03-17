@@ -589,7 +589,7 @@ export default function Home() {
               <div className="mb-2 flex w-fit mx-auto items-center rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.3em] text-slate-300">
                  Trading Discipline App
               </div>
-              </div>
+             
 
               <h1 className="mt-2 text-3xl font-bold tracking-tight md:text-5xl">
                 {title}
