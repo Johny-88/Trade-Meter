@@ -600,9 +600,7 @@ export default function Home() {
               </p>
             </div>
 
-            <div className={`rounded-2xl border px-4 py-3 text-sm ${styles.badge}`}>
-              {rating.action}
-            </div>
+      
           </div>
         </div>
 
