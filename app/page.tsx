@@ -714,7 +714,7 @@ export default function Home() {
                     onClick={clearAllRules}
                     className="rounded-2xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs font-semibold text-red-200 transition hover:bg-red-500/20"
                   >
-                    Clear
+                    Delete rules
                   </button>
                 </div>
               </div>
