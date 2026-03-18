@@ -20,8 +20,10 @@ type StarterRule = {
 }
 
 type Tone = 'emerald' | 'lime' | 'amber' | 'orange' | 'red'
+type AppTheme = 'dark' | 'light'
 
 const STORAGE_KEY = 'trade-meter-pro-v2'
+const THEME_STORAGE_KEY = 'trade-meter-theme-v1'
 
 const starterRules: StarterRule[] = [
   {
@@ -50,7 +52,7 @@ const starterRules: StarterRule[] = [
   },
 ]
 
-const toneMap: Record<
+const darkToneMap: Record<
   Tone,
   {
     ring: string
@@ -103,6 +105,171 @@ const toneMap: Record<
   },
 }
 
+const lightToneMap: Record<
+  Tone,
+  {
+    ring: string
+    soft: string
+    badge: string
+    pill: string
+    button: string
+    fill: string
+  }
+> = {
+  emerald: {
+    ring: 'text-emerald-700',
+    soft: 'from-emerald-200/80 to-emerald-50',
+    badge: 'border-emerald-300 bg-emerald-50 text-emerald-700',
+    pill: 'border-emerald-300 bg-emerald-50 text-emerald-700',
+    button: 'bg-emerald-500 text-white hover:opacity-90',
+    fill: 'bg-emerald-500',
+  },
+  lime: {
+    ring: 'text-lime-700',
+    soft: 'from-lime-200/80 to-lime-50',
+    badge: 'border-lime-300 bg-lime-50 text-lime-700',
+    pill: 'border-lime-300 bg-lime-50 text-lime-700',
+    button: 'bg-lime-500 text-white hover:opacity-90',
+    fill: 'bg-lime-500',
+  },
+  amber: {
+    ring: 'text-amber-700',
+    soft: 'from-amber-200/80 to-amber-50',
+    badge: 'border-amber-300 bg-amber-50 text-amber-700',
+    pill: 'border-amber-300 bg-amber-50 text-amber-700',
+    button: 'bg-amber-500 text-white hover:opacity-90',
+    fill: 'bg-amber-500',
+  },
+  orange: {
+    ring: 'text-orange-700',
+    soft: 'from-orange-200/80 to-orange-50',
+    badge: 'border-orange-300 bg-orange-50 text-orange-700',
+    pill: 'border-orange-300 bg-orange-50 text-orange-700',
+    button: 'bg-orange-500 text-white hover:opacity-90',
+    fill: 'bg-orange-500',
+  },
+  red: {
+    ring: 'text-red-700',
+    soft: 'from-red-200/80 to-red-50',
+    badge: 'border-red-300 bg-red-50 text-red-700',
+    pill: 'border-red-300 bg-red-50 text-red-700',
+    button: 'bg-red-500 text-white hover:opacity-90',
+    fill: 'bg-red-500',
+  },
+}
+
+const toneMaps: Record<AppTheme, typeof darkToneMap> = {
+  dark: darkToneMap,
+  light: lightToneMap,
+}
+
+const themeClasses: Record<
+  AppTheme,
+  {
+    main: string
+    glowOne: string
+    glowTwo: string
+    glowThree: string
+    liveOuter: string
+    scorePanel: string
+    card: string
+    innerCard: string
+    tag: string
+    muted: string
+    subtle: string
+    primaryStrong: string
+    secondaryStrong: string
+    statBox: string
+    statLabel: string
+    statMeta: string
+    barTrack: string
+    input: string
+    select: string
+    secondaryBtn: string
+    dangerBtn: string
+    errorBox: string
+    empty: string
+    ruleUnchecked: string
+    ruleChecked: string
+    checkboxUnchecked: string
+    ruleTextUnchecked: string
+    ruleTextChecked: string
+    deleteRule: string
+    toggleShell: string
+    toggleActive: string
+    toggleInactive: string
+  }
+> = {
+  dark: {
+    main: 'bg-slate-950 text-white',
+    glowOne: 'bg-emerald-500/10',
+    glowTwo: 'bg-sky-500/10',
+    glowThree: 'bg-violet-500/10',
+    liveOuter: 'border border-white/10 bg-slate-950/88 shadow-2xl backdrop-blur-xl',
+    scorePanel: 'border border-white/10 bg-slate-950/50',
+    card: 'border border-white/10 bg-white/5 shadow-2xl backdrop-blur-xl',
+    innerCard: 'border border-white/10 bg-slate-950/50',
+    tag: 'border border-white/10 bg-white/5 text-slate-300',
+    muted: 'text-slate-400',
+    subtle: 'text-slate-300',
+    primaryStrong: 'text-white',
+    secondaryStrong: 'text-slate-200',
+    statBox: 'border border-white/10 bg-slate-950/50',
+    statLabel: 'text-slate-500',
+    statMeta: 'text-slate-400',
+    barTrack: 'bg-white/10',
+    input: 'border border-white/10 bg-slate-950/70 text-white placeholder:text-slate-500 focus:border-slate-500',
+    select: 'border border-white/10 bg-slate-950/70 text-white focus:border-slate-500',
+    secondaryBtn: 'border border-white/10 bg-white/5 text-white hover:bg-white/10',
+    dangerBtn: 'border border-red-500/20 bg-red-500/10 text-red-200 hover:bg-red-500/20',
+    errorBox: 'border border-red-500/20 bg-red-500/10 text-red-200',
+    empty: 'border border-dashed border-white/10 bg-slate-950/50 text-slate-400',
+    ruleUnchecked: 'border border-white/10 bg-slate-950/50 hover:bg-white/5',
+    ruleChecked: 'border border-emerald-500/20 bg-emerald-500/10',
+    checkboxUnchecked: 'border border-white/10 bg-white/5 text-slate-400',
+    ruleTextUnchecked: 'text-slate-200',
+    ruleTextChecked: 'text-white',
+    deleteRule: 'border border-white/10 bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white',
+    toggleShell: 'border border-white/10 bg-slate-950/88 shadow-xl backdrop-blur-xl',
+    toggleActive: 'bg-white text-slate-950 shadow-sm',
+    toggleInactive: 'text-slate-300 hover:bg-white/10 hover:text-white',
+  },
+  light: {
+    main: 'bg-slate-100 text-slate-950',
+    glowOne: 'bg-emerald-400/12',
+    glowTwo: 'bg-sky-400/12',
+    glowThree: 'bg-violet-400/10',
+    liveOuter: 'border border-slate-200 bg-white/90 shadow-xl backdrop-blur-xl',
+    scorePanel: 'border border-slate-200 bg-white/90',
+    card: 'border border-slate-200 bg-white/92 shadow-xl backdrop-blur-xl',
+    innerCard: 'border border-slate-200 bg-slate-50/95',
+    tag: 'border border-slate-200 bg-slate-100 text-slate-600',
+    muted: 'text-slate-500',
+    subtle: 'text-slate-600',
+    primaryStrong: 'text-slate-950',
+    secondaryStrong: 'text-slate-900',
+    statBox: 'border border-slate-200 bg-white/90',
+    statLabel: 'text-slate-500',
+    statMeta: 'text-slate-500',
+    barTrack: 'bg-slate-200',
+    input: 'border border-slate-300 bg-white text-slate-950 placeholder:text-slate-400 focus:border-slate-500',
+    select: 'border border-slate-300 bg-white text-slate-950 focus:border-slate-500',
+    secondaryBtn: 'border border-slate-300 bg-white text-slate-900 hover:bg-slate-50',
+    dangerBtn: 'border border-red-300 bg-red-50 text-red-700 hover:bg-red-100',
+    errorBox: 'border border-red-300 bg-red-50 text-red-700',
+    empty: 'border border-dashed border-slate-200 bg-slate-50 text-slate-500',
+    ruleUnchecked: 'border border-slate-200 bg-white hover:bg-slate-50',
+    ruleChecked: 'border border-emerald-300 bg-emerald-50',
+    checkboxUnchecked: 'border border-slate-300 bg-white text-slate-400',
+    ruleTextUnchecked: 'text-slate-800',
+    ruleTextChecked: 'text-slate-950',
+    deleteRule: 'border border-slate-300 bg-white text-slate-500 hover:bg-slate-100 hover:text-slate-900',
+    toggleShell: 'border border-slate-200 bg-white/90 shadow-md backdrop-blur-xl',
+    toggleActive: 'bg-slate-900 text-white shadow-sm',
+    toggleInactive: 'text-slate-600 hover:bg-slate-100 hover:text-slate-950',
+  },
+}
+
 function makeId() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 }
@@ -147,24 +314,33 @@ const importanceOptions: { value: Importance; label: string }[] = [
   { value: 'bonus', label: 'Bonus' },
 ]
 
-function getImportanceBadge(importance: Importance) {
+function getImportanceBadge(importance: Importance, theme: AppTheme) {
   if (importance === 'mandatory') {
     return {
       label: 'Mandatory',
-      className: 'border-red-500/20 bg-red-500/10 text-red-200',
+      className:
+        theme === 'light'
+          ? 'border-red-300 bg-red-50 text-red-700'
+          : 'border-red-500/20 bg-red-500/10 text-red-200',
     }
   }
 
   if (importance === 'bonus') {
     return {
       label: 'Bonus',
-      className: 'border-sky-500/20 bg-sky-500/10 text-sky-200',
+      className:
+        theme === 'light'
+          ? 'border-sky-300 bg-sky-50 text-sky-700'
+          : 'border-sky-500/20 bg-sky-500/10 text-sky-200',
     }
   }
 
   return {
     label: 'Important',
-    className: 'border-amber-500/20 bg-amber-500/10 text-amber-200',
+    className:
+      theme === 'light'
+        ? 'border-amber-300 bg-amber-50 text-amber-700'
+        : 'border-amber-500/20 bg-amber-500/10 text-amber-200',
   }
 }
 
@@ -386,6 +562,7 @@ function getDecisionRating(
 
 export default function Home() {
   const title = 'Trade Meter'
+  const [theme, setTheme] = useState<AppTheme>('dark')
   const [newRule, setNewRule] = useState('')
   const [newRuleImportance, setNewRuleImportance] = useState<Importance>('important')
   const [newRuleError, setNewRuleError] = useState('')
@@ -393,6 +570,14 @@ export default function Home() {
   const [rules, setRules] = useState<Rule[]>(starterRules.map((rule) => createRule(rule)))
   const [topOffset, setTopOffset] = useState(0)
   const liveScoreRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem(THEME_STORAGE_KEY)
+
+    if (savedTheme === 'dark' || savedTheme === 'light') {
+      setTheme(savedTheme)
+    }
+  }, [])
 
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY)
@@ -424,6 +609,10 @@ export default function Home() {
     )
   }, [minScore, rules])
 
+  useEffect(() => {
+    localStorage.setItem(THEME_STORAGE_KEY, theme)
+  }, [theme])
+
   const checkedCount = rules.filter((rule) => rule.checked).length
   const totalCount = rules.length
   const missingCount = Math.max(totalCount - checkedCount, 0)
@@ -441,6 +630,8 @@ export default function Home() {
     () => getDecisionRating(score, minScore, hasMissingRequired, missingRequiredRules.length),
     [score, minScore, hasMissingRequired, missingRequiredRules.length]
   )
+  const toneMap = toneMaps[theme]
+  const ui = themeClasses[theme]
   const styles = toneMap[rating.tone]
   const scoreBandStyles = toneMap[scoreBand.tone]
   const decisionStyles = toneMap[rating.decisionTone]
@@ -488,6 +679,7 @@ export default function Home() {
     rating.desc,
     rating.action,
     qualificationSummary,
+    theme,
   ])
 
   const loadStarterRules = () => {
@@ -541,23 +733,44 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-slate-950 text-white">
+    <main className={`min-h-screen overflow-x-hidden ${ui.main}`}>
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-24 left-0 h-72 w-72 rounded-full bg-emerald-500/10 blur-3xl" />
-        <div className="absolute right-0 top-0 h-72 w-72 rounded-full bg-sky-500/10 blur-3xl" />
-        <div className="absolute bottom-0 left-1/3 h-72 w-72 rounded-full bg-violet-500/10 blur-3xl" />
+        <div className={`absolute -top-24 left-0 h-72 w-72 rounded-full ${ui.glowOne} blur-3xl`} />
+        <div className={`absolute right-0 top-0 h-72 w-72 rounded-full ${ui.glowTwo} blur-3xl`} />
+        <div className={`absolute bottom-0 left-1/3 h-72 w-72 rounded-full ${ui.glowThree} blur-3xl`} />
       </div>
 
       <div
         ref={liveScoreRef}
         className="fixed inset-x-0 top-0 z-50 px-3 pt-2 md:px-4"
       >
-        <div className="mx-auto max-w-7xl overflow-hidden rounded-[22px] border border-white/10 bg-slate-950/88 shadow-2xl backdrop-blur-xl">
+        <div className="mx-auto mb-2 flex max-w-7xl justify-end">
+          <div className={`inline-flex items-center gap-1 rounded-full p-1 ${ui.toggleShell}`}>
+            <button
+              type="button"
+              onClick={() => setTheme('dark')}
+              className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${theme === 'dark' ? ui.toggleActive : ui.toggleInactive}`}
+              aria-pressed={theme === 'dark'}
+            >
+              Dark
+            </button>
+            <button
+              type="button"
+              onClick={() => setTheme('light')}
+              className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${theme === 'light' ? ui.toggleActive : ui.toggleInactive}`}
+              aria-pressed={theme === 'light'}
+            >
+              Light
+            </button>
+          </div>
+        </div>
+
+        <div className={`mx-auto max-w-7xl overflow-hidden rounded-[22px] ${ui.liveOuter}`}>
           <div className={`bg-gradient-to-r ${styles.soft} p-2.5 md:p-3`}>
             <div className="grid gap-2 md:grid-cols-[220px_minmax(0,1fr)_auto] md:items-center">
-              <div className="rounded-[18px] border border-white/10 bg-slate-950/50 p-2.5">
+              <div className={`rounded-[18px] p-2.5 ${ui.scorePanel}`}>
                 <div className="mb-1.5 flex items-center justify-between gap-2">
-                  <span className="text-[10px] uppercase tracking-[0.18em] text-slate-400 md:text-[11px]">
+                  <span className={`text-[10px] uppercase tracking-[0.18em] md:text-[11px] ${ui.muted}`}>
                     Your Setup Score
                   </span>
                   <div className="flex items-center gap-2">
@@ -576,7 +789,7 @@ export default function Home() {
                   </div>
                 </div>
 
-                <div className="h-2.5 overflow-hidden rounded-full bg-white/10">
+                <div className={`h-2.5 overflow-hidden rounded-full ${ui.barTrack}`}>
                   <div
                     className={`h-full rounded-full transition-all duration-500 ${styles.fill}`}
                     style={{ width: `${score}%` }}
@@ -599,43 +812,43 @@ export default function Home() {
                   </div>
                 </div>
 
-                <div className="mt-1 text-xs font-semibold text-white md:text-sm">
+                <div className={`mt-1 text-xs font-semibold md:text-sm ${ui.primaryStrong}`}>
                   {rating.action}
                 </div>
 
-                <p className="mt-1 line-clamp-2 text-[11px] leading-4 text-slate-300 md:text-xs md:leading-5">
+                <p className={`mt-1 line-clamp-2 text-[11px] leading-4 md:text-xs md:leading-5 ${ui.subtle}`}>
                   {rating.desc}
                 </p>
               </div>
 
               <div className="grid grid-cols-3 gap-1.5 md:flex md:items-center md:justify-end">
-                <div className="min-w-0 rounded-xl border border-white/10 bg-slate-950/50 px-2.5 py-2 md:min-w-[96px] md:px-2 md:py-1.5">
-                  <div className="text-[7px] uppercase tracking-[0.14em] text-slate-500 md:text-[8px]">
+                <div className={`min-w-0 rounded-xl px-2.5 py-2 md:min-w-[96px] md:px-2 md:py-1.5 ${ui.statBox}`}>
+                  <div className={`text-[7px] uppercase tracking-[0.14em] md:text-[8px] ${ui.statLabel}`}>
                     Checked
                   </div>
                   <div className="mt-1 flex items-center justify-between gap-2 md:block md:text-center">
                     <div className="text-xs font-bold leading-none md:text-sm">{checkedPoints} pts</div>
-                    <div className="text-[10px] text-slate-400 md:mt-0.5 md:text-[11px]">{checkedCount} rules</div>
+                    <div className={`text-[10px] md:mt-0.5 md:text-[11px] ${ui.statMeta}`}>{checkedCount} rules</div>
                   </div>
                 </div>
 
-                <div className="min-w-0 rounded-xl border border-white/10 bg-slate-950/50 px-2.5 py-2 md:min-w-[96px] md:px-2 md:py-1.5">
-                  <div className="text-[7px] uppercase tracking-[0.14em] text-slate-500 md:text-[8px]">
+                <div className={`min-w-0 rounded-xl px-2.5 py-2 md:min-w-[96px] md:px-2 md:py-1.5 ${ui.statBox}`}>
+                  <div className={`text-[7px] uppercase tracking-[0.14em] md:text-[8px] ${ui.statLabel}`}>
                     Missing
                   </div>
                   <div className="mt-1 flex items-center justify-between gap-2 md:block md:text-center">
                     <div className="text-xs font-bold leading-none md:text-sm">{missingPoints} pts</div>
-                    <div className="text-[10px] text-slate-400 md:mt-0.5 md:text-[11px]">{missingCount} rules</div>
+                    <div className={`text-[10px] md:mt-0.5 md:text-[11px] ${ui.statMeta}`}>{missingCount} rules</div>
                   </div>
                 </div>
 
-                <div className="min-w-0 rounded-xl border border-white/10 bg-slate-950/50 px-2.5 py-2 md:min-w-[96px] md:px-2 md:py-1.5">
-                  <div className="text-[7px] uppercase tracking-[0.14em] text-slate-500 md:text-[8px]">
+                <div className={`min-w-0 rounded-xl px-2.5 py-2 md:min-w-[96px] md:px-2 md:py-1.5 ${ui.statBox}`}>
+                  <div className={`text-[7px] uppercase tracking-[0.14em] md:text-[8px] ${ui.statLabel}`}>
                     Total
                   </div>
                   <div className="mt-1 flex items-center justify-between gap-2 md:block md:text-center">
                     <div className="text-xs font-bold leading-none md:text-sm">{totalPoints} pts</div>
-                    <div className="text-[10px] text-slate-400 md:mt-0.5 md:text-[11px]">{totalCount} rules</div>
+                    <div className={`text-[10px] md:mt-0.5 md:text-[11px] ${ui.statMeta}`}>{totalCount} rules</div>
                   </div>
                 </div>
               </div>
@@ -648,10 +861,10 @@ export default function Home() {
         className="relative mx-auto max-w-7xl px-4 pb-6 md:px-6 lg:px-8 lg:pb-8"
         style={{ paddingTop: topOffset }}
       >
-        <div className="mb-6 rounded-[28px] border border-white/10 bg-white/5 p-5 shadow-2xl backdrop-blur-xl md:p-6">
+        <div className={`mb-6 rounded-[28px] p-5 md:p-6 ${ui.card}`}>
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div className="max-w-3xl">
-              <div className="mb-2 flex w-fit mx-auto items-center rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.3em] text-slate-300">
+              <div className={`mb-2 flex w-fit mx-auto items-center rounded-full px-3 py-1 text-xs uppercase tracking-[0.3em] ${ui.tag}`}>
                  Trading Discipline App
               </div>
              
@@ -660,7 +873,7 @@ export default function Home() {
                 {title}
               </h1>
 
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300 md:text-base">
+              <p className={`mt-3 max-w-2xl text-sm leading-6 md:text-base ${ui.subtle}`}>
                 Build your own pre-trade checklist, score every setup in seconds,
                 and stop entering trades that do not truly meet your standards.
               </p>
@@ -671,14 +884,14 @@ export default function Home() {
         </div>
 
         <div className="space-y-4">
-          <div className="rounded-[24px] border border-white/10 bg-white/5 p-3 shadow-2xl backdrop-blur-xl md:p-4">
+          <div className={`rounded-[24px] p-3 md:p-4 ${ui.card}`}>
             <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-              <div className="rounded-[22px] border border-white/10 bg-slate-950/50 p-3">
+              <div className={`rounded-[22px] p-3 ${ui.innerCard}`}>
                 <div className="mb-2 flex items-center justify-between gap-3">
-                  <div className="text-sm font-semibold text-slate-200">
+                  <div className={`text-sm font-semibold ${ui.secondaryStrong}`}>
                     Set your minimum setup quality threshold
                   </div>
-                  <div className="text-sm font-semibold text-white">{minScore}%</div>
+                  <div className={`text-sm font-semibold ${ui.primaryStrong}`}>{minScore}%</div>
                 </div>
 
                 <input
@@ -693,26 +906,56 @@ export default function Home() {
 
 
                 <div className="mt-3 flex flex-wrap gap-2 text-[11px] md:text-xs">
-                  <div className="rounded-full border border-red-500/20 bg-red-500/10 px-2.5 py-1 text-red-200">
+                  <div
+                    className={`rounded-full border px-2.5 py-1 ${
+                      theme === 'light'
+                        ? 'border-red-300 bg-red-50 text-red-700'
+                        : 'border-red-500/20 bg-red-500/10 text-red-200'
+                    }`}
+                  >
                     No Trade 0–34%
                   </div>
-                  <div className="rounded-full border border-orange-500/20 bg-orange-500/10 px-2.5 py-1 text-orange-200">
+                  <div
+                    className={`rounded-full border px-2.5 py-1 ${
+                      theme === 'light'
+                        ? 'border-orange-300 bg-orange-50 text-orange-700'
+                        : 'border-orange-500/20 bg-orange-500/10 text-orange-200'
+                    }`}
+                  >
                     Weak 35–54%
                   </div>
-                  <div className="rounded-full border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 text-amber-200">
+                  <div
+                    className={`rounded-full border px-2.5 py-1 ${
+                      theme === 'light'
+                        ? 'border-amber-300 bg-amber-50 text-amber-700'
+                        : 'border-amber-500/20 bg-amber-500/10 text-amber-200'
+                    }`}
+                  >
                     Average 55–74%
                   </div>
-                  <div className="rounded-full border border-lime-500/20 bg-lime-500/10 px-2.5 py-1 text-lime-200">
+                  <div
+                    className={`rounded-full border px-2.5 py-1 ${
+                      theme === 'light'
+                        ? 'border-lime-300 bg-lime-50 text-lime-700'
+                        : 'border-lime-500/20 bg-lime-500/10 text-lime-200'
+                    }`}
+                  >
                     Good 75–89%
                   </div>
-                  <div className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-emerald-200">
+                  <div
+                    className={`rounded-full border px-2.5 py-1 ${
+                      theme === 'light'
+                        ? 'border-emerald-300 bg-emerald-50 text-emerald-700'
+                        : 'border-emerald-500/20 bg-emerald-500/10 text-emerald-200'
+                    }`}
+                  >
                     A+ 90–100%
                   </div>
                 </div>
               </div>
 
-              <div className="rounded-[22px] border border-white/10 bg-slate-950/50 p-3">
-                <div className="mb-2 text-sm font-semibold text-slate-200">
+              <div className={`rounded-[22px] p-3 ${ui.innerCard}`}>
+                <div className={`mb-2 text-sm font-semibold ${ui.secondaryStrong}`}>
                   Add your own rules to checklist
                 </div>
 
@@ -727,14 +970,14 @@ export default function Home() {
                       if (e.key === 'Enter') addRule()
                     }}
                     placeholder="Example: Reward is at least 2R"
-                    className="w-full rounded-2xl border border-white/10 bg-slate-950/70 px-3 py-2.5 text-sm text-white outline-none transition focus:border-slate-500"
+                    className={`w-full rounded-2xl px-3 py-2.5 text-sm outline-none transition ${ui.input}`}
                   />
 
                   <div className="flex items-center gap-2">
                     <select
                       value={newRuleImportance}
                       onChange={(e) => setNewRuleImportance(e.target.value as Importance)}
-                      className="h-10 rounded-2xl border border-white/10 bg-slate-950/70 px-3 text-sm text-white outline-none transition focus:border-slate-500"
+                      className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}
                     >
                       {importanceOptions.map((option) => (
                         <option key={option.value} value={option.value}>
@@ -754,7 +997,7 @@ export default function Home() {
                 </div>
 
                 {newRuleError && (
-                  <div className="mt-2 rounded-2xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-[11px] leading-5 text-red-200 md:text-xs">
+                  <div className={`mt-2 rounded-2xl px-3 py-2 text-[11px] leading-5 md:text-xs ${ui.errorBox}`}>
                     {newRuleError}
                   </div>
                 )}
@@ -762,21 +1005,21 @@ export default function Home() {
                 <div className="mt-3 flex flex-wrap gap-2">
                   <button
                     onClick={loadStarterRules}
-                    className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-white transition hover:bg-white/10"
+                    className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${ui.secondaryBtn}`}
                   >
                     Load Starter Set
                   </button>
 
                   <button
                     onClick={resetChecks}
-                    className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-white transition hover:bg-white/10"
+                    className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${ui.secondaryBtn}`}
                   >
                     Reset
                   </button>
 
                   <button
                     onClick={clearAllRules}
-                    className="rounded-2xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs font-semibold text-red-200 transition hover:bg-red-500/20"
+                    className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${ui.dangerBtn}`}
                   >
                     Delete rules
                   </button>
@@ -785,11 +1028,11 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="rounded-[28px] border border-white/10 bg-white/5 p-4 shadow-2xl backdrop-blur-xl md:p-5">
+          <div className={`rounded-[28px] p-4 md:p-5 ${ui.card}`}>
             <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div>
                 <h2 className="text-xl font-bold md:text-2xl">Checklist</h2>
-                <p className="mt-1 text-sm text-slate-400">
+                <p className={`mt-1 text-sm ${ui.muted}`}>
                   Tick only what is truly present in this setup. Not what you want to see, but what is actually on the charts!!!
                 </p>
               </div>
@@ -800,21 +1043,21 @@ export default function Home() {
             </div>
 
             {rules.length === 0 ? (
-              <div className="rounded-[24px] border border-dashed border-white/10 bg-slate-950/50 p-8 text-center text-slate-400">
+              <div className={`rounded-[24px] p-8 text-center ${ui.empty}`}>
                 No rules yet. Add rules using the + button above.
               </div>
             ) : (
               <div className="space-y-2">
                 {rules.map((rule) => {
-                  const importanceBadge = getImportanceBadge(rule.importance)
+                  const importanceBadge = getImportanceBadge(rule.importance, theme)
 
                   return (
                     <div
                       key={rule.id}
                       className={`group flex items-center gap-2.5 rounded-[20px] border p-3 transition md:gap-3 md:p-3.5 ${
                         rule.checked
-                          ? 'border-emerald-500/20 bg-emerald-500/10'
-                          : 'border-white/10 bg-slate-950/50 hover:bg-white/5'
+                          ? ui.ruleChecked
+                          : ui.ruleUnchecked
                       }`}
                     >
                       <button
@@ -824,8 +1067,8 @@ export default function Home() {
                         <div
                           className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border text-sm font-bold md:h-11 md:w-11 ${
                             rule.checked
-                              ? 'border-emerald-400 bg-emerald-400 text-slate-950'
-                              : 'border-white/10 bg-white/5 text-slate-400'
+                              ? 'border border-emerald-400 bg-emerald-400 text-slate-950'
+                              : ui.checkboxUnchecked
                           }`}
                         >
                           {rule.checked ? '✓' : ''}
@@ -834,7 +1077,7 @@ export default function Home() {
                         <div className="flex-1">
                           <div
                             className={`text-sm leading-5 md:text-base ${
-                              rule.checked ? 'text-white' : 'text-slate-200'
+                              rule.checked ? ui.ruleTextChecked : ui.ruleTextUnchecked
                             }`}
                           >
                             {rule.text}
@@ -851,7 +1094,7 @@ export default function Home() {
 
                         <button
                           onClick={() => deleteRule(rule.id)}
-                          className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-lg text-slate-400 transition hover:bg-white/10 hover:text-white md:h-10 md:w-10"
+                          className={`flex h-9 w-9 items-center justify-center rounded-xl text-lg transition md:h-10 md:w-10 ${ui.deleteRule}`}
                           aria-label="Delete rule"
                         >
                           -
