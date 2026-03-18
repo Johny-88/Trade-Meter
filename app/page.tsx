@@ -562,11 +562,11 @@ function getDecisionRating(
 
 export default function Home() {
   const title = 'Edge Check'
-  const [theme, setTheme] = useState<AppTheme>('dark')
+  const [theme, setTheme] = useState<AppTheme>('light')
   const [newRule, setNewRule] = useState('')
   const [newRuleImportance, setNewRuleImportance] = useState<Importance>('important')
   const [newRuleError, setNewRuleError] = useState('')
-  const [minScore, setMinScore] = useState(75)
+  const [minScore, setMinScore] = useState(50)
   const [rules, setRules] = useState<Rule[]>(starterRules.map((rule) => createRule(rule)))
   const [topOffset, setTopOffset] = useState(0)
   const liveScoreRef = useRef<HTMLDivElement | null>(null)
