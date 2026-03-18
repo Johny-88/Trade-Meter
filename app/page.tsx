@@ -783,7 +783,7 @@ export default function Home() {
 
         <div className={`relative z-10 mx-auto max-w-7xl overflow-hidden rounded-[22px] ${ui.liveOuter}`}>
           <div className={`bg-gradient-to-r ${styles.soft} p-2.5 md:p-3`}>
-            <div className="grid gap-2 md:grid-cols-[220px_minmax(0,1fr)_auto] md:items-center">
+            <div className="grid gap-2 md:grid-cols-[260px_minmax(0,1fr)_auto] lg:grid-cols-[280px_minmax(0,1fr)_auto] md:items-center">
               <div className={`rounded-[18px] p-2.5 ${ui.scorePanel}`}>
                 <div className="mb-1.5 flex items-center justify-between gap-2">
                   <span className={`text-[10px] uppercase tracking-[0.18em] md:text-[11px] ${ui.muted}`}>
@@ -791,7 +791,7 @@ export default function Home() {
                   </span>
                   <div className="flex items-center gap-2">
                     <div
-                      className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold md:text-[11px] ${scoreBandStyles.badge}`}
+                      className={`whitespace-nowrap rounded-full border px-2.5 py-1 text-[10px] font-semibold md:text-[11px] ${scoreBandStyles.badge}`}
                     >
                       {scoreBand.label}
                     </div>
