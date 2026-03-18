@@ -753,13 +753,39 @@ export default function Home() {
         />
 
         <div className="relative z-10 mx-auto mb-2 flex max-w-7xl items-center justify-between gap-3">
-          <div
-            className={`text-lg font-bold md:text-xl ${
-             theme === 'light' ? 'text-slate-900' : 'text-white'
-              }`}
-              >
-                 Edge Check
-          </div>
+         <div className="flex items-center gap-2">
+  <div className="relative h-5 w-5 shrink-0">
+    <span
+      className={`absolute left-[3px] top-0 h-5 w-px ${
+        theme === 'light' ? 'bg-slate-500' : 'bg-slate-400'
+      }`}
+    />
+    <span
+      className={`absolute left-[1px] top-[6px] h-3 w-[5px] rounded-sm ${
+        theme === 'light' ? 'bg-emerald-500' : 'bg-emerald-400'
+      }`}
+    />
+
+    <span
+      className={`absolute right-[3px] top-[1px] h-4 w-px ${
+        theme === 'light' ? 'bg-slate-500' : 'bg-slate-400'
+      }`}
+    />
+    <span
+      className={`absolute right-[1px] top-[3px] h-2 w-[5px] rounded-sm ${
+        theme === 'light' ? 'bg-rose-500' : 'bg-rose-400'
+      }`}
+    />
+  </div>
+
+  <div
+    className={`text-lg font-bold md:text-xl ${
+      theme === 'light' ? 'text-slate-900' : 'text-white'
+    }`}
+  >
+    Edge Check
+  </div>
+</div>
 
           <div className={`inline-flex items-center gap-1 rounded-full p-1 ${ui.toggleShell}`}>
             <button
