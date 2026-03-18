@@ -745,7 +745,7 @@ export default function Home() {
         className="fixed inset-x-0 top-0 z-50 px-3 pt-2 md:px-4"
       >
         <div
-          className={`pointer-events-none absolute inset-x-0 top-0 h-full ${
+          className={`pointer-events-none absolute inset-x-0 top-0 h-full rounded-b-[28px] ${
             theme === 'light'
               ? 'bg-slate-100/72 backdrop-blur-xl'
               : 'bg-slate-950/48 backdrop-blur-xl'
@@ -754,10 +754,8 @@ export default function Home() {
 
         <div className="relative z-10 mx-auto mb-2 flex max-w-7xl items-center justify-between gap-3">
           <div
-            className={`rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.24em] md:text-sm ${
-              theme === 'light'
-                ? 'border border-slate-200 bg-white/90 text-slate-900 shadow-md backdrop-blur-xl'
-                : 'border border-white/10 bg-slate-950/88 text-white shadow-xl backdrop-blur-xl'
+            className={`text-sm font-semibold uppercase tracking-[0.24em] md:text-base ${
+              theme === 'light' ? 'text-slate-900' : 'text-white'
             }`}
           >
             Edge Check
