@@ -52,6 +52,9 @@ const starterRules: StarterRule[] = [
   },
 ]
 
+const defaultCheckedStarterRuleIndexes = new Set([0, 1, 3])
+
+
 const darkToneMap: Record<
   Tone,
   {
@@ -567,7 +570,12 @@ export default function Home() {
   const [newRuleImportance, setNewRuleImportance] = useState<Importance>('important')
   const [newRuleError, setNewRuleError] = useState('')
   const [minScore, setMinScore] = useState(50)
-  const [rules, setRules] = useState<Rule[]>(starterRules.map((rule) => createRule(rule)))
+  const [rules, setRules] = useState<Rule[]>(
+    starterRules.map((rule, index) => ({
+      ...createRule(rule),
+      checked: defaultCheckedStarterRuleIndexes.has(index),
+    }))
+  )
   const [topOffset, setTopOffset] = useState(0)
   const liveScoreRef = useRef<HTMLDivElement | null>(null)
 
