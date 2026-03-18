@@ -921,7 +921,7 @@ export default function Home() {
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div className="max-w-3xl">
               <h1 className="mb-2 text-center text-xl font-bold md:text-2xl">
-                EdgeCheck - Trading Discipline App
+                EdgeCheck - Best Trading Discipline App
               </h1>
 
               <p className={`mt-3 max-w-2xl text-sm leading-6 md:text-base ${ui.subtle}`}>
