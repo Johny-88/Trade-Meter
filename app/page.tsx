@@ -907,7 +907,7 @@ export default function Home() {
 
         <div className={`relative z-10 mx-auto max-w-7xl overflow-hidden rounded-[22px] ${ui.liveOuter}`}>
           <div className={`bg-gradient-to-r ${styles.soft} p-2.5 md:p-3`}>
-            <div className="grid gap-2 md:grid-cols-[260px_minmax(0,1fr)_auto] lg:grid-cols-[280px_minmax(0,1fr)_auto] md:items-center">
+            <div className="grid gap-2 md:grid-cols-[260px_minmax(0,1fr)] lg:grid-cols-[280px_minmax(0,1fr)] md:items-center">
               <div className={`rounded-[18px] p-2.5 ${ui.scorePanel}`}>
                 <div className="mb-1.5 flex items-center justify-between gap-2">
                   <span className={`text-[10px] uppercase tracking-[0.18em] md:text-[11px] ${ui.muted}`}>
@@ -935,6 +935,10 @@ export default function Home() {
                     style={{ width: `${score}%` }}
                   />
                 </div>
+
+                <div className={`mt-1.5 text-[10px] font-semibold md:text-[11px] ${ui.subtle}`}>
+                  {checkedCount}/{totalCount} rules
+                </div>
               </div>
 
               <div className="min-w-0 text-center md:text-left">
@@ -961,28 +965,6 @@ export default function Home() {
                 </p>
               </div>
 
-              <div className="grid grid-cols-3 gap-1.5 md:flex md:items-center md:justify-end">
-                <div className={`min-w-0 rounded-xl px-2 py-1.5 md:min-w-[96px] md:px-2 md:py-1.5 ${ui.statBox}`}>
-                  <div className={`flex items-center justify-center gap-1 text-[7px] uppercase tracking-[0.14em] md:text-[8px] ${ui.statLabel}`}>
-                    <span>Checked</span>
-                    <span className={`font-semibold normal-case ${ui.statMeta}`}>{checkedCount} rules</span>
-                  </div>
-                </div>
-
-                <div className={`min-w-0 rounded-xl px-2 py-1.5 md:min-w-[96px] md:px-2 md:py-1.5 ${ui.statBox}`}>
-                  <div className={`flex items-center justify-center gap-1 text-[7px] uppercase tracking-[0.14em] md:text-[8px] ${ui.statLabel}`}>
-                    <span>Missing</span>
-                    <span className={`font-semibold normal-case ${ui.statMeta}`}>{missingCount} rules</span>
-                  </div>
-                </div>
-
-                <div className={`min-w-0 rounded-xl px-2 py-1.5 md:min-w-[96px] md:px-2 md:py-1.5 ${ui.statBox}`}>
-                  <div className={`flex items-center justify-center gap-1 text-[7px] uppercase tracking-[0.14em] md:text-[8px] ${ui.statLabel}`}>
-                    <span>Total</span>
-                    <span className={`font-semibold normal-case ${ui.statMeta}`}>{totalCount} rules</span>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         </div>
