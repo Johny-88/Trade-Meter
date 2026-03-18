@@ -754,11 +754,11 @@ export default function Home() {
 
         <div className="relative z-10 mx-auto mb-2 flex max-w-7xl items-center justify-between gap-3">
           <div
-            className={`text-sm font-normal md:text-base ${
-              theme === 'light' ? 'text-slate-900' : 'text-white'
-            }`}
-          >
-            Edge Check
+            className={`text-lg font-bold md:text-xl ${
+             theme === 'light' ? 'text-slate-900' : 'text-white'
+              }`}
+              >
+                 Edge Check
           </div>
 
           <div className={`inline-flex items-center gap-1 rounded-full p-1 ${ui.toggleShell}`}>
