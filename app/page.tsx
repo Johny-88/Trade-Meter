@@ -547,21 +547,23 @@ export default function Home() {
           <div className={`bg-gradient-to-r ${styles.soft} p-2.5 md:p-3`}>
             <div className="grid gap-2 md:grid-cols-[220px_minmax(0,1fr)_auto] md:items-center">
               <div className="rounded-[18px] border border-white/10 bg-slate-950/50 p-2.5">
-                <div className="mb-1.5 flex items-center justify-between">
+                <div className="mb-1.5 flex items-center justify-between gap-2">
                   <span className="text-[10px] uppercase tracking-[0.18em] text-slate-400 md:text-[11px]">
                     Your Setup Score
                   </span>
-                  <span className="text-base md:text-lg">{rating.emoji}</span>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold md:text-[11px] ${scoreBandStyles.badge}`}
+                    >
+                      {scoreBand.label}
+                    </div>
+                    <span className="text-base md:text-lg">{rating.emoji}</span>
+                  </div>
                 </div>
 
-                <div className="mb-1.5 flex items-end justify-between gap-2">
+                <div className="mb-1.5">
                   <div className="text-2xl font-black leading-none md:text-[30px]">
                     {score}%
-                  </div>
-                  <div
-                    className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold md:text-[11px] ${scoreBandStyles.badge}`}
-                  >
-                    {scoreBand.label}
                   </div>
                 </div>
 
