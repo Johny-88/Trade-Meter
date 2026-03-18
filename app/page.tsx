@@ -754,7 +754,7 @@ export default function Home() {
 
         <div className="relative z-10 mx-auto mb-2 flex max-w-7xl items-center justify-between gap-3">
           <div
-            className={`text-sm font-semibold uppercase tracking-[0.24em] md:text-base ${
+            className={`text-sm font-normal md:text-base ${
               theme === 'light' ? 'text-slate-900' : 'text-white'
             }`}
           >
