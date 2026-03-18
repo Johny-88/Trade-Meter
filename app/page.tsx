@@ -622,6 +622,17 @@ export default function Home() {
     localStorage.setItem(THEME_STORAGE_KEY, theme)
   }, [theme])
 
+  useEffect(() => {
+    if (!showInstructions) return
+
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
+    return () => {
+      document.body.style.overflow = previousOverflow
+    }
+  }, [showInstructions])
+
   const checkedCount = rules.filter((rule) => rule.checked).length
   const totalCount = rules.length
   const missingCount = Math.max(totalCount - checkedCount, 0)
@@ -748,7 +759,7 @@ export default function Home() {
       {showInstructions && (
         <div className="fixed inset-0 z-[80] flex items-start justify-center overflow-y-auto bg-slate-950/55 px-4 py-4 backdrop-blur-sm sm:items-center">
           <div
-            className={`relative w-full max-w-xl max-h-[calc(100vh-2rem)] overflow-y-auto rounded-[28px] border p-5 pr-14 shadow-2xl md:p-6 ${
+            className={`relative w-full max-w-xl max-h-[calc(100vh-2rem)] overflow-y-auto rounded-[28px] border p-5 shadow-2xl md:p-6 ${
               theme === 'light'
                 ? 'border-slate-200 bg-white text-slate-900'
                 : 'border-white/10 bg-slate-950 text-white'
@@ -757,7 +768,7 @@ export default function Home() {
             <button
               type="button"
               onClick={closeInstructions}
-              className={`absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full text-lg font-semibold transition ${
+              className={`absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full text-lg font-semibold transition ${
                 theme === 'light'
                   ? 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-100'
                   : 'border border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white'
@@ -767,8 +778,8 @@ export default function Home() {
               ×
             </button>
 
-            <h2 className="pr-12 text-xl font-bold md:text-2xl">How to use EdgeCheck</h2>
-            <p className={`mt-2 text-sm leading-6 md:text-base ${ui.subtle}`}>
+            <h2 className="text-center text-xl font-bold md:text-2xl">How to use EdgeCheck</h2>
+            <p className={`mt-2 text-center text-sm leading-6 md:text-base ${ui.subtle}`}>
               Use this app before entering a trade. It is designed to keep you honest, slow you down, and stop low-quality setups.
             </p>
 
@@ -788,14 +799,14 @@ export default function Home() {
                       : 'border-white/10 bg-white/5'
                   }`}
                 >
-                  <div className="text-sm font-semibold md:text-base">{title}</div>
-                  <p className={`mt-1 text-sm leading-6 ${ui.subtle}`}>{desc}</p>
+                  <div className="text-center text-sm font-semibold md:text-base">{title}</div>
+                  <p className={`mt-1 text-center text-sm leading-6 ${ui.subtle}`}>{desc}</p>
                 </div>
               ))}
             </div>
 
             <div
-              className={`mt-5 rounded-2xl border px-4 py-3 text-sm leading-6 ${
+              className={`mt-5 rounded-2xl border px-4 py-3 text-center text-sm leading-6 ${
                 theme === 'light'
                   ? 'border-amber-300 bg-amber-50 text-amber-800'
                   : 'border-amber-500/20 bg-amber-500/10 text-amber-200'
@@ -984,11 +995,18 @@ export default function Home() {
         <div className={`mb-6 rounded-[28px] p-5 md:p-6 ${ui.card}`}>
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div className="max-w-3xl">
-              <div className="mb-2 flex flex-col items-center justify-center gap-2 sm:flex-row sm:gap-3">
+              <div className="mb-2 flex items-center justify-center">
                 <h1 className="text-center text-xl font-bold md:text-2xl">
                   EdgeCheck - Best Trading Discipline App
                 </h1>
+              </div>
 
+              <p className={`mt-3 max-w-2xl text-sm leading-6 md:text-base ${ui.subtle}`}>
+                Build your own pre-trade checklist, score every setup in seconds,
+                and stop entering trades that do not truly meet your standards.
+              </p>
+
+              <div className="mt-4 flex justify-center">
                 <button
                   type="button"
                   onClick={() => setShowInstructions(true)}
@@ -1001,11 +1019,6 @@ export default function Home() {
                   Instructions
                 </button>
               </div>
-
-              <p className={`mt-3 max-w-2xl text-sm leading-6 md:text-base ${ui.subtle}`}>
-                Build your own pre-trade checklist, score every setup in seconds,
-                and stop entering trades that do not truly meet your standards.
-              </p>
             </div>
 
       
