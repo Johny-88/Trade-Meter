@@ -920,9 +920,9 @@ export default function Home() {
         <div className={`mb-6 rounded-[28px] p-5 md:p-6 ${ui.card}`}>
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div className="max-w-3xl">
-              <div className={`mb-2 flex w-fit mx-auto items-center justify-center text-center rounded-full px-3 py-1 text-xs uppercase tracking-[0.3em] ${ui.tag}`}>
-                 EdgeCheck - Trading Discipline App
-              </div>
+              <h1 className="mb-2 text-center text-xl font-bold md:text-2xl">
+                EdgeCheck - Trading Discipline App
+              </h1>
 
               <p className={`mt-3 max-w-2xl text-sm leading-6 md:text-base ${ui.subtle}`}>
                 Build your own pre-trade checklist, score every setup in seconds,
