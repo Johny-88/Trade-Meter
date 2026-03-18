@@ -998,7 +998,7 @@ export default function Home() {
                       : 'border-white/10 bg-white/5 text-white hover:bg-white/10'
                   }`}
                 >
-                  Instructions
+                  Read Instructions
                 </button>
               </div>
             </div>
