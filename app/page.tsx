@@ -417,9 +417,9 @@ function getScoreBand(score: number) {
   if (score >= 90) {
     return {
       label: 'A+ Setup',
-      desc: 'Everything is aligned. This is the kind of trade worth waiting for.',
+      desc: 'Everything is aligned. This is the kind of setup worth waiting for.',
       emoji: '😎',
-      action: 'High-quality setup. Execute only if the entry itself is still clean.',
+      action: 'Strong setup. Execute only if the entry is still clean.',
       tone: 'emerald' as Tone,
     }
   }
@@ -427,9 +427,9 @@ function getScoreBand(score: number) {
   if (score >= 75) {
     return {
       label: 'Good Setup',
-      desc: 'Most conditions are aligned. Solid quality, but precision still matters.',
+      desc: 'Core conditions are aligned. Solid quality, but execution still matters.',
       emoji: '🙂',
-      action: 'This can qualify, but do not get careless with execution.',
+      action: 'Good setup. Stay precise.',
       tone: 'lime' as Tone,
     }
   }
@@ -437,9 +437,9 @@ function getScoreBand(score: number) {
   if (score >= 55) {
     return {
       label: 'Average Setup',
-      desc: 'Some conditions are there, but it is not fully convincing.',
+      desc: 'Enough is there to look tradable, but the edge is not clean.',
       emoji: '😐',
-      action: 'Be selective. This is where unnecessary trades usually happen.',
+      action: 'Be selective. Average setups are where forced trades happen.',
       tone: 'amber' as Tone,
     }
   }
@@ -447,18 +447,18 @@ function getScoreBand(score: number) {
   if (score >= 35) {
     return {
       label: 'Weak Setup',
-      desc: 'Too many key conditions are missing.',
+      desc: 'Too many key conditions are still missing.',
       emoji: '⚠️',
-      action: 'Most likely not worth the risk. Patience is the better trade.',
+      action: 'Usually not worth the risk. Wait.',
       tone: 'orange' as Tone,
     }
   }
 
   return {
     label: 'No Trade',
-    desc: 'This setup is low-quality and should usually be avoided.',
+    desc: 'This setup is too weak to justify a trade.',
     emoji: '🚫',
-    action: 'Protect capital. Passing is also a winning decision.',
+    action: 'Protect capital. Standing aside is a valid decision.',
     tone: 'red' as Tone,
   }
 }
@@ -471,6 +471,44 @@ function getScoreBandPhrase(label: string) {
   if (label === 'Weak Setup') return 'still rates as a Weak setup'
   return 'still rates as a low-quality setup'
 }
+
+
+function getPrimaryReason(
+  hasMissingRequired: boolean,
+  meetsMinScore: boolean,
+  minScore: number,
+  scoreBandLabel: string,
+  missingRequiredRules: Rule[],
+  missingImportantRules: Rule[],
+  missingBonusRules: Rule[]
+) {
+  if (hasMissingRequired) {
+    return `Main blocker: ${missingRequiredRules[0]?.text ?? 'Mandatory rule missing'}`
+  }
+
+  if (!meetsMinScore) {
+    if (missingImportantRules[0]) {
+      return `Main gap: ${missingImportantRules[0].text}`
+    }
+
+    if (missingBonusRules[0]) {
+      return `Main gap: ${missingBonusRules[0].text}`
+    }
+
+    return `Main issue: threshold is set above this ${scoreBandLabel.toLowerCase()}`
+  }
+
+  if (scoreBandLabel === 'Average Setup') {
+    return 'Main caution: qualified, but only average quality'
+  }
+
+  if (scoreBandLabel === 'Weak Setup') {
+    return 'Main caution: weak quality needs more confirmation'
+  }
+
+  return 'Main strength: core rules are aligned'
+}
+
 
 function getDecisionRating(
   score: number,
@@ -485,13 +523,13 @@ function getDecisionRating(
       label: 'No Trade',
       desc:
         score >= minScore
-          ? `This setup has enough points according to your threshold and ${getScoreBandPhrase(scoreBand.label)}, but ${missingRequiredCount === 1 ? 'one Mandatory rule is' : `${missingRequiredCount} Mandatory rules are`} still missing.`
+          ? `This setup clears your threshold and ${getScoreBandPhrase(scoreBand.label)}, but ${missingRequiredCount === 1 ? 'one Mandatory rule is' : `${missingRequiredCount} Mandatory rules are`} still missing.`
           : `This setup is below your minimum score and ${missingRequiredCount === 1 ? 'one Mandatory rule is' : `${missingRequiredCount} Mandatory rules are`} still missing.`,
       emoji: '🚫',
       action:
         score >= minScore
-          ? 'Blocked setup. Do not take it until every Mandatory rule is confirmed.'
-          : 'Blocked setup. It is below your minimum threshold and also missing Mandatory confirmation.',
+          ? 'Blocked. Confirm every Mandatory rule before you trade.'
+          : 'Blocked. It is below your threshold and still missing Mandatory confirmation.',
       tone: 'red' as Tone,
       bandLabel: scoreBand.label,
       decisionLabel: 'BLOCKED — DO NOT TRADE',
@@ -502,14 +540,14 @@ function getDecisionRating(
   if (score < minScore) {
     return {
       label: scoreBand.label,
-      desc: `This setup rates as ${scoreBand.label}, and it does not meet your current minimum threshold of ${minScore}%.`,
+      desc: `This setup rates as ${scoreBand.label}, but it does not meet your current minimum of ${minScore}%.`,
       emoji: scoreBand.emoji,
       action:
         score >= 75
-          ? 'Setup quality is strong, but it is still below your minimum threshold. Wait for a cleaner score or lower the threshold only if that change is intentional.'
+          ? 'Strong structure, but still below your threshold. Wait for a cleaner score or lower the threshold only on purpose.'
           : score >= 55
-          ? 'Setup quality is decent, but it still does not qualify under your current threshold. Be patient and wait for stronger alignment.'
-          : 'This setup is below your current threshold. Wait for better alignment before taking the trade.',
+          ? 'Decent structure, but it still does not qualify. Be patient and wait for stronger alignment.'
+          : 'Below your threshold. Wait for better alignment before trading.',
       tone:
         score >= 55
           ? ('amber' as Tone)
@@ -542,9 +580,9 @@ function getDecisionRating(
     desc: `This setup qualifies under your current minimum of ${minScore}%, but its overall quality is still only ${scoreBand.label}.`,
     action:
       score >= 55
-        ? 'Qualified by threshold, but be selective. This is still only an Average setup.'
+        ? 'Qualified by threshold, but stay selective. This is still only an Average setup.'
         : score >= 35
-        ? 'Qualified by threshold, but setup quality is still weak. Waiting is usually the better trade.'
+        ? 'Qualified by threshold, but quality is still weak. Waiting is usually the better trade.'
         : 'Qualified by threshold, but quality is still too low. Standing aside is the better decision.',
     tone: scoreBand.tone,
     bandLabel: scoreBand.label,
@@ -631,6 +669,12 @@ export default function Home() {
   )
   const missingPoints = Math.max(totalPoints - checkedPoints, 0)
   const missingRequiredRules = rules.filter((rule) => rule.required && !rule.checked)
+  const missingImportantRules = rules.filter(
+    (rule) => rule.importance === 'important' && !rule.checked
+  )
+  const missingBonusRules = rules.filter(
+    (rule) => rule.importance === 'bonus' && !rule.checked
+  )
   const hasMissingRequired = missingRequiredRules.length > 0
   const score = totalPoints > 0 ? Math.round((checkedPoints / totalPoints) * 100) : 0
   const scoreBand = useMemo(() => getScoreBand(score), [score])
@@ -656,10 +700,20 @@ export default function Home() {
   const qualificationSummary = hasMissingRequired
     ? meetsMinScore
       ? `${missingRequiredRules.length} Mandatory ${missingRequiredRules.length === 1 ? 'rule' : 'rules'} missing`
-      : `${missingRequiredRules.length} Mandatory ${missingRequiredRules.length === 1 ? 'rule' : 'rules'} missing • Below threshold (${score}% vs ${minScore}% minimum)`
+      : `${missingRequiredRules.length} Mandatory ${missingRequiredRules.length === 1 ? 'rule' : 'rules'} missing • ${minScore}% required`
     : qualifies
-    ? `Qualified by threshold • ${score}% vs ${minScore}% minimum`
-    : `Below threshold • ${score}% vs ${minScore}% minimum`
+    ? `Meets threshold • ${score}% vs ${minScore}% required`
+    : `Below threshold • ${score}% vs ${minScore}% required`
+
+  const primaryReason = getPrimaryReason(
+    hasMissingRequired,
+    meetsMinScore,
+    minScore,
+    scoreBand.label,
+    missingRequiredRules,
+    missingImportantRules,
+    missingBonusRules
+  )
 
   useLayoutEffect(() => {
     const updateOffset = () => {
@@ -691,7 +745,12 @@ export default function Home() {
   ])
 
   const loadStarterRules = () => {
-    setRules(starterRules.map((rule) => createRule(rule)))
+    setRules(
+      starterRules.map((rule, index) => ({
+        ...createRule(rule),
+        checked: defaultCheckedStarterRuleIndexes.has(index),
+      }))
+    )
     setNewRuleError('')
   }
 
@@ -716,7 +775,7 @@ export default function Home() {
     )
 
     if (alreadyExists) {
-      setNewRuleError('This rule already exists. Keep each condition only once so the score stays accurate.')
+      setNewRuleError('Rule already exists. Keep each condition only once so the score stays honest.')
       return
     }
 
@@ -837,7 +896,7 @@ export default function Home() {
                   <span className={`text-[10px] uppercase tracking-[0.18em] md:text-[11px] ${ui.muted}`}>
                     Your Setup Score
                   </span>
-                  <div className="flex items-center gap-2">
+                  <div className="flex shrink-0 items-start gap-2 md:items-center">
                     <div
                       className={`whitespace-nowrap rounded-full border px-2.5 py-1 text-[10px] font-semibold md:text-[11px] ${scoreBandStyles.badge}`}
                     >
@@ -876,11 +935,17 @@ export default function Home() {
                   </div>
                 </div>
 
-                <div className={`mt-1 text-xs font-semibold md:text-sm ${ui.primaryStrong}`}>
+                <div className={`mt-2 text-xs font-semibold md:text-sm ${ui.primaryStrong}`}>
                   {rating.action}
                 </div>
 
-                <p className={`mt-1 line-clamp-2 text-[11px] leading-4 md:text-xs md:leading-5 ${ui.subtle}`}>
+                <div className="mt-2 flex flex-wrap items-center justify-center gap-2 md:justify-start">
+                  <div className={`rounded-full border px-2.5 py-1 text-[10px] font-medium md:text-[11px] ${ui.statBox}`}>
+                    {primaryReason}
+                  </div>
+                </div>
+
+                <p className={`mt-2 text-[11px] leading-5 md:text-xs md:leading-5 ${ui.subtle}`}>
                   {rating.desc}
                 </p>
               </div>
@@ -933,8 +998,8 @@ export default function Home() {
               </h1>
 
               <p className={`mt-3 max-w-2xl text-sm leading-6 md:text-base ${ui.subtle}`}>
-                Build your own pre-trade checklist, score every setup in seconds,
-                and stop entering trades that do not truly meet your standards.
+                Build a rules-based pre-trade checklist, score each setup in seconds,
+                and stop forcing trades that do not meet your standard.
               </p>
             </div>
 
@@ -944,6 +1009,36 @@ export default function Home() {
 
         <div className="space-y-4">
           <div className={`rounded-[24px] p-3 md:p-4 ${ui.card}`}>
+            <div className={`mb-3 rounded-[22px] p-3 ${ui.innerCard}`}>
+              <div className="mb-2 flex items-center justify-between gap-3">
+                <div className={`text-sm font-semibold ${ui.secondaryStrong}`}>How it works</div>
+                <div className={`text-[11px] uppercase tracking-[0.18em] ${ui.muted}`}>Follow the process</div>
+              </div>
+
+              <div className="grid gap-2 md:grid-cols-3">
+                <div className={`rounded-2xl border px-3 py-2 ${ui.statBox}`}>
+                  <div className={`text-[11px] font-semibold ${ui.primaryStrong}`}>1. Set your threshold</div>
+                  <p className={`mt-1 text-[11px] leading-5 ${ui.muted}`}>
+                    Choose the minimum score a setup must reach before it can qualify.
+                  </p>
+                </div>
+
+                <div className={`rounded-2xl border px-3 py-2 ${ui.statBox}`}>
+                  <div className={`text-[11px] font-semibold ${ui.primaryStrong}`}>2. Tick only what is true</div>
+                  <p className={`mt-1 text-[11px] leading-5 ${ui.muted}`}>
+                    Score the setup you have, not the setup you hope to see.
+                  </p>
+                </div>
+
+                <div className={`rounded-2xl border px-3 py-2 ${ui.statBox}`}>
+                  <div className={`text-[11px] font-semibold ${ui.primaryStrong}`}>3. Respect Mandatory rules</div>
+                  <p className={`mt-1 text-[11px] leading-5 ${ui.muted}`}>
+                    A missing Mandatory rule blocks the trade, even with a high score.
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
               <div className={`rounded-[22px] p-3 ${ui.innerCard}`}>
                 <div className="mb-2 flex items-center justify-between gap-3">
@@ -963,6 +1058,10 @@ export default function Home() {
                   className="w-full accent-emerald-400"
                 />
 
+
+                <p className={`mt-3 text-[11px] leading-5 ${ui.muted}`}>
+                  Mandatory rules override the score. The threshold only matters after those rules are confirmed.
+                </p>
 
                 <div className="mt-3 flex flex-wrap gap-2 text-[11px] md:text-xs">
                   <div
@@ -1032,7 +1131,7 @@ export default function Home() {
                     className={`w-full rounded-2xl px-3 py-2.5 text-sm outline-none transition ${ui.input}`}
                   />
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex shrink-0 items-start gap-2 md:items-center">
                     <select
                       value={newRuleImportance}
                       onChange={(e) => setNewRuleImportance(e.target.value as Importance)}
@@ -1092,7 +1191,7 @@ export default function Home() {
               <div>
                 <h2 className="text-xl font-bold md:text-2xl">Checklist</h2>
                 <p className={`mt-1 text-sm ${ui.muted}`}>
-                  Tick only what is truly present in this setup. Not what you want to see, but what is actually on the charts!!!
+                  Tick only what is present. Score the setup you have, not the setup you want.
                 </p>
               </div>
 
@@ -1103,7 +1202,7 @@ export default function Home() {
 
             {rules.length === 0 ? (
               <div className={`rounded-[24px] p-8 text-center ${ui.empty}`}>
-                No rules yet. Add rules using the + button above.
+                No rules yet. Add one above or load the starter set.
               </div>
             ) : (
               <div className="space-y-2">
@@ -1113,7 +1212,7 @@ export default function Home() {
                   return (
                     <div
                       key={rule.id}
-                      className={`group flex items-center gap-2.5 rounded-[20px] border p-3 transition md:gap-3 md:p-3.5 ${
+                      className={`group flex items-start gap-3 rounded-[22px] border p-3.5 transition md:items-center md:gap-3 md:p-3.5 ${
                         rule.checked
                           ? ui.ruleChecked
                           : ui.ruleUnchecked
@@ -1121,10 +1220,10 @@ export default function Home() {
                     >
                       <button
                         onClick={() => toggleRule(rule.id)}
-                        className="flex flex-1 items-center gap-3 text-left md:gap-4"
+                        className="flex flex-1 items-start gap-3.5 text-left md:items-center md:gap-4"
                       >
                         <div
-                          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border text-sm font-bold md:h-11 md:w-11 ${
+                          className={`mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border text-sm font-bold md:mt-0 md:h-11 md:w-11 ${
                             rule.checked
                               ? 'border border-emerald-400 bg-emerald-400 text-slate-950'
                               : ui.checkboxUnchecked
@@ -1135,7 +1234,7 @@ export default function Home() {
 
                         <div className="flex-1">
                           <div
-                            className={`text-sm leading-5 md:text-base ${
+                            className={`pr-2 text-[15px] leading-6 md:pr-0 md:text-base ${
                               rule.checked ? ui.ruleTextChecked : ui.ruleTextUnchecked
                             }`}
                           >
@@ -1144,7 +1243,7 @@ export default function Home() {
                         </div>
                       </button>
 
-                      <div className="flex items-center gap-2">
+                      <div className="flex shrink-0 items-start gap-2 md:items-center">
                         <div
                           className={`rounded-xl border px-2.5 py-2 text-[11px] font-medium md:text-xs ${importanceBadge.className}`}
                         >
