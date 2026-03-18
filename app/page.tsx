@@ -284,6 +284,15 @@ function getScoreBand(score: number) {
   }
 }
 
+
+function getScoreBandPhrase(label: string) {
+  if (label === 'A+ Setup') return 'still rates as an A+ setup'
+  if (label === 'Average Setup') return 'still rates as an Average setup'
+  if (label === 'Good Setup') return 'still rates as a Good setup'
+  if (label === 'Weak Setup') return 'still rates as a Weak setup'
+  return 'still rates as a low-quality setup'
+}
+
 function getDecisionRating(
   score: number,
   minScore: number,
@@ -297,8 +306,8 @@ function getDecisionRating(
       label: 'No Trade',
       desc:
         score >= minScore
-          ? `This setup has enough points according to your minimum threshold, but ${missingRequiredCount === 1 ? 'one Mandatory rule is' : 'Mandatory rules are'} still missing.`
-          : `This setup is below your minimum score and ${missingRequiredCount === 1 ? 'one Mandatory rule is' : 'Mandatory rules are'} still missing.`,
+          ? `This setup has enough points according to your minimum threshold and ${getScoreBandPhrase(scoreBand.label)}, but ${missingRequiredCount === 1 ? 'one Mandatory rule is' : `${missingRequiredCount} Mandatory rules are`} still missing.`
+          : `This setup is below your minimum score and ${missingRequiredCount === 1 ? 'one Mandatory rule is' : `${missingRequiredCount} Mandatory rules are`} still missing.`,
       emoji: '🚫',
       action:
         score >= minScore
