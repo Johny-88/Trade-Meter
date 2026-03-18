@@ -569,6 +569,7 @@ export default function Home() {
   const [newRule, setNewRule] = useState('')
   const [newRuleImportance, setNewRuleImportance] = useState<Importance>('important')
   const [newRuleError, setNewRuleError] = useState('')
+  const [showInstructions, setShowInstructions] = useState(false)
   const [minScore, setMinScore] = useState(50)
   const [rules, setRules] = useState<Rule[]>(
     starterRules.map((rule, index) => ({
@@ -740,8 +741,72 @@ export default function Home() {
     setNewRuleError('')
   }
 
+  const closeInstructions = () => setShowInstructions(false)
+
   return (
     <main className={`min-h-screen overflow-x-hidden ${ui.main}`}>
+      {showInstructions && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/55 px-4 backdrop-blur-sm">
+          <div
+            className={`relative w-full max-w-xl rounded-[28px] border p-5 shadow-2xl md:p-6 ${
+              theme === 'light'
+                ? 'border-slate-200 bg-white text-slate-900'
+                : 'border-white/10 bg-slate-950 text-white'
+            }`}
+          >
+            <button
+              type="button"
+              onClick={closeInstructions}
+              className={`absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full text-lg font-semibold transition ${
+                theme === 'light'
+                  ? 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-100'
+                  : 'border border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white'
+              }`}
+              aria-label="Close instructions"
+            >
+              ×
+            </button>
+
+            <h2 className="pr-12 text-xl font-bold md:text-2xl">How to use EdgeCheck</h2>
+            <p className={`mt-2 text-sm leading-6 md:text-base ${ui.subtle}`}>
+              Use this app before entering a trade. It is designed to keep you honest, slow you down, and stop low-quality setups.
+            </p>
+
+            <div className="mt-5 space-y-3">
+              {[
+                ['1. Set your minimum threshold', 'Choose the minimum score a setup must reach before it can qualify. Higher threshold = more selective trading.'],
+                ['2. Tick only what is truly present', 'Check rules only if they are clearly confirmed on the chart. Do not tick what you hope will happen next.'],
+                ['3. Respect rule importance', 'Mandatory rules can block the trade completely. Important and Bonus rules improve the score, but do not replace missing Mandatory confirmation.'],
+                ['4. Read the verdict, not your emotions', 'A strong score does not matter if a Mandatory rule is missing. Follow the verdict exactly as shown.'],
+                ['5. Stay honest with custom rules', 'Add only rules that truly matter to your setup. Avoid duplicates so the score stays fair and accurate.'],
+              ].map(([title, desc]) => (
+                <div
+                  key={title}
+                  className={`rounded-2xl border px-4 py-3 ${
+                    theme === 'light'
+                      ? 'border-slate-200 bg-slate-50'
+                      : 'border-white/10 bg-white/5'
+                  }`}
+                >
+                  <div className="text-sm font-semibold md:text-base">{title}</div>
+                  <p className={`mt-1 text-sm leading-6 ${ui.subtle}`}>{desc}</p>
+                </div>
+              ))}
+            </div>
+
+            <div
+              className={`mt-5 rounded-2xl border px-4 py-3 text-sm leading-6 ${
+                theme === 'light'
+                  ? 'border-amber-300 bg-amber-50 text-amber-800'
+                  : 'border-amber-500/20 bg-amber-500/10 text-amber-200'
+              }`}
+            >
+              Goal: follow the checklist exactly as written. This app is not here to predict the market. It is here to protect you from undisciplined trades.
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className={`absolute -top-24 left-0 h-72 w-72 rounded-full ${ui.glowOne} blur-3xl`} />
         <div className={`absolute right-0 top-0 h-72 w-72 rounded-full ${ui.glowTwo} blur-3xl`} />
@@ -890,9 +955,8 @@ export default function Home() {
                   <div className={`text-[7px] uppercase tracking-[0.14em] md:text-[8px] ${ui.statLabel}`}>
                     Checked
                   </div>
-                  <div className="mt-1 flex items-center justify-between gap-2 md:block md:text-center">
-                    <div className="text-xs font-bold leading-none md:text-sm">{checkedPoints} pts</div>
-                    <div className={`text-[10px] md:mt-0.5 md:text-[11px] ${ui.statMeta}`}>{checkedCount} rules</div>
+                  <div className="mt-1 text-center">
+                    <div className="text-xs font-bold leading-none md:text-sm">{checkedCount} rules</div>
                   </div>
                 </div>
 
@@ -900,9 +964,8 @@ export default function Home() {
                   <div className={`text-[7px] uppercase tracking-[0.14em] md:text-[8px] ${ui.statLabel}`}>
                     Missing
                   </div>
-                  <div className="mt-1 flex items-center justify-between gap-2 md:block md:text-center">
-                    <div className="text-xs font-bold leading-none md:text-sm">{missingPoints} pts</div>
-                    <div className={`text-[10px] md:mt-0.5 md:text-[11px] ${ui.statMeta}`}>{missingCount} rules</div>
+                  <div className="mt-1 text-center">
+                    <div className="text-xs font-bold leading-none md:text-sm">{missingCount} rules</div>
                   </div>
                 </div>
 
@@ -910,9 +973,8 @@ export default function Home() {
                   <div className={`text-[7px] uppercase tracking-[0.14em] md:text-[8px] ${ui.statLabel}`}>
                     Total
                   </div>
-                  <div className="mt-1 flex items-center justify-between gap-2 md:block md:text-center">
-                    <div className="text-xs font-bold leading-none md:text-sm">{totalPoints} pts</div>
-                    <div className={`text-[10px] md:mt-0.5 md:text-[11px] ${ui.statMeta}`}>{totalCount} rules</div>
+                  <div className="mt-1 text-center">
+                    <div className="text-xs font-bold leading-none md:text-sm">{totalCount} rules</div>
                   </div>
                 </div>
               </div>
@@ -928,9 +990,23 @@ export default function Home() {
         <div className={`mb-6 rounded-[28px] p-5 md:p-6 ${ui.card}`}>
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div className="max-w-3xl">
-              <h1 className="mb-2 text-center text-xl font-bold md:text-2xl">
-                EdgeCheck - Best Trading Discipline App
-              </h1>
+              <div className="mb-2 flex flex-col items-center justify-center gap-2 sm:flex-row sm:gap-3">
+                <h1 className="text-center text-xl font-bold md:text-2xl">
+                  EdgeCheck - Best Trading Discipline App
+                </h1>
+
+                <button
+                  type="button"
+                  onClick={() => setShowInstructions(true)}
+                  className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition md:text-sm ${
+                    theme === 'light'
+                      ? 'border-slate-300 bg-white text-slate-900 hover:bg-slate-100'
+                      : 'border-white/10 bg-white/5 text-white hover:bg-white/10'
+                  }`}
+                >
+                  Instructions
+                </button>
+              </div>
 
               <p className={`mt-3 max-w-2xl text-sm leading-6 md:text-base ${ui.subtle}`}>
                 Build your own pre-trade checklist, score every setup in seconds,
