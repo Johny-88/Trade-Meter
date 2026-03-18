@@ -561,7 +561,7 @@ function getDecisionRating(
 }
 
 export default function Home() {
-  const title = 'Trade Meter'
+  const title = 'Edge Check'
   const [theme, setTheme] = useState<AppTheme>('dark')
   const [newRule, setNewRule] = useState('')
   const [newRuleImportance, setNewRuleImportance] = useState<Importance>('important')
