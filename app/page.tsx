@@ -753,7 +753,7 @@ export default function Home() {
         />
 
         <div className="relative z-10 mx-auto mb-2 flex max-w-7xl items-center justify-between gap-3">
-         <div className="flex items-center gap-2">
+         <div className="flex items-center gap-0.7">
   <div className="relative h-5 w-6 shrink-0">
     {/* Candle 1 */}
     <span
