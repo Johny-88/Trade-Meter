@@ -754,32 +754,46 @@ export default function Home() {
 
         <div className="relative z-10 mx-auto mb-2 flex max-w-7xl items-center justify-between gap-3">
          <div className="flex items-center gap-2">
-  <div className="relative h-5 w-5 shrink-0">
+  <div className="relative h-5 w-6 shrink-0">
+    {/* Candle 1 */}
     <span
-      className={`absolute left-[3px] top-0 h-5 w-px ${
+      className={`absolute left-[1px] top-[1px] h-4 w-px ${
         theme === 'light' ? 'bg-slate-500' : 'bg-slate-400'
       }`}
     />
     <span
-      className={`absolute left-[1px] top-[6px] h-3 w-[5px] rounded-sm ${
+      className={`absolute left-0 top-[5px] h-2 w-[3px] ${
         theme === 'light' ? 'bg-emerald-500' : 'bg-emerald-400'
       }`}
     />
 
+    {/* Candle 2 */}
     <span
-      className={`absolute right-[3px] top-[1px] h-4 w-px ${
+      className={`absolute left-[7px] top-0 h-5 w-px ${
         theme === 'light' ? 'bg-slate-500' : 'bg-slate-400'
       }`}
     />
     <span
-      className={`absolute right-[1px] top-[3px] h-2 w-[5px] rounded-sm ${
+      className={`absolute left-[6px] top-[3px] h-3 w-[3px] ${
         theme === 'light' ? 'bg-rose-500' : 'bg-rose-400'
+      }`}
+    />
+
+    {/* Candle 3 */}
+    <span
+      className={`absolute left-[13px] top-[1px] h-4 w-px ${
+        theme === 'light' ? 'bg-slate-500' : 'bg-slate-400'
+      }`}
+    />
+    <span
+      className={`absolute left-[12px] top-[6px] h-2 w-[3px] ${
+        theme === 'light' ? 'bg-emerald-500' : 'bg-emerald-400'
       }`}
     />
   </div>
 
   <div
-    className={`text-lg font-bold md:text-xl ${
+    className={`text-lg font-bold tracking-tight md:text-xl ${
       theme === 'light' ? 'text-slate-900' : 'text-white'
     }`}
   >
