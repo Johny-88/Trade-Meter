@@ -744,7 +744,25 @@ export default function Home() {
         ref={liveScoreRef}
         className="fixed inset-x-0 top-0 z-50 px-3 pt-2 md:px-4"
       >
-        <div className="mx-auto mb-2 flex max-w-7xl justify-end">
+        <div
+          className={`pointer-events-none absolute inset-x-0 top-0 h-full ${
+            theme === 'light'
+              ? 'bg-slate-100/72 backdrop-blur-xl'
+              : 'bg-slate-950/48 backdrop-blur-xl'
+          }`}
+        />
+
+        <div className="relative z-10 mx-auto mb-2 flex max-w-7xl items-center justify-between gap-3">
+          <div
+            className={`rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.24em] md:text-sm ${
+              theme === 'light'
+                ? 'border border-slate-200 bg-white/90 text-slate-900 shadow-md backdrop-blur-xl'
+                : 'border border-white/10 bg-slate-950/88 text-white shadow-xl backdrop-blur-xl'
+            }`}
+          >
+            Edge Check
+          </div>
+
           <div className={`inline-flex items-center gap-1 rounded-full p-1 ${ui.toggleShell}`}>
             <button
               type="button"
@@ -765,7 +783,7 @@ export default function Home() {
           </div>
         </div>
 
-        <div className={`mx-auto max-w-7xl overflow-hidden rounded-[22px] ${ui.liveOuter}`}>
+        <div className={`relative z-10 mx-auto max-w-7xl overflow-hidden rounded-[22px] ${ui.liveOuter}`}>
           <div className={`bg-gradient-to-r ${styles.soft} p-2.5 md:p-3`}>
             <div className="grid gap-2 md:grid-cols-[220px_minmax(0,1fr)_auto] md:items-center">
               <div className={`rounded-[18px] p-2.5 ${ui.scorePanel}`}>
@@ -864,7 +882,7 @@ export default function Home() {
         <div className={`mb-6 rounded-[28px] p-5 md:p-6 ${ui.card}`}>
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div className="max-w-3xl">
-              <div className={`mb-2 flex w-fit mx-auto items-center rounded-full px-3 py-1 text-xs uppercase tracking-[0.3em] ${ui.tag}`}>
+              <div className={`mb-2 flex w-fit mx-auto items-center justify-center text-center rounded-full px-3 py-1 text-xs uppercase tracking-[0.3em] ${ui.tag}`}>
                  EdgeCheck - Trading Discipline App
               </div>
 
