@@ -1753,252 +1753,204 @@ ${emotionWarning}`
               </div>
 
               {proView === 'prep' && (
-                <>
-                  <div className={`rounded-[24px] p-3 md:p-4 ${ui.card}`}>
-                    <div className="grid gap-3 xl:grid-cols-[1.3fr_1fr]">
-                      <div className={`rounded-[22px] p-3 ${ui.innerCard}`}>
-                        <div className="mb-3 flex items-center justify-between gap-3">
-                          <div>
-                            <div className={`text-sm font-semibold ${ui.secondaryStrong}`}>Trade context</div>
-                            <p className={`mt-1 text-xs ${ui.muted}`}>Set the context first so the checklist is judging a real trade idea, not a vague impulse.</p>
-                          </div>
-                          <div className={`rounded-full border px-3 py-1 text-[11px] font-semibold ${qualificationStyles.badge}`}>
-                            {proSetupType}
-                          </div>
-                        </div>
-
-                        <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
-                          <select
-                            value={proInstrument}
-                            onChange={(e) => setProInstrument(e.target.value)}
-                            className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}
-                          >
-                            {['ES', 'NQ', 'Gold', 'Silver', 'Oil', 'BTC', 'EURUSD'].map((item) => (
-                              <option key={item} value={item}>
-                                Instrument: {item}
-                              </option>
-                            ))}
-                          </select>
-
-                          <select
-                            value={proSession}
-                            onChange={(e) => setProSession(e.target.value as SessionType)}
-                            className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}
-                          >
-                            {sessionOptions.map((item) => (
-                              <option key={item} value={item}>
-                                Session: {item}
-                              </option>
-                            ))}
-                          </select>
-
-                          <select
-                            value={proSetupType}
-                            onChange={(e) => setProSetupType(e.target.value as SetupType)}
-                            className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}
-                          >
-                            {setupTypeOptions.map((item) => (
-                              <option key={item} value={item}>
-                                Setup: {item}
-                              </option>
-                            ))}
-                          </select>
-
-                          <select
-                            value={proEmotion}
-                            onChange={(e) => setProEmotion(e.target.value as EmotionState)}
-                            className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}
-                          >
-                            {emotionOptions.map((item) => (
-                              <option key={item.value} value={item.value}>
-                                Emotion: {item.label}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-
-                        <div className="mt-3 grid gap-3 lg:grid-cols-[1fr_auto]">
-                          <div className={`rounded-[20px] border p-3 ${ui.statBox}`}>
-                            <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Current context summary</div>
-                            <div className="mt-1 text-sm font-semibold">
-                              {proInstrument} • {proSession} • {proSetupType} • {activeEmotionLabel}
-                            </div>
-                            <p className={`mt-1 text-xs ${ui.muted}`}>{emotionWarning}</p>
-                          </div>
-
-                          <div className={`rounded-[20px] border p-3 ${ui.statBox}`}>
-                            <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Pause before entry</div>
-                            <div className="mt-1 flex items-center gap-2">
-                              <select
-                                value={proTimerSeconds}
-                                onChange={(e) => setProTimerSeconds(Number(e.target.value))}
-                                className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}
-                              >
-                                {[10, 15, 20, 30, 45].map((item) => (
-                                  <option key={item} value={item}>
-                                    {item}s
-                                  </option>
-                                ))}
-                              </select>
-
-                              {!proTimerActive ? (
-                                <button
-                                  type="button"
-                                  onClick={startPreTradeTimer}
-                                  className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${styles.button}`}
-                                >
-                                  Start
-                                </button>
-                              ) : (
-                                <button
-                                  type="button"
-                                  onClick={stopPreTradeTimer}
-                                  className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${ui.secondaryBtn}`}
-                                >
-                                  Stop
-                                </button>
-                              )}
-                            </div>
-                            <div className={`mt-2 text-sm font-semibold ${ui.primaryStrong}`}>
-                              {proTimerActive ? `${proTimerLeft}s remaining` : `${proTimerSeconds}s pause ready`}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          <button
-                            type="button"
-                            onClick={() => setShowFocusMode(true)}
-                            className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${ui.secondaryBtn}`}
-                          >
-                            Open focus mode
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setProView('tools')}
-                            className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${ui.secondaryBtn}`}
-                          >
-                            Open tools
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className={`rounded-[22px] p-3 ${ui.innerCard}`}>
-                        <div className={`text-sm font-semibold ${ui.secondaryStrong}`}>Main blocker right now</div>
-                        <div className={`mt-2 rounded-2xl border px-4 py-3 text-sm ${ui.statBox}`}>
-                          {mainBlockerText}
-                        </div>
-
-                        <div className={`mt-3 rounded-2xl border px-4 py-3 text-sm ${ui.statBox}`}>
-                          <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>What changed since last checkpoint</div>
-                          <div className="mt-1 font-semibold">{changedMessage}</div>
-                        </div>
-
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className={`rounded-[24px] p-3 md:p-4 ${ui.card}`}>
+                <div className={`rounded-[24px] p-3 md:p-4 ${ui.card}`}>
+                  <div className="grid gap-3 xl:grid-cols-[1.25fr_0.75fr]">
                     <div className={`rounded-[22px] p-3 ${ui.innerCard}`}>
-                      <div className={`mb-2 text-sm font-semibold ${ui.secondaryStrong}`}>Templates and starter packs</div>
-                      <p className={`mb-3 text-xs ${ui.muted}`}>Load a proven checklist fast, or save your own setup so you can reuse it without rebuilding everything.</p>
-
-                      <div className="grid gap-2 sm:grid-cols-2">
-                        <select
-                          value={selectedRulePackId}
-                          onChange={(e) => applyRulePack(e.target.value)}
-                          className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}
-                        >
-                          {defaultRulePacks.map((pack) => (
-                            <option key={pack.id} value={pack.id}>
-                              Rule Pack: {pack.name}
-                            </option>
-                          ))}
-                        </select>
-
-                        <select
-                          value={selectedTemplateId}
-                          onChange={(e) => loadTemplate(e.target.value)}
-                          className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}
-                        >
-                          <option value="">Saved template...</option>
-                          {templates.map((template) => (
-                            <option key={template.id} value={template.id}>
-                              {template.name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div className="mt-2 flex flex-col gap-2 sm:flex-row">
-                        <input
-                          value={templateName}
-                          onChange={(e) => setTemplateName(e.target.value)}
-                          placeholder="Save current checklist as template"
-                          className={`w-full rounded-2xl px-3 py-2.5 text-sm outline-none transition ${ui.input}`}
-                        />
-                        <button
-                          type="button"
-                          onClick={saveCurrentTemplate}
-                          className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${styles.button}`}
-                        >
-                          Save template
-                        </button>
-                      </div>
-
-                      {templates.length > 0 && (
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          {templates.slice(0, 4).map((template) => (
-                            <div key={template.id} className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs ${ui.statBox}`}>
-                              <span>{template.name}</span>
-                              <button
-                                type="button"
-                                onClick={() => deleteTemplate(template.id)}
-                                className={`flex h-6 w-6 items-center justify-center rounded-full ${ui.deleteRule}`}
-                                aria-label={`Delete ${template.name}`}
-                              >
-                                ×
-                              </button>
-                            </div>
-                          ))}
+                      <div className="mb-3 flex items-center justify-between gap-3">
+                        <div>
+                          <div className={`text-sm font-semibold ${ui.secondaryStrong}`}>Trade context</div>
+                          <p className={`mt-1 text-xs ${ui.muted}`}>Set the trade context first, then let the checklist judge it.</p>
                         </div>
-                      )}
+                        <div className={`rounded-full border px-3 py-1 text-[11px] font-semibold ${qualificationStyles.badge}`}>
+                          {proSetupType}
+                        </div>
+                      </div>
+
+                      <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+                        <select
+                          value={proInstrument}
+                          onChange={(e) => setProInstrument(e.target.value)}
+                          className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}
+                        >
+                          {['ES', 'NQ', 'Gold', 'Silver', 'Oil', 'BTC', 'EURUSD'].map((item) => (
+                            <option key={item} value={item}>
+                              Instrument: {item}
+                            </option>
+                          ))}
+                        </select>
+
+                        <select
+                          value={proSession}
+                          onChange={(e) => setProSession(e.target.value as SessionType)}
+                          className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}
+                        >
+                          {sessionOptions.map((item) => (
+                            <option key={item} value={item}>
+                              Session: {item}
+                            </option>
+                          ))}
+                        </select>
+
+                        <select
+                          value={proSetupType}
+                          onChange={(e) => setProSetupType(e.target.value as SetupType)}
+                          className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}
+                        >
+                          {setupTypeOptions.map((item) => (
+                            <option key={item} value={item}>
+                              Setup: {item}
+                            </option>
+                          ))}
+                        </select>
+
+                        <select
+                          value={proEmotion}
+                          onChange={(e) => setProEmotion(e.target.value as EmotionState)}
+                          className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}
+                        >
+                          {emotionOptions.map((item) => (
+                            <option key={item.value} value={item.value}>
+                              Emotion: {item.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className={`mt-3 rounded-[20px] border p-3 ${ui.statBox}`}>
+                        <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Current context</div>
+                        <div className="mt-1 text-sm font-semibold">
+                          {proInstrument} • {proSession} • {proSetupType} • {activeEmotionLabel}
+                        </div>
+                        <p className={`mt-1 text-xs ${ui.muted}`}>{emotionWarning}</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className={`rounded-[22px] p-3 ${ui.innerCard}`}>
+                        <div className={`mb-2 text-sm font-semibold ${ui.secondaryStrong}`}>Pause before entry</div>
+                        <p className={`mb-3 text-xs ${ui.muted}`}>Use a short pause if you tend to enter too quickly.</p>
+
+                        <div className="flex items-center gap-2">
+                          <select
+                            value={proTimerSeconds}
+                            onChange={(e) => setProTimerSeconds(Number(e.target.value))}
+                            className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}
+                          >
+                            {[10, 15, 20, 30, 45].map((item) => (
+                              <option key={item} value={item}>
+                                {item}s
+                              </option>
+                            ))}
+                          </select>
+
+                          {!proTimerActive ? (
+                            <button
+                              type="button"
+                              onClick={startPreTradeTimer}
+                              className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${styles.button}`}
+                            >
+                              Start
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={stopPreTradeTimer}
+                              className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${ui.secondaryBtn}`}
+                            >
+                              Stop
+                            </button>
+                          )}
+                        </div>
+
+                        <div className={`mt-2 text-sm font-semibold ${ui.primaryStrong}`}>
+                          {proTimerActive ? `${proTimerLeft}s remaining` : `${proTimerSeconds}s pause ready`}
+                        </div>
+                      </div>
+
+                      <div className={`rounded-[22px] p-3 ${ui.innerCard}`}>
+                        <div className={`mb-2 text-sm font-semibold ${ui.secondaryStrong}`}>Templates</div>
+                        <p className={`mb-3 text-xs ${ui.muted}`}>Load a saved checklist fast or save the one you use most.</p>
+
+                        <div className="grid gap-2">
+                          <select
+                            value={selectedRulePackId}
+                            onChange={(e) => applyRulePack(e.target.value)}
+                            className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}
+                          >
+                            {defaultRulePacks.map((pack) => (
+                              <option key={pack.id} value={pack.id}>
+                                Rule Pack: {pack.name}
+                              </option>
+                            ))}
+                          </select>
+
+                          <select
+                            value={selectedTemplateId}
+                            onChange={(e) => loadTemplate(e.target.value)}
+                            className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}
+                          >
+                            <option value="">Saved template...</option>
+                            {templates.map((template) => (
+                              <option key={template.id} value={template.id}>
+                                {template.name}
+                              </option>
+                            ))}
+                          </select>
+
+                          <div className="flex gap-2">
+                            <input
+                              value={templateName}
+                              onChange={(e) => setTemplateName(e.target.value)}
+                              placeholder="Template name"
+                              className={`w-full rounded-2xl px-3 py-2.5 text-sm outline-none transition ${ui.input}`}
+                            />
+                            <button
+                              type="button"
+                              onClick={saveCurrentTemplate}
+                              className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${styles.button}`}
+                            >
+                              Save
+                            </button>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </>
+                </div>
               )}
 
               {proView === 'tools' && (
                 <div className={`rounded-[24px] p-3 md:p-4 ${ui.card}`}>
-                  <div className="grid gap-3 xl:grid-cols-[1.05fr_0.95fr]">
+                  <div className="grid gap-3 xl:grid-cols-[1fr_0.9fr]">
                     <div className={`rounded-[22px] p-3 ${ui.innerCard}`}>
                       <div className={`mb-2 text-sm font-semibold ${ui.secondaryStrong}`}>Decision support</div>
-                      <p className={`mb-3 text-xs ${ui.muted}`}>Only the essentials: what is blocking the trade, what improved, and whether your sizing is reasonable.</p>
+                      <p className={`mb-3 text-xs ${ui.muted}`}>Only the information that helps you decide whether this trade is ready or not.</p>
 
                       <div className={`rounded-2xl border px-4 py-3 text-sm ${ui.statBox}`}>
                         <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Main blocker</div>
                         <div className="mt-1 font-semibold">{mainBlockerText}</div>
                       </div>
 
-                      <div className={`mt-3 rounded-2xl border px-4 py-3 text-sm ${ui.statBox}`}>
-                        <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>What changed</div>
-                        <div className="mt-1 font-semibold">{changedMessage}</div>
-                      </div>
+                      {hasMissingRequired && (
+                        <div className={`mt-3 rounded-2xl border px-4 py-3 text-sm ${ui.statBox}`}>
+                          <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Missing mandatory</div>
+                          <div className="mt-1 font-semibold">
+                            {missingRequiredRules.map((rule) => rule.text).join(', ')}
+                          </div>
+                        </div>
+                      )}
 
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setProView('review')}
-                          className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${ui.secondaryBtn}`}
-                        >
-                          Open review
-                        </button>
-                      </div>
+                      {!hasMissingRequired && (
+                        <div className={`mt-3 rounded-2xl border px-4 py-3 text-sm ${ui.statBox}`}>
+                          <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>What changed</div>
+                          <div className="mt-1 font-semibold">{changedMessage}</div>
+                        </div>
+                      )}
                     </div>
 
                     <div className={`rounded-[22px] p-3 ${ui.innerCard}`}>
                       <div className={`mb-2 text-sm font-semibold ${ui.secondaryStrong}`}>Risk helper</div>
-                      <p className={`mb-3 text-xs ${ui.muted}`}>Quick sizing check only. If your broker uses different specs, use your broker values.</p>
+                      <p className={`mb-3 text-xs ${ui.muted}`}>Quick size check only. Use your broker specs if they differ.</p>
 
                       <div className="grid gap-2 sm:grid-cols-3">
                         <input
@@ -2041,8 +1993,8 @@ ${emotionWarning}`
                 <div className={`rounded-[24px] p-3 md:p-4 ${ui.card}`}>
                   <div className="grid gap-3 xl:grid-cols-[1.2fr_0.8fr]">
                     <div className={`rounded-[22px] p-3 ${ui.innerCard}`}>
-                      <div className={`mb-2 text-sm font-semibold ${ui.secondaryStrong}`}>Save this review</div>
-                      <p className={`mb-3 text-xs ${ui.muted}`}>Log only what actually happened. The goal is to learn whether you followed the verdict and where discipline keeps slipping.</p>
+                      <div className={`mb-2 text-sm font-semibold ${ui.secondaryStrong}`}>Save review</div>
+                      <p className={`mb-3 text-xs ${ui.muted}`}>Log what actually happened so you can spot discipline problems faster.</p>
 
                       <div className="grid gap-2 sm:grid-cols-2">
                         <select
@@ -2075,7 +2027,7 @@ ${emotionWarning}`
                         className={`mt-2 min-h-[108px] w-full rounded-[22px] px-3 py-3 text-sm outline-none transition ${ui.input}`}
                       />
 
-                      <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">
+                      <div className="mt-2">
                         <button
                           type="button"
                           onClick={saveJournalEntry}
@@ -2087,7 +2039,7 @@ ${emotionWarning}`
 
                       {journal.length > 0 && (
                         <div className="mt-3 space-y-2">
-                          {journal.slice(0, 3).map((entry) => (
+                          {journal.slice(0, 2).map((entry) => (
                             <div key={entry.id} className={`rounded-[18px] border p-3 ${ui.statBox}`}>
                               <div className="flex flex-wrap items-center justify-between gap-2">
                                 <div className="text-sm font-semibold">{entry.verdict}</div>
@@ -2104,19 +2056,18 @@ ${emotionWarning}`
                     </div>
 
                     <div className={`rounded-[22px] p-3 ${ui.innerCard}`}>
-                      <div className={`mb-2 text-sm font-semibold ${ui.secondaryStrong}`}>What matters most</div>
-                      <p className={`mb-3 text-xs ${ui.muted}`}>Keep only the stats that directly help your discipline decisions.</p>
+                      <div className={`mb-2 text-sm font-semibold ${ui.secondaryStrong}`}>Useful stats only</div>
+                      <p className={`mb-3 text-xs ${ui.muted}`}>Keep it simple: did the app save you, and where do you slip most often?</p>
 
                       <div className="grid grid-cols-2 gap-2">
                         {[
-                          ['Reviews', `${journal.length}`],
-                          ['Saved me', `${savedMeCount}`],
-                          ['Respected', `${respectedVerdictCount}/${journal.length || 0}`],
-                          ['Avg score', `${averageJournalScore}%`],
-                        ].map(([label, value]) => (
-                          <div key={label} className={`rounded-2xl border px-3 py-3 ${ui.statBox}`}>
-                            <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>{label}</div>
-                            <div className="mt-1 text-lg font-bold">{value}</div>
+                          { label: 'Reviews', value: `${journal.length}` },
+                          { label: 'Saved me', value: `${savedMeCount}` },
+                          { label: 'Respected', value: `${respectedVerdictCount}/${journal.length || 0}` },
+                        ].map((item) => (
+                          <div key={item.label} className={`rounded-2xl border px-3 py-3 ${ui.statBox}`}>
+                            <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>{item.label}</div>
+                            <div className="mt-1 text-lg font-bold">{item.value}</div>
                           </div>
                         ))}
                       </div>
@@ -2125,17 +2076,9 @@ ${emotionWarning}`
                         <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Most missed rule</div>
                         <div className="mt-1 font-semibold">{mostMissedRule ? mostMissedRule[0] : 'Not enough saved reviews yet.'}</div>
                       </div>
-
-                      <div className={`mt-3 rounded-2xl border px-4 py-3 text-sm ${ui.statBox}`}>
-                        <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Most missed category</div>
-                        <div className="mt-1 font-semibold">
-                          {mostMissedJournalCategory ? mostMissedJournalCategory[0] : 'Not enough saved reviews yet.'}
-                        </div>
-                      </div>
                     </div>
                   </div>
                 </div>
-              )}
               )}
             </>
           )}
