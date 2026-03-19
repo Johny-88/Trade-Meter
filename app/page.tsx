@@ -1753,16 +1753,28 @@ ${emotionWarning}`
 
                 <div className="mt-3 grid gap-2 md:grid-cols-3">
                   {[
-                    ['1. Prep', 'Set instrument, session, setup type, mood, and packs before you score anything.', proView === 'prep'],
-                    ['2. Decide', 'Read the verdict in the main score block below. That is still the source of truth.', proView === 'tools'],
-                    ['3. Review', 'Save what happened only after the trade or after you decide to skip it.', proView === 'review'],
-                  ].map(([label, desc, active]) => (
+                    {
+                      label: '1. Prep',
+                      desc: 'Set instrument, session, setup type, mood, and packs before you score anything.',
+                      active: proView === 'prep',
+                    },
+                    {
+                      label: '2. Decide',
+                      desc: 'Read the verdict in the main score block below. That is still the source of truth.',
+                      active: proView === 'tools',
+                    },
+                    {
+                      label: '3. Review',
+                      desc: 'Save what happened only after the trade or after you decide to skip it.',
+                      active: proView === 'review',
+                    },
+                  ].map((item) => (
                     <div
-                      key={label}
-                      className={`rounded-[20px] border px-4 py-3 ${active ? ui.ruleChecked : ui.statBox}`}
+                      key={item.label}
+                      className={`rounded-[20px] border px-4 py-3 ${item.active ? ui.ruleChecked : ui.statBox}`}
                     >
-                      <div className="text-sm font-semibold">{label}</div>
-                      <p className={`mt-1 text-xs leading-5 ${ui.muted}`}>{desc}</p>
+                      <div className="text-sm font-semibold">{item.label}</div>
+                      <p className={`mt-1 text-xs leading-5 ${ui.muted}`}>{item.desc}</p>
                     </div>
                   ))}
                 </div>
