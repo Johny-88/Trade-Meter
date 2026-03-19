@@ -778,7 +778,7 @@ export default function Home() {
               ×
             </button>
 
-            <h2 className="text-center text-xl font-bold md:text-2xl">How to use EdgeCheck</h2>
+            <h2 className="text-center text-xl font-bold md:text-2xl">How to use Edge Check</h2>
             <p className={`mt-2 text-center text-sm leading-6 md:text-base ${ui.subtle}`}>
               Use this app before entering a trade. It is designed to keep you honest, slow you down, and stop low-quality setups.
             </p>
@@ -979,7 +979,7 @@ export default function Home() {
             <div className="max-w-3xl">
               <div className="mb-2 flex items-center justify-center">
                 <h1 className="text-center text-xl font-bold md:text-2xl">
-                  EdgeCheck - Best Trading Discipline App
+                  Edge Check - Best Trading Discipline App
                 </h1>
               </div>
 
