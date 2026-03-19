@@ -1,9 +1,18 @@
 'use client'
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
 
 type Weight = 5 | 10 | 20
 type Importance = 'mandatory' | 'important' | 'bonus'
+type RuleCategory = 'structure' | 'risk' | 'confirmation' | 'psychology' | 'execution'
+type AppTheme = 'dark' | 'light'
+type AppMode = 'standard' | 'pro'
+type Tone = 'emerald' | 'lime' | 'amber' | 'orange' | 'red'
+type EmotionState = 'calm' | 'focused' | 'slightly-emotional' | 'fomo' | 'revenge' | 'tired'
+type SessionType = 'London' | 'New York' | 'Asia' | 'After-hours'
+type SetupType = 'Breakout' | 'Reversal' | 'Support Bounce' | 'Trendline Break' | 'Pullback'
+type JournalOutcome = 'unknown' | 'win' | 'loss' | 'no-trade' | 'saved-me'
+type FollowedVerdict = 'yes' | 'no' | 'partially'
 
 type Rule = {
   id: string
@@ -12,47 +21,161 @@ type Rule = {
   weight: Weight
   required: boolean
   importance: Importance
+  category: RuleCategory
 }
 
 type StarterRule = {
   text: string
   importance: Importance
+  category: RuleCategory
 }
 
-type Tone = 'emerald' | 'lime' | 'amber' | 'orange' | 'red'
-type AppTheme = 'dark' | 'light'
+type RulePack = {
+  id: string
+  name: string
+  minScore: number
+  rules: StarterRule[]
+  defaultCheckedIndexes?: number[]
+  session?: SessionType
+  instrument?: string
+  setupType?: SetupType
+}
+
+type SavedTemplate = {
+  id: string
+  name: string
+  minScore: number
+  rules: Rule[]
+  session: SessionType
+  instrument: string
+  setupType: SetupType
+  emotion: EmotionState
+}
+
+type JournalEntry = {
+  id: string
+  createdAt: string
+  score: number
+  threshold: number
+  verdict: string
+  quality: string
+  outcome: JournalOutcome
+  followedVerdict: FollowedVerdict
+  note: string
+  screenshotDataUrl: string
+  session: SessionType
+  instrument: string
+  setupType: SetupType
+  emotion: EmotionState
+  missingRuleTexts: string[]
+  missingCategories: RuleCategory[]
+  respectedVerdict: boolean
+}
+
+type SetupSnapshot = {
+  score: number
+  threshold: number
+  verdict: string
+  quality: string
+  missingMandatoryCount: number
+  checkedCount: number
+}
 
 const STORAGE_KEY = 'trade-meter-pro-v2'
 const THEME_STORAGE_KEY = 'trade-meter-theme-v1'
+const MODE_STORAGE_KEY = 'edge-check-mode-v1'
+const PRO_STORAGE_KEY = 'edge-check-pro-context-v1'
+const TEMPLATE_STORAGE_KEY = 'edge-check-templates-v1'
+const JOURNAL_STORAGE_KEY = 'edge-check-journal-v1'
 
 const starterRules: StarterRule[] = [
   {
     text: 'No emotional impulse is present',
     importance: 'mandatory',
+    category: 'psychology',
   },
   {
     text: 'Stop loss is defined before entry',
     importance: 'mandatory',
+    category: 'risk',
   },
   {
     text: 'Risk is acceptable',
     importance: 'important',
+    category: 'risk',
   },
   {
     text: 'Reward is at least 2R',
     importance: 'important',
+    category: 'risk',
   },
   {
     text: 'Candlestick setup present',
     importance: 'bonus',
+    category: 'confirmation',
   },
   {
     text: 'Retested a previous level',
     importance: 'bonus',
+    category: 'structure',
   },
 ]
 
 const defaultCheckedStarterRuleIndexes = new Set([0, 1, 3])
+
+const defaultRulePacks: RulePack[] = [
+  {
+    id: 'breakout',
+    name: 'Breakout Pack',
+    minScore: 60,
+    session: 'London',
+    instrument: 'ES',
+    setupType: 'Breakout',
+    defaultCheckedIndexes: [0, 1],
+    rules: [
+      { text: 'No emotional impulse is present', importance: 'mandatory', category: 'psychology' },
+      { text: 'Stop loss is defined before entry', importance: 'mandatory', category: 'risk' },
+      { text: 'Range or level is clearly defined', importance: 'important', category: 'structure' },
+      { text: 'Breakout candle closes beyond level', importance: 'important', category: 'confirmation' },
+      { text: 'Reward is at least 2R', importance: 'important', category: 'risk' },
+      { text: 'Retest holds after breakout', importance: 'bonus', category: 'confirmation' },
+    ],
+  },
+  {
+    id: 'reversal',
+    name: 'Reversal Pack',
+    minScore: 65,
+    session: 'New York',
+    instrument: 'Gold',
+    setupType: 'Reversal',
+    defaultCheckedIndexes: [0, 1],
+    rules: [
+      { text: 'No emotional impulse is present', importance: 'mandatory', category: 'psychology' },
+      { text: 'Stop loss is defined before entry', importance: 'mandatory', category: 'risk' },
+      { text: 'Price is at a key reaction zone', importance: 'important', category: 'structure' },
+      { text: 'Reversal confirmation is visible', importance: 'important', category: 'confirmation' },
+      { text: 'Risk is acceptable', importance: 'important', category: 'risk' },
+      { text: 'Higher timeframe supports reversal', importance: 'bonus', category: 'structure' },
+    ],
+  },
+  {
+    id: 'trendline',
+    name: 'Trendline Pack',
+    minScore: 60,
+    session: 'London',
+    instrument: 'NQ',
+    setupType: 'Trendline Break',
+    defaultCheckedIndexes: [0, 1, 2],
+    rules: [
+      { text: 'No emotional impulse is present', importance: 'mandatory', category: 'psychology' },
+      { text: 'Stop loss is defined before entry', importance: 'mandatory', category: 'risk' },
+      { text: 'Trendline is clean and respected', importance: 'important', category: 'structure' },
+      { text: 'Break or bounce matches the plan', importance: 'important', category: 'execution' },
+      { text: 'Reward is at least 2R', importance: 'important', category: 'risk' },
+      { text: 'Candlestick setup present', importance: 'bonus', category: 'confirmation' },
+    ],
+  },
+]
 
 
 const darkToneMap: Record<
@@ -317,6 +440,25 @@ const importanceOptions: { value: Importance; label: string }[] = [
   { value: 'bonus', label: 'Bonus' },
 ]
 
+const categoryOptions: { value: RuleCategory; label: string }[] = [
+  { value: 'structure', label: 'Structure' },
+  { value: 'risk', label: 'Risk' },
+  { value: 'confirmation', label: 'Confirmation' },
+  { value: 'psychology', label: 'Psychology' },
+  { value: 'execution', label: 'Execution' },
+]
+
+const sessionOptions: SessionType[] = ['London', 'New York', 'Asia', 'After-hours']
+const setupTypeOptions: SetupType[] = ['Breakout', 'Reversal', 'Support Bounce', 'Trendline Break', 'Pullback']
+const emotionOptions: { value: EmotionState; label: string; tone: Tone }[] = [
+  { value: 'calm', label: 'Calm', tone: 'emerald' },
+  { value: 'focused', label: 'Focused', tone: 'lime' },
+  { value: 'slightly-emotional', label: 'Slightly emotional', tone: 'amber' },
+  { value: 'fomo', label: 'FOMO', tone: 'orange' },
+  { value: 'revenge', label: 'Revenge mindset', tone: 'red' },
+  { value: 'tired', label: 'Tired', tone: 'orange' },
+]
+
 function getImportanceBadge(importance: Importance, theme: AppTheme) {
   if (importance === 'mandatory') {
     return {
@@ -347,24 +489,90 @@ function getImportanceBadge(importance: Importance, theme: AppTheme) {
   }
 }
 
+
+function getCategoryBadge(category: RuleCategory, theme: AppTheme) {
+  const categoryMap: Record<RuleCategory, { label: string; light: string; dark: string }> = {
+    structure: {
+      label: 'Structure',
+      light: 'border-indigo-300 bg-indigo-50 text-indigo-700',
+      dark: 'border-indigo-500/20 bg-indigo-500/10 text-indigo-200',
+    },
+    risk: {
+      label: 'Risk',
+      light: 'border-rose-300 bg-rose-50 text-rose-700',
+      dark: 'border-rose-500/20 bg-rose-500/10 text-rose-200',
+    },
+    confirmation: {
+      label: 'Confirmation',
+      light: 'border-sky-300 bg-sky-50 text-sky-700',
+      dark: 'border-sky-500/20 bg-sky-500/10 text-sky-200',
+    },
+    psychology: {
+      label: 'Psychology',
+      light: 'border-fuchsia-300 bg-fuchsia-50 text-fuchsia-700',
+      dark: 'border-fuchsia-500/20 bg-fuchsia-500/10 text-fuchsia-200',
+    },
+    execution: {
+      label: 'Execution',
+      light: 'border-teal-300 bg-teal-50 text-teal-700',
+      dark: 'border-teal-500/20 bg-teal-500/10 text-teal-200',
+    },
+  }
+
+  const current = categoryMap[category]
+  return {
+    label: current.label,
+    className: theme === 'light' ? current.light : current.dark,
+  }
+}
+
+function createRulesFromPack(pack: RulePack) {
+  const checkedIndexes = new Set(pack.defaultCheckedIndexes ?? [])
+  return pack.rules.map((rule, index) => ({
+    ...createRule(rule),
+    checked: checkedIndexes.has(index),
+  }))
+}
+
+function formatDate(dateIso: string) {
+  return new Date(dateIso).toLocaleString([], {
+    day: '2-digit',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
 function getRuleDefaults(text: string) {
   const starterRule = starterRules.find((rule) => rule.text === text)
 
   if (starterRule) {
-    return getImportanceConfig(starterRule.importance)
+    return {
+      ...getImportanceConfig(starterRule.importance),
+      category: starterRule.category,
+    }
   }
 
-  return getImportanceConfig('important')
+  return {
+    ...getImportanceConfig('important'),
+    category: 'confirmation' as RuleCategory,
+  }
 }
 
-function createRule(input: string | StarterRule, importance?: Importance): Rule {
+function createRule(input: string | StarterRule, importance?: Importance, category?: RuleCategory): Rule {
   const text = typeof input === 'string' ? input : input.text
   const defaults =
     typeof input === 'string'
       ? importance
-        ? getImportanceConfig(importance)
+        ? {
+            ...getImportanceConfig(importance),
+            category: category ?? 'confirmation',
+          }
         : getRuleDefaults(input)
-      : getImportanceConfig(input.importance)
+      : {
+          ...getImportanceConfig(input.importance),
+          category: input.category,
+        }
 
   return {
     id: makeId(),
@@ -373,6 +581,7 @@ function createRule(input: string | StarterRule, importance?: Importance): Rule 
     weight: defaults.weight,
     required: defaults.required,
     importance: defaults.importance,
+    category: defaults.category,
   }
 }
 
@@ -394,6 +603,14 @@ function normalizeRule(rule: Partial<Rule> & { text: string }): Rule {
     weight: normalizedImportance.weight,
     required: normalizedImportance.required,
     importance: normalizedImportance.importance,
+    category:
+      rule.category === 'structure' ||
+      rule.category === 'risk' ||
+      rule.category === 'confirmation' ||
+      rule.category === 'psychology' ||
+      rule.category === 'execution'
+        ? rule.category
+        : defaults.category,
   }
 }
 
@@ -563,14 +780,103 @@ function getDecisionRating(
   }
 }
 
+
+function getMainBlockerText(
+  rules: Rule[],
+  hasMissingRequired: boolean,
+  missingRequiredRules: Rule[],
+  meetsMinScore: boolean,
+  minScore: number,
+  score: number
+) {
+  if (hasMissingRequired) {
+    return missingRequiredRules.length === 1
+      ? `Main blocker: ${missingRequiredRules[0].text}`
+      : `Main blocker: ${missingRequiredRules.length} Mandatory rules are still missing`
+  }
+
+  if (!meetsMinScore) {
+    return `Main blocker: below your threshold by ${Math.max(minScore - score, 0)}%`
+  }
+
+  const uncheckedImportant = rules.filter((rule) => !rule.checked && rule.importance === 'important')
+  if (uncheckedImportant.length > 0) {
+    return `Main weakness: ${uncheckedImportant[0].text}`
+  }
+
+  const uncheckedBonus = rules.filter((rule) => !rule.checked && rule.importance === 'bonus')
+  if (uncheckedBonus.length > 0) {
+    return `Main weakness: ${uncheckedBonus[0].text}`
+  }
+
+  return 'All current checklist conditions are confirmed.'
+}
+
+function getEmotionWarning(emotion: EmotionState) {
+  if (emotion === 'fomo') return 'Emotional risk is elevated. Slow down and read every rule twice.'
+  if (emotion === 'revenge') return 'Revenge mindset detected. Do not let urgency override the checklist.'
+  if (emotion === 'tired') return 'Fatigue lowers discipline. Keep size small or stand aside.'
+  if (emotion === 'slightly-emotional') return 'Emotion is creeping in. Respect the verdict more strictly than usual.'
+  if (emotion === 'focused') return 'Mindset looks focused. Keep execution clean.'
+  return 'Mindset looks calm. Keep following the checklist exactly as written.'
+}
+
+function getChangedMessage(previous: SetupSnapshot | null, current: SetupSnapshot) {
+  if (!previous) return 'No prior checkpoint yet. This is your current review state.'
+  if (previous.verdict !== current.verdict) {
+    return `Verdict changed from ${previous.verdict} to ${current.verdict}.`
+  }
+  if (previous.quality !== current.quality) {
+    return `Setup quality changed from ${previous.quality} to ${current.quality}.`
+  }
+  if (previous.score !== current.score) {
+    const direction = current.score > previous.score ? 'improved' : 'dropped'
+    return `Score ${direction} from ${previous.score}% to ${current.score}%.`
+  }
+  if (previous.missingMandatoryCount !== current.missingMandatoryCount) {
+    return current.missingMandatoryCount > previous.missingMandatoryCount
+      ? 'A Mandatory condition was lost.'
+      : 'A Mandatory condition was confirmed.'
+  }
+  if (previous.checkedCount !== current.checkedCount) {
+    return current.checkedCount > previous.checkedCount
+      ? 'More rules are confirmed than before.'
+      : 'Fewer rules are confirmed than before.'
+  }
+  return 'No major change since the last checkpoint.'
+}
+
 export default function Home() {
   const title = 'Edge Check'
   const [theme, setTheme] = useState<AppTheme>('light')
+  const [mode, setMode] = useState<AppMode>('standard')
   const [newRule, setNewRule] = useState('')
   const [newRuleImportance, setNewRuleImportance] = useState<Importance>('important')
+  const [newRuleCategory, setNewRuleCategory] = useState<RuleCategory>('confirmation')
   const [newRuleError, setNewRuleError] = useState('')
   const [showInstructions, setShowInstructions] = useState(false)
+  const [showFocusMode, setShowFocusMode] = useState(false)
   const [minScore, setMinScore] = useState(50)
+  const [proSession, setProSession] = useState<SessionType>('London')
+  const [proInstrument, setProInstrument] = useState('ES')
+  const [proSetupType, setProSetupType] = useState<SetupType>('Breakout')
+  const [proEmotion, setProEmotion] = useState<EmotionState>('calm')
+  const [proTimerSeconds, setProTimerSeconds] = useState(15)
+  const [proTimerActive, setProTimerActive] = useState(false)
+  const [proTimerLeft, setProTimerLeft] = useState(15)
+  const [templateName, setTemplateName] = useState('')
+  const [templates, setTemplates] = useState<SavedTemplate[]>([])
+  const [selectedTemplateId, setSelectedTemplateId] = useState('')
+  const [selectedRulePackId, setSelectedRulePackId] = useState(defaultRulePacks[0].id)
+  const [tradeNote, setTradeNote] = useState('')
+  const [tradeOutcome, setTradeOutcome] = useState<JournalOutcome>('unknown')
+  const [followedVerdict, setFollowedVerdict] = useState<FollowedVerdict>('yes')
+  const [screenshotDataUrl, setScreenshotDataUrl] = useState('')
+  const [journal, setJournal] = useState<JournalEntry[]>([])
+  const [copiedSummary, setCopiedSummary] = useState(false)
+  const [riskAmount, setRiskAmount] = useState(100)
+  const [stopDistance, setStopDistance] = useState(10)
+  const [pointValue, setPointValue] = useState(1)
   const [rules, setRules] = useState<Rule[]>(
     starterRules.map((rule, index) => ({
       ...createRule(rule),
@@ -579,12 +885,53 @@ export default function Home() {
   )
   const [topOffset, setTopOffset] = useState(0)
   const liveScoreRef = useRef<HTMLDivElement | null>(null)
+  const previousSnapshotRef = useRef<SetupSnapshot | null>(null)
 
   useEffect(() => {
     const savedTheme = localStorage.getItem(THEME_STORAGE_KEY)
+    const savedMode = localStorage.getItem(MODE_STORAGE_KEY)
+    const savedTemplates = localStorage.getItem(TEMPLATE_STORAGE_KEY)
+    const savedJournal = localStorage.getItem(JOURNAL_STORAGE_KEY)
+    const savedPro = localStorage.getItem(PRO_STORAGE_KEY)
 
     if (savedTheme === 'dark' || savedTheme === 'light') {
       setTheme(savedTheme)
+    }
+
+    if (savedMode === 'standard' || savedMode === 'pro') {
+      setMode(savedMode)
+    }
+
+    if (savedTemplates) {
+      try {
+        const parsedTemplates = JSON.parse(savedTemplates)
+        if (Array.isArray(parsedTemplates)) {
+          setTemplates(parsedTemplates)
+        }
+      } catch {}
+    }
+
+    if (savedJournal) {
+      try {
+        const parsedJournal = JSON.parse(savedJournal)
+        if (Array.isArray(parsedJournal)) {
+          setJournal(parsedJournal)
+        }
+      } catch {}
+    }
+
+    if (savedPro) {
+      try {
+        const parsedPro = JSON.parse(savedPro)
+        if (parsedPro.session && sessionOptions.includes(parsedPro.session)) setProSession(parsedPro.session)
+        if (typeof parsedPro.instrument === 'string') setProInstrument(parsedPro.instrument)
+        if (parsedPro.setupType && setupTypeOptions.includes(parsedPro.setupType)) setProSetupType(parsedPro.setupType)
+        if (emotionOptions.some((option) => option.value === parsedPro.emotion)) setProEmotion(parsedPro.emotion)
+        if (typeof parsedPro.timerSeconds === 'number') {
+          setProTimerSeconds(parsedPro.timerSeconds)
+          setProTimerLeft(parsedPro.timerSeconds)
+        }
+      } catch {}
     }
   }, [])
 
@@ -623,7 +970,32 @@ export default function Home() {
   }, [theme])
 
   useEffect(() => {
-    if (!showInstructions) return
+    localStorage.setItem(MODE_STORAGE_KEY, mode)
+  }, [mode])
+
+  useEffect(() => {
+    localStorage.setItem(
+      PRO_STORAGE_KEY,
+      JSON.stringify({
+        session: proSession,
+        instrument: proInstrument,
+        setupType: proSetupType,
+        emotion: proEmotion,
+        timerSeconds: proTimerSeconds,
+      })
+    )
+  }, [proSession, proInstrument, proSetupType, proEmotion, proTimerSeconds])
+
+  useEffect(() => {
+    localStorage.setItem(TEMPLATE_STORAGE_KEY, JSON.stringify(templates))
+  }, [templates])
+
+  useEffect(() => {
+    localStorage.setItem(JOURNAL_STORAGE_KEY, JSON.stringify(journal))
+  }, [journal])
+
+  useEffect(() => {
+    if (!showInstructions && !showFocusMode) return
 
     const previousOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
@@ -631,7 +1003,35 @@ export default function Home() {
     return () => {
       document.body.style.overflow = previousOverflow
     }
-  }, [showInstructions])
+  }, [showInstructions, showFocusMode])
+
+  useEffect(() => {
+    if (!proTimerActive) return
+
+    if (proTimerLeft <= 0) {
+      setProTimerActive(false)
+      return
+    }
+
+    const timer = window.setTimeout(() => {
+      setProTimerLeft((prev) => prev - 1)
+    }, 1000)
+
+    return () => {
+      window.clearTimeout(timer)
+    }
+  }, [proTimerActive, proTimerLeft])
+
+  useEffect(() => {
+    if (!copiedSummary) return
+    const timer = window.setTimeout(() => setCopiedSummary(false), 1800)
+    return () => window.clearTimeout(timer)
+  }, [copiedSummary])
+
+  useEffect(() => {
+    if (proTimerActive) return
+    setProTimerLeft(proTimerSeconds)
+  }, [proTimerSeconds, proTimerActive])
 
   const checkedCount = rules.filter((rule) => rule.checked).length
   const totalCount = rules.length
@@ -673,6 +1073,83 @@ export default function Home() {
     ? `Qualified by threshold • ${score}% vs ${minScore}% minimum`
     : `Below threshold • ${score}% vs ${minScore}% minimum`
 
+  const uncheckedImportantRules = rules.filter((rule) => !rule.checked && rule.importance === 'important')
+  const uncheckedBonusRules = rules.filter((rule) => !rule.checked && rule.importance === 'bonus')
+  const mainBlockerText = getMainBlockerText(rules, hasMissingRequired, missingRequiredRules, meetsMinScore, minScore, score)
+  const emotionWarning = getEmotionWarning(proEmotion)
+  const currentSnapshot: SetupSnapshot = {
+    score,
+    threshold: minScore,
+    verdict: rating.decisionLabel,
+    quality: scoreBand.label,
+    missingMandatoryCount: missingRequiredRules.length,
+    checkedCount,
+  }
+  const changedMessage = getChangedMessage(previousSnapshotRef.current, currentSnapshot)
+  const categoryMissCounts = rules
+    .filter((rule) => !rule.checked)
+    .reduce<Record<RuleCategory, number>>(
+      (acc, rule) => {
+        acc[rule.category] += 1
+        return acc
+      },
+      {
+        structure: 0,
+        risk: 0,
+        confirmation: 0,
+        psychology: 0,
+        execution: 0,
+      }
+    )
+  const mostMissedCurrentCategory = Object.entries(categoryMissCounts).sort((a, b) => b[1] - a[1])[0]
+  const averageJournalScore =
+    journal.length > 0 ? Math.round(journal.reduce((sum, entry) => sum + entry.score, 0) / journal.length) : 0
+  const blockedJournalCount = journal.filter((entry) => entry.verdict.includes('BLOCKED')).length
+  const qualifiedJournalCount = journal.filter(
+    (entry) => entry.verdict === 'TRADE' || entry.verdict === 'TRADE CAREFULLY' || entry.verdict === 'WAIT FOR MORE CONFIRMATION'
+  ).length
+  const savedMeCount = journal.filter((entry) => entry.outcome === 'saved-me').length
+  const respectedVerdictCount = journal.filter((entry) => entry.respectedVerdict).length
+  const currentRespectStreak = (() => {
+    let streak = 0
+    for (const entry of journal) {
+      if (!entry.respectedVerdict) break
+      streak += 1
+    }
+    return streak
+  })()
+  const mostMissedRuleMap = journal.flatMap((entry) => entry.missingRuleTexts).reduce<Record<string, number>>((acc, ruleText) => {
+    acc[ruleText] = (acc[ruleText] ?? 0) + 1
+    return acc
+  }, {})
+  const mostMissedRule = Object.entries(mostMissedRuleMap).sort((a, b) => b[1] - a[1])[0]
+  const mostMissedCategoryMap = journal.flatMap((entry) => entry.missingCategories).reduce<Record<string, number>>((acc, category) => {
+    acc[category] = (acc[category] ?? 0) + 1
+    return acc
+  }, {})
+  const mostMissedJournalCategory = Object.entries(mostMissedCategoryMap).sort((a, b) => b[1] - a[1])[0]
+  const scoreCarryMessage =
+    checkedPoints === 0
+      ? 'No rules are confirmed yet.'
+      : checkedPoints >= totalPoints * 0.7
+      ? 'Most of your score is being carried by core rules.'
+      : rules.filter((rule) => rule.checked && rule.importance === 'bonus').length >= 2
+      ? 'A lot of the score is coming from Bonus confirmations.'
+      : 'Your score is mixed between core and secondary rules.'
+  const proSummaryText = `${title} • ${proInstrument} • ${proSession} • ${proSetupType} • ${score}% • ${rating.decisionLabel} • ${checkedCount}/${totalCount} rules`
+  const positionSize = stopDistance > 0 && pointValue > 0 ? Math.max(Math.floor(riskAmount / (stopDistance * pointValue)), 0) : 0
+
+  useEffect(() => {
+    previousSnapshotRef.current = currentSnapshot
+  }, [
+    currentSnapshot.score,
+    currentSnapshot.threshold,
+    currentSnapshot.verdict,
+    currentSnapshot.quality,
+    currentSnapshot.missingMandatoryCount,
+    currentSnapshot.checkedCount,
+  ])
+
   useLayoutEffect(() => {
     const updateOffset = () => {
       if (!liveScoreRef.current) return
@@ -703,7 +1180,7 @@ export default function Home() {
   ])
 
   const loadStarterRules = () => {
-    setRules(starterRules.map((rule) => createRule(rule)))
+    setRules(createRulesFromPack({ id: 'starter', name: 'Starter', minScore, rules: starterRules, defaultCheckedIndexes: [] }))
     setNewRuleError('')
   }
 
@@ -711,6 +1188,7 @@ export default function Home() {
     setRules([])
     setNewRule('')
     setNewRuleImportance('important')
+    setNewRuleCategory('confirmation')
     setNewRuleError('')
   }
 
@@ -732,10 +1210,11 @@ export default function Home() {
       return
     }
 
-    const rule = createRule(trimmed, newRuleImportance)
+    const rule = createRule(trimmed, newRuleImportance, newRuleCategory)
     setRules((prev) => [...prev, rule])
     setNewRule('')
     setNewRuleImportance('important')
+    setNewRuleCategory('confirmation')
     setNewRuleError('')
   }
 
@@ -750,6 +1229,134 @@ export default function Home() {
   const deleteRule = (id: string) => {
     setRules((prev) => prev.filter((rule) => rule.id !== id))
     setNewRuleError('')
+  }
+
+  const startPreTradeTimer = () => {
+    setProTimerLeft(proTimerSeconds)
+    setProTimerActive(true)
+  }
+
+  const stopPreTradeTimer = () => {
+    setProTimerActive(false)
+    setProTimerLeft(proTimerSeconds)
+  }
+
+  const applyRulePack = (packId: string) => {
+    const pack = defaultRulePacks.find((item) => item.id === packId)
+    if (!pack) return
+
+    setSelectedRulePackId(packId)
+    setRules(createRulesFromPack(pack))
+    setMinScore(pack.minScore)
+    if (pack.session) setProSession(pack.session)
+    if (pack.instrument) setProInstrument(pack.instrument)
+    if (pack.setupType) setProSetupType(pack.setupType)
+    setNewRuleError('')
+  }
+
+  const saveCurrentTemplate = () => {
+    const trimmedName = templateName.trim()
+    if (!trimmedName) {
+      setNewRuleError('Give the template a clear name before saving it.')
+      return
+    }
+
+    const newTemplate: SavedTemplate = {
+      id: makeId(),
+      name: trimmedName,
+      minScore,
+      rules: rules.map((rule) => ({ ...rule })),
+      session: proSession,
+      instrument: proInstrument,
+      setupType: proSetupType,
+      emotion: proEmotion,
+    }
+
+    setTemplates((prev) => [newTemplate, ...prev])
+    setTemplateName('')
+    setNewRuleError('')
+  }
+
+  const loadTemplate = (templateId: string) => {
+    const template = templates.find((item) => item.id === templateId)
+    if (!template) return
+
+    setSelectedTemplateId(templateId)
+    setRules(template.rules.map((rule) => normalizeRule(rule)))
+    setMinScore(template.minScore)
+    setProSession(template.session)
+    setProInstrument(template.instrument)
+    setProSetupType(template.setupType)
+    setProEmotion(template.emotion)
+    setNewRuleError('')
+  }
+
+  const deleteTemplate = (templateId: string) => {
+    setTemplates((prev) => prev.filter((item) => item.id !== templateId))
+    if (selectedTemplateId === templateId) {
+      setSelectedTemplateId('')
+    }
+  }
+
+  const handleScreenshotUpload = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        setScreenshotDataUrl(reader.result)
+      }
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const saveJournalEntry = () => {
+    const entry: JournalEntry = {
+      id: makeId(),
+      createdAt: new Date().toISOString(),
+      score,
+      threshold: minScore,
+      verdict: rating.decisionLabel,
+      quality: scoreBand.label,
+      outcome: tradeOutcome,
+      followedVerdict,
+      note: tradeNote.trim(),
+      screenshotDataUrl,
+      session: proSession,
+      instrument: proInstrument,
+      setupType: proSetupType,
+      emotion: proEmotion,
+      missingRuleTexts: rules.filter((rule) => !rule.checked).map((rule) => rule.text),
+      missingCategories: rules.filter((rule) => !rule.checked).map((rule) => rule.category),
+      respectedVerdict: followedVerdict === 'yes',
+    }
+
+    setJournal((prev) => [entry, ...prev])
+    setTradeNote('')
+    setTradeOutcome('unknown')
+    setFollowedVerdict('yes')
+    setScreenshotDataUrl('')
+  }
+
+  const shareSummary = async () => {
+    const shareText = `${proSummaryText}
+${mainBlockerText}
+${emotionWarning}`
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Edge Check Summary',
+          text: shareText,
+        })
+        return
+      } catch {}
+    }
+
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      await navigator.clipboard.writeText(shareText)
+      setCopiedSummary(true)
+    }
   }
 
   const closeInstructions = () => setShowInstructions(false)
@@ -813,6 +1420,66 @@ export default function Home() {
               }`}
             >
               Goal: follow the checklist exactly as written. This app is not here to predict the market. It is here to protect you from undisciplined trades.
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showFocusMode && (
+        <div className="fixed inset-0 z-[85] flex items-center justify-center bg-slate-950/65 px-4 backdrop-blur-sm">
+          <div className={`w-full max-w-lg rounded-[28px] border p-5 shadow-2xl md:p-6 ${ui.card}`}>
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <div>
+                <div className={`text-xs uppercase tracking-[0.22em] ${ui.muted}`}>Before you enter</div>
+                <div className="text-xl font-bold md:text-2xl">{rating.decisionLabel}</div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowFocusMode(false)}
+                className={`flex h-10 w-10 items-center justify-center rounded-full text-lg transition ${ui.deleteRule}`}
+                aria-label="Close focus mode"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className={`rounded-[22px] border p-4 ${ui.innerCard}`}>
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <div className={`text-[11px] uppercase tracking-[0.18em] ${ui.muted}`}>{proInstrument} • {proSession}</div>
+                  <div className="mt-1 text-3xl font-black">{score}%</div>
+                </div>
+                <div className={`rounded-full border px-3 py-1 text-xs font-semibold ${scoreBandStyles.badge}`}>
+                  {scoreBand.label}
+                </div>
+              </div>
+
+              <div className={`mt-3 h-3 overflow-hidden rounded-full ${ui.barTrack}`}>
+                <div
+                  className={`h-full rounded-full transition-all duration-500 ${styles.fill}`}
+                  style={{ width: `${score}%` }}
+                />
+              </div>
+
+              <div className={`mt-3 rounded-2xl border px-4 py-3 text-sm ${decisionStyles.badge}`}>
+                {mainBlockerText}
+              </div>
+
+              <div className={`mt-3 rounded-2xl border px-4 py-3 text-sm ${qualificationStyles.badge}`}>
+                {emotionWarning}
+              </div>
+
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                <div className={`rounded-2xl border px-4 py-3 ${ui.statBox}`}>
+                  <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Rules confirmed</div>
+                  <div className="mt-1 text-lg font-bold">{checkedCount}/{totalCount}</div>
+                </div>
+                <div className={`rounded-2xl border px-4 py-3 ${ui.statBox}`}>
+                  <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Pause timer</div>
+                  <div className="mt-1 text-lg font-bold">{proTimerActive ? `${proTimerLeft}s` : `${proTimerSeconds}s ready`}</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -885,23 +1552,44 @@ export default function Home() {
   </div>
 </div>
 
-          <div className={`inline-flex items-center gap-1 rounded-full p-1 ${ui.toggleShell}`}>
-            <button
-              type="button"
-              onClick={() => setTheme('dark')}
-              className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${theme === 'dark' ? ui.toggleActive : ui.toggleInactive}`}
-              aria-pressed={theme === 'dark'}
-            >
-              Dark
-            </button>
-            <button
-              type="button"
-              onClick={() => setTheme('light')}
-              className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${theme === 'light' ? ui.toggleActive : ui.toggleInactive}`}
-              aria-pressed={theme === 'light'}
-            >
-              Light
-            </button>
+          <div className="flex items-center gap-2">
+            <div className={`inline-flex items-center gap-1 rounded-full p-1 ${ui.toggleShell}`}>
+              <button
+                type="button"
+                onClick={() => setMode('standard')}
+                className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${mode === 'standard' ? ui.toggleActive : ui.toggleInactive}`}
+                aria-pressed={mode === 'standard'}
+              >
+                Standard
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode('pro')}
+                className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${mode === 'pro' ? ui.toggleActive : ui.toggleInactive}`}
+                aria-pressed={mode === 'pro'}
+              >
+                Pro
+              </button>
+            </div>
+
+            <div className={`inline-flex items-center gap-1 rounded-full p-1 ${ui.toggleShell}`}>
+              <button
+                type="button"
+                onClick={() => setTheme('dark')}
+                className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${theme === 'dark' ? ui.toggleActive : ui.toggleInactive}`}
+                aria-pressed={theme === 'dark'}
+              >
+                Dark
+              </button>
+              <button
+                type="button"
+                onClick={() => setTheme('light')}
+                className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${theme === 'light' ? ui.toggleActive : ui.toggleInactive}`}
+                aria-pressed={theme === 'light'}
+              >
+                Light
+              </button>
+            </div>
           </div>
         </div>
 
@@ -1008,6 +1696,264 @@ export default function Home() {
         </div>
 
         <div className="space-y-4">
+          {mode === 'pro' && (
+            <>
+              <div className={`rounded-[24px] p-3 md:p-4 ${ui.card}`}>
+                <div className="grid gap-3 xl:grid-cols-[1.3fr_1fr]">
+                  <div className={`rounded-[22px] p-3 ${ui.innerCard}`}>
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                      <div>
+                        <div className={`text-sm font-semibold ${ui.secondaryStrong}`}>Pro context</div>
+                        <p className={`mt-1 text-xs ${ui.muted}`}>Give the checklist real context before you trade.</p>
+                      </div>
+                      <div className={`rounded-full border px-3 py-1 text-[11px] font-semibold ${qualificationStyles.badge}`}>
+                        {proSetupType}
+                      </div>
+                    </div>
+
+                    <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+                      <select
+                        value={proInstrument}
+                        onChange={(e) => setProInstrument(e.target.value)}
+                        className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}
+                      >
+                        {['ES', 'NQ', 'Gold', 'Silver', 'Oil', 'BTC', 'EURUSD'].map((item) => (
+                          <option key={item} value={item}>
+                            Instrument: {item}
+                          </option>
+                        ))}
+                      </select>
+
+                      <select
+                        value={proSession}
+                        onChange={(e) => setProSession(e.target.value as SessionType)}
+                        className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}
+                      >
+                        {sessionOptions.map((item) => (
+                          <option key={item} value={item}>
+                            Session: {item}
+                          </option>
+                        ))}
+                      </select>
+
+                      <select
+                        value={proSetupType}
+                        onChange={(e) => setProSetupType(e.target.value as SetupType)}
+                        className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}
+                      >
+                        {setupTypeOptions.map((item) => (
+                          <option key={item} value={item}>
+                            Setup: {item}
+                          </option>
+                        ))}
+                      </select>
+
+                      <select
+                        value={proEmotion}
+                        onChange={(e) => setProEmotion(e.target.value as EmotionState)}
+                        className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}
+                      >
+                        {emotionOptions.map((item) => (
+                          <option key={item.value} value={item.value}>
+                            Emotion: {item.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="mt-3 grid gap-3 lg:grid-cols-[1fr_auto]">
+                      <div className={`rounded-[20px] border p-3 ${ui.statBox}`}>
+                        <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Main blocker</div>
+                        <div className="mt-1 text-sm font-semibold">{mainBlockerText}</div>
+                        <p className={`mt-1 text-xs ${ui.muted}`}>{emotionWarning}</p>
+                      </div>
+
+                      <div className={`rounded-[20px] border p-3 ${ui.statBox}`}>
+                        <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Pause before entry</div>
+                        <div className="mt-1 flex items-center gap-2">
+                          <select
+                            value={proTimerSeconds}
+                            onChange={(e) => setProTimerSeconds(Number(e.target.value))}
+                            className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}
+                          >
+                            {[10, 15, 20, 30, 45].map((item) => (
+                              <option key={item} value={item}>
+                                {item}s
+                              </option>
+                            ))}
+                          </select>
+
+                          {!proTimerActive ? (
+                            <button
+                              type="button"
+                              onClick={startPreTradeTimer}
+                              className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${styles.button}`}
+                            >
+                              Start
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={stopPreTradeTimer}
+                              className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${ui.secondaryBtn}`}
+                            >
+                              Stop
+                            </button>
+                          )}
+                        </div>
+                        <div className={`mt-2 text-sm font-semibold ${ui.primaryStrong}`}>
+                          {proTimerActive ? `${proTimerLeft}s remaining` : `${proTimerSeconds}s pause ready`}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setShowFocusMode(true)}
+                        className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${ui.secondaryBtn}`}
+                      >
+                        Before You Enter Mode
+                      </button>
+                      <button
+                        type="button"
+                        onClick={shareSummary}
+                        className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${ui.secondaryBtn}`}
+                      >
+                        {copiedSummary ? 'Copied' : 'Share / Copy Summary'}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className={`rounded-[22px] p-3 ${ui.innerCard}`}>
+                    <div className={`text-sm font-semibold ${ui.secondaryStrong}`}>What changed</div>
+                    <div className={`mt-2 rounded-2xl border px-4 py-3 text-sm ${ui.statBox}`}>
+                      {changedMessage}
+                    </div>
+
+                    <div className={`mt-3 rounded-2xl border px-4 py-3 text-sm ${ui.statBox}`}>
+                      <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Score source</div>
+                      <div className="mt-1 font-semibold">{scoreCarryMessage}</div>
+                    </div>
+
+                    <div className={`mt-3 rounded-2xl border px-4 py-3 text-sm ${ui.statBox}`}>
+                      <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Current weak category</div>
+                      <div className="mt-1 font-semibold">
+                        {mostMissedCurrentCategory && mostMissedCurrentCategory[1] > 0
+                          ? `${mostMissedCurrentCategory[0]} (${mostMissedCurrentCategory[1]})`
+                          : 'No category is currently lagging.'}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className={`rounded-[24px] p-3 md:p-4 ${ui.card}`}>
+                <div className="grid gap-3 xl:grid-cols-[1.1fr_0.9fr]">
+                  <div className={`rounded-[22px] p-3 ${ui.innerCard}`}>
+                    <div className={`mb-2 text-sm font-semibold ${ui.secondaryStrong}`}>Templates and rule packs</div>
+
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      <select
+                        value={selectedRulePackId}
+                        onChange={(e) => applyRulePack(e.target.value)}
+                        className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}
+                      >
+                        {defaultRulePacks.map((pack) => (
+                          <option key={pack.id} value={pack.id}>
+                            Rule Pack: {pack.name}
+                          </option>
+                        ))}
+                      </select>
+
+                      <select
+                        value={selectedTemplateId}
+                        onChange={(e) => loadTemplate(e.target.value)}
+                        className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}
+                      >
+                        <option value="">Saved template...</option>
+                        {templates.map((template) => (
+                          <option key={template.id} value={template.id}>
+                            {template.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+                      <input
+                        value={templateName}
+                        onChange={(e) => setTemplateName(e.target.value)}
+                        placeholder="Save current checklist as template"
+                        className={`w-full rounded-2xl px-3 py-2.5 text-sm outline-none transition ${ui.input}`}
+                      />
+                      <button
+                        type="button"
+                        onClick={saveCurrentTemplate}
+                        className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${styles.button}`}
+                      >
+                        Save Template
+                      </button>
+                    </div>
+
+                    {templates.length > 0 && (
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {templates.slice(0, 4).map((template) => (
+                          <div key={template.id} className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs ${ui.statBox}`}>
+                            <span>{template.name}</span>
+                            <button
+                              type="button"
+                              onClick={() => deleteTemplate(template.id)}
+                              className={`flex h-6 w-6 items-center justify-center rounded-full ${ui.deleteRule}`}
+                              aria-label={`Delete ${template.name}`}
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className={`rounded-[22px] p-3 ${ui.innerCard}`}>
+                    <div className={`mb-2 text-sm font-semibold ${ui.secondaryStrong}`}>Quick utilities</div>
+                    <div className="grid gap-2 sm:grid-cols-3">
+                      <input
+                        type="number"
+                        min={1}
+                        value={riskAmount}
+                        onChange={(e) => setRiskAmount(Number(e.target.value) || 0)}
+                        className={`rounded-2xl px-3 py-2.5 text-sm outline-none transition ${ui.input}`}
+                        placeholder="Risk $"
+                      />
+                      <input
+                        type="number"
+                        min={0.01}
+                        step="0.01"
+                        value={stopDistance}
+                        onChange={(e) => setStopDistance(Number(e.target.value) || 0)}
+                        className={`rounded-2xl px-3 py-2.5 text-sm outline-none transition ${ui.input}`}
+                        placeholder="Stop distance"
+                      />
+                      <input
+                        type="number"
+                        min={0.01}
+                        step="0.01"
+                        value={pointValue}
+                        onChange={(e) => setPointValue(Number(e.target.value) || 0)}
+                        className={`rounded-2xl px-3 py-2.5 text-sm outline-none transition ${ui.input}`}
+                        placeholder="Point value"
+                      />
+                    </div>
+                    <div className={`mt-3 rounded-2xl border px-4 py-3 text-sm ${ui.statBox}`}>
+                      Position size estimate: <span className="font-bold">{positionSize}</span> units/contracts
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+
           <div className={`rounded-[24px] p-3 md:p-4 ${ui.card}`}>
             <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
               <div className={`rounded-[22px] p-3 ${ui.innerCard}`}>
@@ -1120,6 +2066,22 @@ export default function Home() {
                   </div>
                 </div>
 
+                {mode === 'pro' && (
+                  <div className="mt-2">
+                    <select
+                      value={newRuleCategory}
+                      onChange={(e) => setNewRuleCategory(e.target.value as RuleCategory)}
+                      className={`h-10 w-full rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}
+                    >
+                      {categoryOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          Category: {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
                 {newRuleError && (
                   <div className={`mt-2 rounded-2xl px-3 py-2 text-[11px] leading-5 md:text-xs ${ui.errorBox}`}>
                     {newRuleError}
@@ -1152,6 +2114,120 @@ export default function Home() {
             </div>
           </div>
 
+          {mode === 'pro' && (
+            <div className={`rounded-[24px] p-3 md:p-4 ${ui.card}`}>
+              <div className="grid gap-3 xl:grid-cols-[1.2fr_0.8fr]">
+                <div className={`rounded-[22px] p-3 ${ui.innerCard}`}>
+                  <div className={`mb-2 text-sm font-semibold ${ui.secondaryStrong}`}>Journal this review</div>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    <select
+                      value={tradeOutcome}
+                      onChange={(e) => setTradeOutcome(e.target.value as JournalOutcome)}
+                      className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}
+                    >
+                      <option value="unknown">Outcome: not logged yet</option>
+                      <option value="win">Outcome: Win</option>
+                      <option value="loss">Outcome: Loss</option>
+                      <option value="no-trade">Outcome: No trade taken</option>
+                      <option value="saved-me">Outcome: Checklist saved me</option>
+                    </select>
+
+                    <select
+                      value={followedVerdict}
+                      onChange={(e) => setFollowedVerdict(e.target.value as FollowedVerdict)}
+                      className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}
+                    >
+                      <option value="yes">I followed the verdict</option>
+                      <option value="partially">I partly followed it</option>
+                      <option value="no">I ignored it</option>
+                    </select>
+                  </div>
+
+                  <textarea
+                    value={tradeNote}
+                    onChange={(e) => setTradeNote(e.target.value)}
+                    placeholder="Add a short note about why you took or skipped this setup."
+                    className={`mt-2 min-h-[108px] w-full rounded-[22px] px-3 py-3 text-sm outline-none transition ${ui.input}`}
+                  />
+
+                  <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">
+                    <label className={`inline-flex cursor-pointer items-center rounded-2xl px-3 py-2 text-xs font-semibold transition ${ui.secondaryBtn}`}>
+                      Upload screenshot
+                      <input type="file" accept="image/*" className="hidden" onChange={handleScreenshotUpload} />
+                    </label>
+
+                    <button
+                      type="button"
+                      onClick={saveJournalEntry}
+                      className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${styles.button}`}
+                    >
+                      Save review
+                    </button>
+                  </div>
+
+                  {screenshotDataUrl && (
+                    <div className="mt-3 overflow-hidden rounded-[20px] border border-white/10">
+                      <img src={screenshotDataUrl} alt="Uploaded chart" className="h-40 w-full object-cover" />
+                    </div>
+                  )}
+
+                  {journal.length > 0 && (
+                    <div className="mt-3 space-y-2">
+                      {journal.slice(0, 3).map((entry) => (
+                        <div key={entry.id} className={`rounded-[18px] border p-3 ${ui.statBox}`}>
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <div className="text-sm font-semibold">{entry.verdict}</div>
+                            <div className={`text-xs ${ui.muted}`}>{formatDate(entry.createdAt)}</div>
+                          </div>
+                          <div className={`mt-1 text-xs ${ui.muted}`}>
+                            {entry.instrument} • {entry.session} • {entry.setupType} • {entry.score}% • {entry.outcome}
+                          </div>
+                          {entry.note && <p className="mt-2 text-sm">{entry.note}</p>}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className={`rounded-[22px] p-3 ${ui.innerCard}`}>
+                  <div className={`mb-2 text-sm font-semibold ${ui.secondaryStrong}`}>Discipline dashboard</div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      ['Reviews', `${journal.length}`],
+                      ['Avg score', `${averageJournalScore}%`],
+                      ['Qualified', `${qualifiedJournalCount}`],
+                      ['Blocked', `${blockedJournalCount}`],
+                      ['Saved me', `${savedMeCount}`],
+                      ['Streak', `${currentRespectStreak}`],
+                    ].map(([label, value]) => (
+                      <div key={label} className={`rounded-2xl border px-3 py-3 ${ui.statBox}`}>
+                        <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>{label}</div>
+                        <div className="mt-1 text-lg font-bold">{value}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className={`mt-3 rounded-2xl border px-4 py-3 text-sm ${ui.statBox}`}>
+                    <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Most missed rule</div>
+                    <div className="mt-1 font-semibold">{mostMissedRule ? mostMissedRule[0] : 'Not enough saved reviews yet.'}</div>
+                  </div>
+
+                  <div className={`mt-3 rounded-2xl border px-4 py-3 text-sm ${ui.statBox}`}>
+                    <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Most missed category</div>
+                    <div className="mt-1 font-semibold">
+                      {mostMissedJournalCategory ? mostMissedJournalCategory[0] : 'Not enough saved reviews yet.'}
+                    </div>
+                  </div>
+
+                  <div className={`mt-3 rounded-2xl border px-4 py-3 text-sm ${ui.statBox}`}>
+                    <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Verdict respected</div>
+                    <div className="mt-1 font-semibold">{respectedVerdictCount}/{journal.length || 0} logged reviews</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className={`rounded-[28px] p-4 md:p-5 ${ui.card}`}>
             <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div>
@@ -1174,6 +2250,7 @@ export default function Home() {
               <div className="space-y-2">
                 {rules.map((rule) => {
                   const importanceBadge = getImportanceBadge(rule.importance, theme)
+                  const categoryBadge = getCategoryBadge(rule.category, theme)
 
                   return (
                     <div
@@ -1210,6 +2287,14 @@ export default function Home() {
                       </button>
 
                       <div className="flex items-center gap-2">
+                        {mode === 'pro' && (
+                          <div
+                            className={`rounded-xl border px-2.5 py-2 text-[11px] font-medium md:text-xs ${categoryBadge.className}`}
+                          >
+                            {categoryBadge.label}
+                          </div>
+                        )}
+
                         <div
                           className={`rounded-xl border px-2.5 py-2 text-[11px] font-medium md:text-xs ${importanceBadge.className}`}
                         >
