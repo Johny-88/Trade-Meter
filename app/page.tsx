@@ -1720,9 +1720,9 @@ ${emotionWarning}`
               <div className={`rounded-[24px] p-3 md:p-4 ${ui.card}`}>
                 <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
                   <div>
-                    <div className={`text-sm font-semibold ${ui.secondaryStrong}`}>Pro mode workflow</div>
+                    <div className={`text-sm font-semibold ${ui.secondaryStrong}`}>Pro mode</div>
                     <p className={`mt-1 text-sm ${ui.muted}`}>
-                      Keep Pro simple: prep the trade first, open tools only when you need them, then save the review after the decision.
+                      Extra context and review tools for traders who want more structure, without changing the main verdict logic.
                     </p>
                   </div>
 
@@ -1749,38 +1749,6 @@ ${emotionWarning}`
                       Review
                     </button>
                   </div>
-                </div>
-
-                <div className="mt-3 grid gap-2 md:grid-cols-3">
-                  {[
-                    {
-                      label: '1. Prep',
-                      desc: 'Set instrument, session, setup type, mood, and packs before you score anything.',
-                      active: proView === 'prep',
-                    },
-                    {
-                      label: '2. Decide',
-                      desc: 'Read the verdict in the main score block below. That is still the source of truth.',
-                      active: proView === 'tools',
-                    },
-                    {
-                      label: '3. Review',
-                      desc: 'Save what happened only after the trade or after you decide to skip it.',
-                      active: proView === 'review',
-                    },
-                  ].map((item) => (
-                    <div
-                      key={item.label}
-                      className={`rounded-[20px] border px-4 py-3 ${item.active ? ui.ruleChecked : ui.statBox}`}
-                    >
-                      <div className="text-sm font-semibold">{item.label}</div>
-                      <p className={`mt-1 text-xs leading-5 ${ui.muted}`}>{item.desc}</p>
-                    </div>
-                  ))}
-                </div>
-
-                <div className={`mt-3 rounded-2xl border px-4 py-3 text-sm ${ui.statBox}`}>
-                  <span className="font-semibold">{proViewMeta.title}:</span> {proViewMeta.desc}
                 </div>
               </div>
 
@@ -1926,99 +1894,75 @@ ${emotionWarning}`
                           <div className="mt-1 font-semibold">{changedMessage}</div>
                         </div>
 
-                        <div className={`mt-3 rounded-2xl border px-4 py-3 text-sm ${ui.statBox}`}>
-                          <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Quick tip</div>
-                          <div className="mt-1 font-semibold">
-                            Use the checklist below as the final decision. Pro context should support the verdict, not override it.
-                          </div>
-                        </div>
                       </div>
                     </div>
                   </div>
 
                   <div className={`rounded-[24px] p-3 md:p-4 ${ui.card}`}>
-                    <div className="grid gap-3 xl:grid-cols-[1.1fr_0.9fr]">
-                      <div className={`rounded-[22px] p-3 ${ui.innerCard}`}>
-                        <div className={`mb-2 text-sm font-semibold ${ui.secondaryStrong}`}>Templates and starter packs</div>
-                        <p className={`mb-3 text-xs ${ui.muted}`}>Use a rule pack to load a proven structure fast, or save your own checklist as a reusable template.</p>
+                    <div className={`rounded-[22px] p-3 ${ui.innerCard}`}>
+                      <div className={`mb-2 text-sm font-semibold ${ui.secondaryStrong}`}>Templates and starter packs</div>
+                      <p className={`mb-3 text-xs ${ui.muted}`}>Load a proven checklist fast, or save your own setup so you can reuse it without rebuilding everything.</p>
 
-                        <div className="grid gap-2 sm:grid-cols-2">
-                          <select
-                            value={selectedRulePackId}
-                            onChange={(e) => applyRulePack(e.target.value)}
-                            className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}
-                          >
-                            {defaultRulePacks.map((pack) => (
-                              <option key={pack.id} value={pack.id}>
-                                Rule Pack: {pack.name}
-                              </option>
-                            ))}
-                          </select>
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        <select
+                          value={selectedRulePackId}
+                          onChange={(e) => applyRulePack(e.target.value)}
+                          className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}
+                        >
+                          {defaultRulePacks.map((pack) => (
+                            <option key={pack.id} value={pack.id}>
+                              Rule Pack: {pack.name}
+                            </option>
+                          ))}
+                        </select>
 
-                          <select
-                            value={selectedTemplateId}
-                            onChange={(e) => loadTemplate(e.target.value)}
-                            className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}
-                          >
-                            <option value="">Saved template...</option>
-                            {templates.map((template) => (
-                              <option key={template.id} value={template.id}>
-                                {template.name}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-
-                        <div className="mt-2 flex flex-col gap-2 sm:flex-row">
-                          <input
-                            value={templateName}
-                            onChange={(e) => setTemplateName(e.target.value)}
-                            placeholder="Save current checklist as template"
-                            className={`w-full rounded-2xl px-3 py-2.5 text-sm outline-none transition ${ui.input}`}
-                          />
-                          <button
-                            type="button"
-                            onClick={saveCurrentTemplate}
-                            className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${styles.button}`}
-                          >
-                            Save template
-                          </button>
-                        </div>
-
-                        {templates.length > 0 && (
-                          <div className="mt-3 flex flex-wrap gap-2">
-                            {templates.slice(0, 4).map((template) => (
-                              <div key={template.id} className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs ${ui.statBox}`}>
-                                <span>{template.name}</span>
-                                <button
-                                  type="button"
-                                  onClick={() => deleteTemplate(template.id)}
-                                  className={`flex h-6 w-6 items-center justify-center rounded-full ${ui.deleteRule}`}
-                                  aria-label={`Delete ${template.name}`}
-                                >
-                                  ×
-                                </button>
-                              </div>
-                            ))}
-                          </div>
-                        )}
+                        <select
+                          value={selectedTemplateId}
+                          onChange={(e) => loadTemplate(e.target.value)}
+                          className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}
+                        >
+                          <option value="">Saved template...</option>
+                          {templates.map((template) => (
+                            <option key={template.id} value={template.id}>
+                              {template.name}
+                            </option>
+                          ))}
+                        </select>
                       </div>
 
-                      <div className={`rounded-[22px] p-3 ${ui.innerCard}`}>
-                        <div className={`mb-2 text-sm font-semibold ${ui.secondaryStrong}`}>What Pro adds</div>
-                        <div className="space-y-2">
-                          {[
-                            'Trade context so the checklist has real meaning.',
-                            'Starter packs and saved templates for repeatable setups.',
-                            'Optional tools that explain weak spots without bloating the main verdict.',
-                            'A review section to track if discipline is actually improving over time.',
-                          ].map((item) => (
-                            <div key={item} className={`rounded-2xl border px-4 py-3 text-sm ${ui.statBox}`}>
-                              {item}
+                      <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+                        <input
+                          value={templateName}
+                          onChange={(e) => setTemplateName(e.target.value)}
+                          placeholder="Save current checklist as template"
+                          className={`w-full rounded-2xl px-3 py-2.5 text-sm outline-none transition ${ui.input}`}
+                        />
+                        <button
+                          type="button"
+                          onClick={saveCurrentTemplate}
+                          className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${styles.button}`}
+                        >
+                          Save template
+                        </button>
+                      </div>
+
+                      {templates.length > 0 && (
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {templates.slice(0, 4).map((template) => (
+                            <div key={template.id} className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs ${ui.statBox}`}>
+                              <span>{template.name}</span>
+                              <button
+                                type="button"
+                                onClick={() => deleteTemplate(template.id)}
+                                className={`flex h-6 w-6 items-center justify-center rounded-full ${ui.deleteRule}`}
+                                aria-label={`Delete ${template.name}`}
+                              >
+                                ×
+                              </button>
                             </div>
                           ))}
                         </div>
-                      </div>
+                      )}
                     </div>
                   </div>
                 </>
@@ -2028,36 +1972,20 @@ ${emotionWarning}`
                 <div className={`rounded-[24px] p-3 md:p-4 ${ui.card}`}>
                   <div className="grid gap-3 xl:grid-cols-[1.05fr_0.95fr]">
                     <div className={`rounded-[22px] p-3 ${ui.innerCard}`}>
-                      <div className={`mb-2 text-sm font-semibold ${ui.secondaryStrong}`}>Decision support tools</div>
-                      <p className={`mb-3 text-xs ${ui.muted}`}>Use these only when something feels unclear. The main score block is still the final decision engine.</p>
+                      <div className={`mb-2 text-sm font-semibold ${ui.secondaryStrong}`}>Decision support</div>
+                      <p className={`mb-3 text-xs ${ui.muted}`}>Only the essentials: what is blocking the trade, what improved, and whether your sizing is reasonable.</p>
 
                       <div className={`rounded-2xl border px-4 py-3 text-sm ${ui.statBox}`}>
+                        <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Main blocker</div>
+                        <div className="mt-1 font-semibold">{mainBlockerText}</div>
+                      </div>
+
+                      <div className={`mt-3 rounded-2xl border px-4 py-3 text-sm ${ui.statBox}`}>
                         <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>What changed</div>
                         <div className="mt-1 font-semibold">{changedMessage}</div>
                       </div>
 
-                      <div className={`mt-3 rounded-2xl border px-4 py-3 text-sm ${ui.statBox}`}>
-                        <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Score source</div>
-                        <div className="mt-1 font-semibold">{scoreCarryMessage}</div>
-                      </div>
-
-                      <div className={`mt-3 rounded-2xl border px-4 py-3 text-sm ${ui.statBox}`}>
-                        <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Weakest area right now</div>
-                        <div className="mt-1 font-semibold">
-                          {mostMissedCurrentCategory && mostMissedCurrentCategory[1] > 0
-                            ? `${mostMissedCurrentCategory[0]} (${mostMissedCurrentCategory[1]})`
-                            : 'No category is currently lagging.'}
-                        </div>
-                      </div>
-
                       <div className="mt-3 flex flex-wrap gap-2">
-                        <button
-                          type="button"
-                          onClick={shareSummary}
-                          className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${ui.secondaryBtn}`}
-                        >
-                          {copiedSummary ? 'Copied' : 'Copy review summary'}
-                        </button>
                         <button
                           type="button"
                           onClick={() => setProView('review')}
@@ -2070,7 +1998,7 @@ ${emotionWarning}`
 
                     <div className={`rounded-[22px] p-3 ${ui.innerCard}`}>
                       <div className={`mb-2 text-sm font-semibold ${ui.secondaryStrong}`}>Risk helper</div>
-                      <p className={`mb-3 text-xs ${ui.muted}`}>Optional utility for rough sizing. Use your own broker or platform rules if they differ.</p>
+                      <p className={`mb-3 text-xs ${ui.muted}`}>Quick sizing check only. If your broker uses different specs, use your broker values.</p>
 
                       <div className="grid gap-2 sm:grid-cols-3">
                         <input
@@ -2100,6 +2028,7 @@ ${emotionWarning}`
                           placeholder="Point value"
                         />
                       </div>
+
                       <div className={`mt-3 rounded-2xl border px-4 py-3 text-sm ${ui.statBox}`}>
                         Position size estimate: <span className="font-bold">{positionSize}</span> units/contracts
                       </div>
@@ -2113,7 +2042,7 @@ ${emotionWarning}`
                   <div className="grid gap-3 xl:grid-cols-[1.2fr_0.8fr]">
                     <div className={`rounded-[22px] p-3 ${ui.innerCard}`}>
                       <div className={`mb-2 text-sm font-semibold ${ui.secondaryStrong}`}>Save this review</div>
-                      <p className={`mb-3 text-xs ${ui.muted}`}>Only log a review after you take the trade or decide to skip it. This keeps your stats honest.</p>
+                      <p className={`mb-3 text-xs ${ui.muted}`}>Log only what actually happened. The goal is to learn whether you followed the verdict and where discipline keeps slipping.</p>
 
                       <div className="grid gap-2 sm:grid-cols-2">
                         <select
@@ -2142,16 +2071,11 @@ ${emotionWarning}`
                       <textarea
                         value={tradeNote}
                         onChange={(e) => setTradeNote(e.target.value)}
-                        placeholder="Add a short note about why you took or skipped this setup."
+                        placeholder="One short note: why you took it, skipped it, or broke the rule."
                         className={`mt-2 min-h-[108px] w-full rounded-[22px] px-3 py-3 text-sm outline-none transition ${ui.input}`}
                       />
 
                       <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">
-                        <label className={`inline-flex cursor-pointer items-center rounded-2xl px-3 py-2 text-xs font-semibold transition ${ui.secondaryBtn}`}>
-                          Upload screenshot
-                          <input type="file" accept="image/*" className="hidden" onChange={handleScreenshotUpload} />
-                        </label>
-
                         <button
                           type="button"
                           onClick={saveJournalEntry}
@@ -2160,12 +2084,6 @@ ${emotionWarning}`
                           Save review
                         </button>
                       </div>
-
-                      {screenshotDataUrl && (
-                        <div className="mt-3 overflow-hidden rounded-[20px] border border-white/10">
-                          <img src={screenshotDataUrl} alt="Uploaded chart" className="h-40 w-full object-cover" />
-                        </div>
-                      )}
 
                       {journal.length > 0 && (
                         <div className="mt-3 space-y-2">
@@ -2186,17 +2104,15 @@ ${emotionWarning}`
                     </div>
 
                     <div className={`rounded-[22px] p-3 ${ui.innerCard}`}>
-                      <div className={`mb-2 text-sm font-semibold ${ui.secondaryStrong}`}>Review stats</div>
-                      <p className={`mb-3 text-xs ${ui.muted}`}>These numbers only become useful if you log reviews honestly and consistently.</p>
+                      <div className={`mb-2 text-sm font-semibold ${ui.secondaryStrong}`}>What matters most</div>
+                      <p className={`mb-3 text-xs ${ui.muted}`}>Keep only the stats that directly help your discipline decisions.</p>
 
                       <div className="grid grid-cols-2 gap-2">
                         {[
                           ['Reviews', `${journal.length}`],
-                          ['Avg score', `${averageJournalScore}%`],
-                          ['Qualified', `${qualifiedJournalCount}`],
-                          ['Blocked', `${blockedJournalCount}`],
                           ['Saved me', `${savedMeCount}`],
-                          ['Streak', `${currentRespectStreak}`],
+                          ['Respected', `${respectedVerdictCount}/${journal.length || 0}`],
+                          ['Avg score', `${averageJournalScore}%`],
                         ].map(([label, value]) => (
                           <div key={label} className={`rounded-2xl border px-3 py-3 ${ui.statBox}`}>
                             <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>{label}</div>
@@ -2216,14 +2132,10 @@ ${emotionWarning}`
                           {mostMissedJournalCategory ? mostMissedJournalCategory[0] : 'Not enough saved reviews yet.'}
                         </div>
                       </div>
-
-                      <div className={`mt-3 rounded-2xl border px-4 py-3 text-sm ${ui.statBox}`}>
-                        <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Verdict respected</div>
-                        <div className="mt-1 font-semibold">{respectedVerdictCount}/{journal.length || 0} logged reviews</div>
-                      </div>
                     </div>
                   </div>
                 </div>
+              )}
               )}
             </>
           )}
