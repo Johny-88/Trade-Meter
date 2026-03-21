@@ -1842,7 +1842,7 @@ ${emotionWarning}`
         <div className="space-y-4">
           {mode === 'stats' && (
             <>
-              <div className={`rounded-[24px] p-3 md:p-4 ${ui.card}`}>
+              <div className={`max-h-[calc(100vh-11.5rem)] overflow-y-auto overscroll-contain rounded-[24px] p-3 md:max-h-none md:overflow-visible md:p-4 ${ui.card}`}>
                 <div className="grid gap-3 xl:grid-cols-[1.05fr_0.95fr]">
                   <div className={`rounded-[22px] p-3 ${ui.innerCard}`}>
                     <div className={`mb-2 text-sm font-semibold ${ui.secondaryStrong}`}>Journal entry</div>
