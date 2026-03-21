@@ -2021,6 +2021,7 @@ ${emotionWarning}`
         className="relative mx-auto max-w-7xl px-4 pb-6 md:px-6 lg:px-8 lg:pb-8"
         style={{ paddingTop: mode === 'stats' ? 0 : topOffset }}
       >
+        {mode === 'standard' && (
         <div className={`mb-6 rounded-[28px] p-5 md:p-6 ${ui.card}`}>
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div className="max-w-3xl">
@@ -2054,10 +2055,12 @@ ${emotionWarning}`
           </div>
         </div>
 
+        )}
+
         <div className="space-y-4">
           {mode === 'stats' && (
             <>
-              <div className={`max-h-[calc(100vh-11.5rem)] overflow-y-auto overscroll-contain rounded-[24px] p-3 md:max-h-none md:overflow-visible md:p-4 ${ui.card}`}>
+              <div className={`mt-4 rounded-[24px] p-3 md:p-4 ${ui.card}`}>
                 <div className="grid gap-3 xl:grid-cols-[1.05fr_0.95fr]">
                   <div className={`rounded-[22px] p-3 ${ui.innerCard}`}>
                     <div className={`mb-2 text-sm font-semibold ${ui.secondaryStrong}`}>Journal entry</div>
