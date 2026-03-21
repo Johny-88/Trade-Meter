@@ -1365,6 +1365,8 @@ export default function Home() {
   const shortLosses = journal.filter((entry) => entry.direction === 'short' && entry.outcome === 'loss').length
   const totalNetPnl = journal.reduce((sum, entry) => sum + entry.pnl, 0)
   const averageR = closedTrades.length > 0 ? closedTrades.reduce((sum, entry) => sum + entry.rMultiple, 0) / closedTrades.length : 0
+  const largestWin = winningTrades.length > 0 ? Math.max(...winningTrades.map((entry) => entry.pnl)) : null
+  const largestLoss = losingTrades.length > 0 ? Math.min(...losingTrades.map((entry) => entry.pnl)) : null
   const setupBreakdown = Object.entries(
     journal.reduce<Record<string, number>>((acc, entry) => {
       acc[entry.setupType] = (acc[entry.setupType] ?? 0) + 1
@@ -1834,8 +1836,6 @@ ${emotionWarning}`
                 ['Most common emotion', topOverallEmotion ? `${topOverallEmotion.value} • ${topOverallEmotion.count}` : 'No data yet.'],
                 ['Best setup by avg R', bestSetupByAverageR ? `${bestSetupByAverageR.setup} • ${bestSetupByAverageR.avgR.toFixed(2)}R` : 'Not enough closed trades yet.'],
                 ['Worst setup by avg R', worstSetupByAverageR ? `${worstSetupByAverageR.setup} • ${worstSetupByAverageR.avgR.toFixed(2)}R` : 'Not enough closed trades yet.'],
-                ['Largest win', winningTrades.length > 0 ? `${Math.max(...winningTrades.map((entry) => entry.pnl)).toFixed(2)}` : 'No winning trades yet.'],
-                ['Largest loss', losingTrades.length > 0 ? `${Math.min(...losingTrades.map((entry) => entry.pnl)).toFixed(2)}` : 'No losing trades yet.'],
               ].map((item) => (
                 <div key={item[0]} className={`rounded-[20px] border px-4 py-3 ${ui.statBox}`}>
                   <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>{item[0]}</div>
@@ -2150,32 +2150,47 @@ ${emotionWarning}`
               </div>
             ) : (
               <div className="grid gap-2 md:grid-cols-[220px_minmax(0,1fr)] lg:grid-cols-[250px_minmax(0,1fr)] md:items-center">
-                <div className={`rounded-[18px] p-2.5 ${ui.scorePanel}`}>
+                <div className={`rounded-[18px] p-3 ${ui.scorePanel}`}>
                   <div className={`text-[10px] uppercase tracking-[0.18em] md:text-[11px] ${ui.muted}`}>
-                    Journal Win Rate
+                    Journal performance
                   </div>
-                  <div className="mt-1 text-2xl font-black leading-none md:text-[30px]">
-                    {winRate}%
-                  </div>
-                  <div className={`mt-2 h-2.5 overflow-hidden rounded-full ${ui.barTrack}`}>
-                    <div className="h-full rounded-full bg-emerald-400 transition-all duration-500" style={{ width: `${winRate}%` }} />
-                  </div>
-                  <div className={`mt-1.5 text-[10px] font-semibold md:text-[11px] ${ui.subtle}`}>
-                    {totalReviewedTrades} logged • {closedTrades.length} closed
+
+                  <div className="mt-3 flex items-center gap-3">
+                    <div
+                      className="relative h-24 w-24 shrink-0 rounded-full"
+                      style={{
+                        background: `conic-gradient(#34d399 0 ${winRate}%, #f87171 ${winRate}% ${Math.min(winRate + lossRate, 100)}%, ${
+                          theme === 'light' ? '#e2e8f0' : 'rgba(255,255,255,0.12)'
+                        } ${Math.min(winRate + lossRate, 100)}% 100%)`,
+                      }}
+                    >
+                      <div className={`absolute inset-[8px] rounded-full ${theme === 'light' ? 'bg-white' : 'bg-slate-950'}`} />
+                      <div className="absolute inset-0 flex flex-col items-center justify-center">
+                        <div className="text-2xl font-black leading-none">{winRate}%</div>
+                        <div className={`mt-1 text-[10px] font-semibold uppercase tracking-[0.16em] ${ui.muted}`}>Win</div>
+                      </div>
+                    </div>
+
+                    <div className="min-w-0">
+                      <div className="text-lg font-bold leading-none">{lossRate}%</div>
+                      <div className={`mt-1 text-[10px] font-semibold uppercase tracking-[0.16em] ${ui.muted}`}>Loss rate</div>
+                      <div className={`mt-3 text-[10px] font-semibold md:text-[11px] ${ui.subtle}`}>
+                        {totalReviewedTrades} logged • {closedTrades.length} closed
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-5">
+                <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
                   {[
                     ['Net P&L', `${totalNetPnl >= 0 ? '+' : ''}${totalNetPnl.toFixed(2)}`],
                     ['Avg R', `${averageR >= 0 ? '+' : ''}${averageR.toFixed(2)}R`],
                     ['Long W/L', `${longWins}/${longLosses}`],
                     ['Short W/L', `${shortWins}/${shortLosses}`],
-                    ['Saved Me', `${savedMeCount}`],
                   ].map((item) => (
-                    <div key={item[0]} className={`rounded-[18px] border px-3 py-3 text-center ${ui.statBox}`}>
-                      <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>{item[0]}</div>
-                      <div className="mt-1 text-base font-bold md:text-lg">{item[1]}</div>
+                    <div key={item[0]} className={`rounded-[18px] border px-3 py-2.5 text-center ${ui.statBox}`}>
+                      <div className={`text-[9px] uppercase tracking-[0.16em] ${ui.muted}`}>{item[0]}</div>
+                      <div className="mt-1 text-sm font-bold md:text-base">{item[1]}</div>
                     </div>
                   ))}
                 </div>
@@ -2341,8 +2356,8 @@ ${emotionWarning}`
                         ['Breakeven', `${breakevenCount}`],
                         ['Long W/L', `${longWins}/${longLosses}`],
                         ['Short W/L', `${shortWins}/${shortLosses}`],
-                        ['No trade', `${noTradeCount}`],
-                        ['Saved me', `${savedMeCount}`],
+                        ['Largest win', largestWin !== null ? `${largestWin >= 0 ? '+' : ''}${largestWin.toFixed(2)}` : 'No winning trades yet.'],
+                        ['Largest loss', largestLoss !== null ? `${largestLoss.toFixed(2)}` : 'No losing trades yet.'],
                       ].map((item) => (
                         <div key={item[0]} className={`rounded-2xl border px-3 py-3 ${ui.statBox}`}>
                           <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>{item[0]}</div>
