@@ -2290,6 +2290,7 @@ ${emotionWarning}`
           )}
 
           {mode === 'standard' ? (
+            <>
 
           <div className={`rounded-[24px] p-3 md:p-4 ${ui.card}`}>
             <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
@@ -2654,6 +2655,7 @@ ${emotionWarning}`
           </div>
         </div>
 
+            </>
           ) : (
             <>
               <div className={`rounded-[24px] p-3 md:p-4 ${ui.card}`}>
