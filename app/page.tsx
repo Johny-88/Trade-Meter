@@ -6,12 +6,13 @@ type Weight = 5 | 10 | 20
 type Importance = 'mandatory' | 'important' | 'bonus'
 type RuleCategory = 'structure' | 'risk' | 'confirmation' | 'psychology' | 'execution'
 type AppTheme = 'dark' | 'light'
-type AppMode = 'standard' | 'pro'
+type AppMode = 'standard' | 'stats'
 type Tone = 'emerald' | 'lime' | 'amber' | 'orange' | 'red'
 type EmotionState = 'calm' | 'focused' | 'slightly-emotional' | 'fomo' | 'revenge' | 'tired'
 type SessionType = 'London' | 'New York' | 'Asia' | 'After-hours'
 type SetupType = 'Breakout' | 'Reversal' | 'Support Bounce' | 'Trendline Break' | 'Pullback'
-type JournalOutcome = 'unknown' | 'win' | 'loss' | 'no-trade' | 'saved-me'
+type TradeDirection = 'long' | 'short'
+type JournalOutcome = 'unknown' | 'win' | 'loss' | 'breakeven' | 'no-trade' | 'saved-me'
 type FollowedVerdict = 'yes' | 'no' | 'partially'
 
 type Rule = {
@@ -67,6 +68,9 @@ type JournalEntry = {
   instrument: string
   setupType: SetupType
   emotion: EmotionState
+  direction: TradeDirection
+  pnl: number
+  rMultiple: number
   missingRuleTexts: string[]
   missingCategories: RuleCategory[]
   respectedVerdict: boolean
@@ -543,6 +547,47 @@ function formatDate(dateIso: string) {
   })
 }
 
+function normalizeJournalEntry(entry: Partial<JournalEntry>): JournalEntry {
+  return {
+    id: typeof entry.id === 'string' ? entry.id : makeId(),
+    createdAt: typeof entry.createdAt === 'string' ? entry.createdAt : new Date().toISOString(),
+    score: typeof entry.score === 'number' ? entry.score : 0,
+    threshold: typeof entry.threshold === 'number' ? entry.threshold : 0,
+    verdict: typeof entry.verdict === 'string' ? entry.verdict : 'NOT LOGGED',
+    quality: typeof entry.quality === 'string' ? entry.quality : 'No Trade',
+    outcome:
+      entry.outcome === 'win' || entry.outcome === 'loss' || entry.outcome === 'breakeven' || entry.outcome === 'no-trade' || entry.outcome === 'saved-me'
+        ? entry.outcome
+        : 'unknown',
+    followedVerdict: entry.followedVerdict === 'no' || entry.followedVerdict === 'partially' ? entry.followedVerdict : 'yes',
+    note: typeof entry.note === 'string' ? entry.note : '',
+    screenshotDataUrl: typeof entry.screenshotDataUrl === 'string' ? entry.screenshotDataUrl : '',
+    session:
+      entry.session === 'London' || entry.session === 'New York' || entry.session === 'Asia' || entry.session === 'After-hours'
+        ? entry.session
+        : 'London',
+    instrument: typeof entry.instrument === 'string' ? entry.instrument : 'ES',
+    setupType:
+      entry.setupType === 'Breakout' || entry.setupType === 'Reversal' || entry.setupType === 'Support Bounce' || entry.setupType === 'Trendline Break' || entry.setupType === 'Pullback'
+        ? entry.setupType
+        : 'Breakout',
+    emotion:
+      entry.emotion === 'focused' || entry.emotion === 'slightly-emotional' || entry.emotion === 'fomo' || entry.emotion === 'revenge' || entry.emotion === 'tired'
+        ? entry.emotion
+        : 'calm',
+    direction: entry.direction === 'short' ? 'short' : 'long',
+    pnl: typeof entry.pnl === 'number' ? entry.pnl : 0,
+    rMultiple: typeof entry.rMultiple === 'number' ? entry.rMultiple : 0,
+    missingRuleTexts: Array.isArray(entry.missingRuleTexts) ? entry.missingRuleTexts.filter((x): x is string => typeof x === 'string') : [],
+    missingCategories: Array.isArray(entry.missingCategories)
+      ? entry.missingCategories.filter((x): x is RuleCategory =>
+          x === 'structure' || x === 'risk' || x === 'confirmation' || x === 'psychology' || x === 'execution'
+        )
+      : [],
+    respectedVerdict: typeof entry.respectedVerdict === 'boolean' ? entry.respectedVerdict : entry.followedVerdict !== 'no',
+  }
+}
+
 function getRuleDefaults(text: string) {
   const starterRule = starterRules.find((rule) => rule.text === text)
 
@@ -872,6 +917,9 @@ export default function Home() {
   const [tradeNote, setTradeNote] = useState('')
   const [tradeOutcome, setTradeOutcome] = useState<JournalOutcome>('unknown')
   const [followedVerdict, setFollowedVerdict] = useState<FollowedVerdict>('yes')
+  const [journalDirection, setJournalDirection] = useState<TradeDirection>('long')
+  const [journalPnl, setJournalPnl] = useState(0)
+  const [journalRMultiple, setJournalRMultiple] = useState(0)
   const [screenshotDataUrl, setScreenshotDataUrl] = useState('')
   const [journal, setJournal] = useState<JournalEntry[]>([])
   const [copiedSummary, setCopiedSummary] = useState(false)
@@ -899,7 +947,7 @@ export default function Home() {
       setTheme(savedTheme)
     }
 
-    if (savedMode === 'standard' || savedMode === 'pro') {
+    if (savedMode === 'standard' || savedMode === 'stats') {
       setMode(savedMode)
     }
 
@@ -916,7 +964,7 @@ export default function Home() {
       try {
         const parsedJournal = JSON.parse(savedJournal)
         if (Array.isArray(parsedJournal)) {
-          setJournal(parsedJournal)
+          setJournal(parsedJournal.map((entry) => normalizeJournalEntry(entry)))
         }
       } catch {}
     }
@@ -1131,6 +1179,32 @@ export default function Home() {
     return acc
   }, {})
   const mostMissedJournalCategory = Object.entries(mostMissedCategoryMap).sort((a, b) => b[1] - a[1])[0]
+  const totalReviewedTrades = journal.filter((entry) => entry.outcome !== 'unknown').length
+  const closedTrades = journal.filter((entry) => entry.outcome === 'win' || entry.outcome === 'loss' || entry.outcome === 'breakeven')
+  const winCount = journal.filter((entry) => entry.outcome === 'win').length
+  const lossCount = journal.filter((entry) => entry.outcome === 'loss').length
+  const breakevenCount = journal.filter((entry) => entry.outcome === 'breakeven').length
+  const noTradeCount = journal.filter((entry) => entry.outcome === 'no-trade').length
+  const winRate = closedTrades.length > 0 ? Math.round((winCount / closedTrades.length) * 100) : 0
+  const lossRate = closedTrades.length > 0 ? Math.round((lossCount / closedTrades.length) * 100) : 0
+  const longWins = journal.filter((entry) => entry.direction === 'long' && entry.outcome === 'win').length
+  const longLosses = journal.filter((entry) => entry.direction === 'long' && entry.outcome === 'loss').length
+  const shortWins = journal.filter((entry) => entry.direction === 'short' && entry.outcome === 'win').length
+  const shortLosses = journal.filter((entry) => entry.direction === 'short' && entry.outcome === 'loss').length
+  const totalNetPnl = journal.reduce((sum, entry) => sum + entry.pnl, 0)
+  const averageR = closedTrades.length > 0 ? closedTrades.reduce((sum, entry) => sum + entry.rMultiple, 0) / closedTrades.length : 0
+  const setupBreakdown = Object.entries(
+    journal.reduce<Record<string, number>>((acc, entry) => {
+      acc[entry.setupType] = (acc[entry.setupType] ?? 0) + 1
+      return acc
+    }, {})
+  ).sort((a, b) => b[1] - a[1])[0]
+  const emotionBreakdown = Object.entries(
+    journal.reduce<Record<string, number>>((acc, entry) => {
+      acc[entry.emotion] = (acc[entry.emotion] ?? 0) + 1
+      return acc
+    }, {})
+  ).sort((a, b) => b[1] - a[1])[0]
   const scoreCarryMessage =
     checkedPoints === 0
       ? 'No rules are confirmed yet.'
@@ -1346,6 +1420,9 @@ export default function Home() {
       instrument: proInstrument,
       setupType: proSetupType,
       emotion: proEmotion,
+      direction: journalDirection,
+      pnl: journalPnl,
+      rMultiple: journalRMultiple,
       missingRuleTexts: rules.filter((rule) => !rule.checked).map((rule) => rule.text),
       missingCategories: rules.filter((rule) => !rule.checked).map((rule) => rule.category),
       respectedVerdict: followedVerdict === 'yes',
@@ -1355,6 +1432,9 @@ export default function Home() {
     setTradeNote('')
     setTradeOutcome('unknown')
     setFollowedVerdict('yes')
+    setJournalDirection('long')
+    setJournalPnl(0)
+    setJournalRMultiple(0)
     setScreenshotDataUrl('')
   }
 
@@ -1572,22 +1652,34 @@ ${emotionWarning}`
 </div>
 
           <div className="flex items-center gap-2">
-            <div className={`inline-flex items-center gap-1 rounded-full p-1 ${ui.toggleShell}`}>
+            <div
+              className={`inline-flex items-center gap-3 rounded-full px-3 py-1.5 ${
+                theme === 'light'
+                  ? 'border border-slate-200 bg-white/90 shadow-md'
+                  : 'border border-white/10 bg-slate-950/88 shadow-xl'
+              }`}
+            >
+              <span className={`text-xs font-semibold uppercase tracking-[0.16em] ${theme === 'light' ? 'text-slate-900' : 'text-white'}`}>
+                Stats
+              </span>
               <button
                 type="button"
-                onClick={() => setMode('standard')}
-                className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${mode === 'standard' ? ui.toggleActive : ui.toggleInactive}`}
-                aria-pressed={mode === 'standard'}
+                onClick={() => setMode((prev) => (prev === 'stats' ? 'standard' : 'stats'))}
+                className={`relative h-7 w-12 rounded-full transition ${
+                  mode === 'stats'
+                    ? 'bg-emerald-500 shadow-[0_0_24px_rgba(16,185,129,0.35)]'
+                    : theme === 'light'
+                    ? 'bg-slate-300'
+                    : 'bg-white/15'
+                }`}
+                aria-pressed={mode === 'stats'}
+                aria-label={mode === 'stats' ? 'Turn stats mode off' : 'Turn stats mode on'}
               >
-                Standard
-              </button>
-              <button
-                type="button"
-                onClick={() => setMode('pro')}
-                className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${mode === 'pro' ? ui.toggleActive : ui.toggleInactive}`}
-                aria-pressed={mode === 'pro'}
-              >
-                Pro
+                <span
+                  className={`absolute top-1 h-5 w-5 rounded-full bg-white transition-all ${
+                    mode === 'stats' ? 'left-6' : 'left-1'
+                  }`}
+                />
               </button>
             </div>
 
@@ -1614,65 +1706,98 @@ ${emotionWarning}`
 
         <div className={`relative z-10 mx-auto max-w-7xl overflow-hidden rounded-[22px] ${ui.liveOuter}`}>
           <div className={`bg-gradient-to-r ${styles.soft} p-2.5 md:p-3`}>
-            <div className="grid gap-2 md:grid-cols-[260px_minmax(0,1fr)] lg:grid-cols-[280px_minmax(0,1fr)] md:items-center">
-              <div className={`rounded-[18px] p-2.5 ${ui.scorePanel}`}>
-                <div className="mb-1.5 flex items-center justify-between gap-2">
-                  <span className={`text-[10px] uppercase tracking-[0.18em] md:text-[11px] ${ui.muted}`}>
-                    Your Setup Score
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <div
-                      className={`whitespace-nowrap rounded-full border px-2.5 py-1 text-[10px] font-semibold md:text-[11px] ${scoreBandStyles.badge}`}
-                    >
-                      {scoreBand.label}
+            {mode === 'standard' ? (
+              <div className="grid gap-2 md:grid-cols-[260px_minmax(0,1fr)] lg:grid-cols-[280px_minmax(0,1fr)] md:items-center">
+                <div className={`rounded-[18px] p-2.5 ${ui.scorePanel}`}>
+                  <div className="mb-1.5 flex items-center justify-between gap-2">
+                    <span className={`text-[10px] uppercase tracking-[0.18em] md:text-[11px] ${ui.muted}`}>
+                      Your Setup Score
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <div
+                        className={`whitespace-nowrap rounded-full border px-2.5 py-1 text-[10px] font-semibold md:text-[11px] ${scoreBandStyles.badge}`}
+                      >
+                        {scoreBand.label}
+                      </div>
+                      <span className="text-base md:text-lg">{rating.emoji}</span>
                     </div>
-                    <span className="text-base md:text-lg">{rating.emoji}</span>
+                  </div>
+
+                  <div className="mb-1.5">
+                    <div className="text-2xl font-black leading-none md:text-[30px]">
+                      {score}%
+                    </div>
+                  </div>
+
+                  <div className={`h-2.5 overflow-hidden rounded-full ${ui.barTrack}`}>
+                    <div
+                      className={`h-full rounded-full transition-all duration-500 ${styles.fill}`}
+                      style={{ width: `${score}%` }}
+                    />
+                  </div>
+
+                  <div className={`mt-1.5 text-[10px] font-semibold md:text-[11px] ${ui.subtle}`}>
+                    {checkedCount}/{totalCount} rules
                   </div>
                 </div>
 
-                <div className="mb-1.5">
-                  <div className="text-2xl font-black leading-none md:text-[30px]">
-                    {score}%
+                <div className="min-w-0 text-center md:text-left">
+                  <div className="flex flex-wrap items-center justify-center gap-2 md:justify-start">
+                    <div
+                      className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] md:text-[11px] ${decisionStyles.badge}`}
+                    >
+                      {rating.decisionLabel}
+                    </div>
+
+                    <div
+                      className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold md:text-[11px] ${qualificationStyles.badge}`}
+                    >
+                      {qualificationSummary}
+                    </div>
                   </div>
-                </div>
 
-                <div className={`h-2.5 overflow-hidden rounded-full ${ui.barTrack}`}>
-                  <div
-                    className={`h-full rounded-full transition-all duration-500 ${styles.fill}`}
-                    style={{ width: `${score}%` }}
-                  />
-                </div>
+                  <div className={`mt-1 text-xs font-semibold md:text-sm ${ui.primaryStrong}`}>
+                    {rating.action}
+                  </div>
 
-                <div className={`mt-1.5 text-[10px] font-semibold md:text-[11px] ${ui.subtle}`}>
-                  {checkedCount}/{totalCount} rules
+                  <p className={`mt-1 line-clamp-2 text-[11px] leading-4 md:text-xs md:leading-5 ${ui.subtle}`}>
+                    {rating.desc}
+                  </p>
                 </div>
               </div>
-
-              <div className="min-w-0 text-center md:text-left">
-                <div className="flex flex-wrap items-center justify-center gap-2 md:justify-start">
-                  <div
-                    className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] md:text-[11px] ${decisionStyles.badge}`}
-                  >
-                    {rating.decisionLabel}
+            ) : (
+              <div className="grid gap-2 md:grid-cols-[220px_minmax(0,1fr)] lg:grid-cols-[250px_minmax(0,1fr)] md:items-center">
+                <div className={`rounded-[18px] p-2.5 ${ui.scorePanel}`}>
+                  <div className={`text-[10px] uppercase tracking-[0.18em] md:text-[11px] ${ui.muted}`}>
+                    Journal Win Rate
                   </div>
-
-                  <div
-                    className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold md:text-[11px] ${qualificationStyles.badge}`}
-                  >
-                    {qualificationSummary}
+                  <div className="mt-1 text-2xl font-black leading-none md:text-[30px]">
+                    {winRate}%
+                  </div>
+                  <div className={`mt-2 h-2.5 overflow-hidden rounded-full ${ui.barTrack}`}>
+                    <div className="h-full rounded-full bg-emerald-400 transition-all duration-500" style={{ width: `${winRate}%` }} />
+                  </div>
+                  <div className={`mt-1.5 text-[10px] font-semibold md:text-[11px] ${ui.subtle}`}>
+                    {totalReviewedTrades} logged • {closedTrades.length} closed
                   </div>
                 </div>
 
-                <div className={`mt-1 text-xs font-semibold md:text-sm ${ui.primaryStrong}`}>
-                  {rating.action}
+                <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-5">
+                  {[
+                    ['Net P&L', `${totalNetPnl >= 0 ? '+' : ''}${totalNetPnl.toFixed(2)}`],
+                    ['Avg R', `${averageR >= 0 ? '+' : ''}${averageR.toFixed(2)}R`],
+                    ['Long W/L', `${longWins}/${longLosses}`],
+                    ['Short W/L', `${shortWins}/${shortLosses}`],
+                    ['Saved Me', `${savedMeCount}`],
+                  ].map((item) => (
+                    <div key={item[0]} className={`rounded-[18px] border px-3 py-3 text-center ${ui.statBox}`}>
+                      <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>{item[0]}</div>
+                      <div className="mt-1 text-base font-bold md:text-lg">{item[1]}</div>
+                    </div>
+                  ))}
                 </div>
-
-                <p className={`mt-1 line-clamp-2 text-[11px] leading-4 md:text-xs md:leading-5 ${ui.subtle}`}>
-                  {rating.desc}
-                </p>
               </div>
-
-            </div>
+            )}
           </div>
         </div>
       </div>
@@ -1715,374 +1840,189 @@ ${emotionWarning}`
         </div>
 
         <div className="space-y-4">
-          {mode === 'pro' && (
+          {mode === 'stats' && (
             <>
               <div className={`rounded-[24px] p-3 md:p-4 ${ui.card}`}>
-                <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-                  <div>
-                    <div className={`text-sm font-semibold ${ui.secondaryStrong}`}>Pro mode</div>
-                    <p className={`mt-1 text-sm ${ui.muted}`}>
-                      Extra context and review tools for traders who want more structure, without changing the main verdict logic.
-                    </p>
+                <div className="grid gap-3 xl:grid-cols-[1.05fr_0.95fr]">
+                  <div className={`rounded-[22px] p-3 ${ui.innerCard}`}>
+                    <div className={`mb-2 text-sm font-semibold ${ui.secondaryStrong}`}>Journal entry</div>
+                    <p className={`mb-3 text-xs ${ui.muted}`}>Log the trade, the emotion, and the result. Keep it honest and fast.</p>
+
+                    <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+                      <select value={proInstrument} onChange={(e) => setProInstrument(e.target.value)} className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}>
+                        {['ES', 'NQ', 'Gold', 'Silver', 'Oil', 'BTC', 'EURUSD'].map((item) => (
+                          <option key={item} value={item}>Instrument: {item}</option>
+                        ))}
+                      </select>
+
+                      <select value={proSession} onChange={(e) => setProSession(e.target.value as SessionType)} className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}>
+                        {sessionOptions.map((item) => (
+                          <option key={item} value={item}>Session: {item}</option>
+                        ))}
+                      </select>
+
+                      <select value={proSetupType} onChange={(e) => setProSetupType(e.target.value as SetupType)} className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}>
+                        {setupTypeOptions.map((item) => (
+                          <option key={item} value={item}>Setup: {item}</option>
+                        ))}
+                      </select>
+
+                      <select value={proEmotion} onChange={(e) => setProEmotion(e.target.value as EmotionState)} className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}>
+                        {emotionOptions.map((item) => (
+                          <option key={item.value} value={item.value}>Emotion: {item.label}</option>
+                        ))}
+                      </select>
+
+                      <select value={journalDirection} onChange={(e) => setJournalDirection(e.target.value as TradeDirection)} className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}>
+                        <option value="long">Direction: Long</option>
+                        <option value="short">Direction: Short</option>
+                      </select>
+
+                      <select value={tradeOutcome} onChange={(e) => setTradeOutcome(e.target.value as JournalOutcome)} className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}>
+                        <option value="unknown">Outcome: not logged yet</option>
+                        <option value="win">Outcome: Win</option>
+                        <option value="loss">Outcome: Loss</option>
+                        <option value="breakeven">Outcome: Breakeven</option>
+                        <option value="no-trade">Outcome: No trade taken</option>
+                        <option value="saved-me">Outcome: Checklist saved me</option>
+                      </select>
+
+                      <input type="number" value={journalPnl || ''} onChange={(e) => setJournalPnl(Number(e.target.value) || 0)} className={`rounded-2xl px-3 py-2.5 text-sm outline-none transition ${ui.input}`} placeholder="Net P&L" />
+                      <input type="number" step="0.1" value={journalRMultiple || ''} onChange={(e) => setJournalRMultiple(Number(e.target.value) || 0)} className={`rounded-2xl px-3 py-2.5 text-sm outline-none transition ${ui.input}`} placeholder="Result in R" />
+                    </div>
+
+                    <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                      <select value={followedVerdict} onChange={(e) => setFollowedVerdict(e.target.value as FollowedVerdict)} className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}>
+                        <option value="yes">I followed the verdict</option>
+                        <option value="partially">I partly followed it</option>
+                        <option value="no">I ignored it</option>
+                      </select>
+
+                      <label className={`inline-flex cursor-pointer items-center justify-center rounded-2xl px-3 py-2 text-xs font-semibold transition ${ui.secondaryBtn}`}>
+                        Upload screenshot
+                        <input type="file" accept="image/*" className="hidden" onChange={handleScreenshotUpload} />
+                      </label>
+                    </div>
+
+                    <textarea value={tradeNote} onChange={(e) => setTradeNote(e.target.value)} placeholder="What happened? Why did you take it, skip it, or break the verdict?" className={`mt-2 min-h-[108px] w-full rounded-[22px] px-3 py-3 text-sm outline-none transition ${ui.input}`} />
+
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      <button type="button" onClick={saveJournalEntry} className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${styles.button}`}>Save journal entry</button>
+                      <button type="button" onClick={shareSummary} className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${ui.secondaryBtn}`}>{copiedSummary ? 'Copied' : 'Copy summary'}</button>
+                    </div>
+
+                    {screenshotDataUrl && (
+                      <div className="mt-3 overflow-hidden rounded-[20px] border border-white/10">
+                        <img src={screenshotDataUrl} alt="Uploaded chart" className="h-40 w-full object-cover" />
+                      </div>
+                    )}
                   </div>
 
-                  <div className={`inline-flex items-center gap-1 rounded-full p-1 ${ui.toggleShell}`}>
-                    <button
-                      type="button"
-                      onClick={() => setProView('prep')}
-                      className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${proView === 'prep' ? ui.toggleActive : ui.toggleInactive}`}
-                    >
-                      Prep
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setProView('tools')}
-                      className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${proView === 'tools' ? ui.toggleActive : ui.toggleInactive}`}
-                    >
-                      Tools
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setProView('review')}
-                      className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${proView === 'review' ? ui.toggleActive : ui.toggleInactive}`}
-                    >
-                      Review
-                    </button>
+                  <div className={`rounded-[22px] p-3 ${ui.innerCard}`}>
+                    <div className={`mb-2 text-sm font-semibold ${ui.secondaryStrong}`}>Performance snapshot</div>
+                    <p className={`mb-3 text-xs ${ui.muted}`}>The stats that matter most when reviewing discipline and execution.</p>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      {[
+                        ['Win rate', `${winRate}%`],
+                        ['Loss rate', `${lossRate}%`],
+                        ['Wins / losses', `${winCount}/${lossCount}`],
+                        ['Breakeven', `${breakevenCount}`],
+                        ['Long W/L', `${longWins}/${longLosses}`],
+                        ['Short W/L', `${shortWins}/${shortLosses}`],
+                        ['No trade', `${noTradeCount}`],
+                        ['Saved me', `${savedMeCount}`],
+                      ].map((item) => (
+                        <div key={item[0]} className={`rounded-2xl border px-3 py-3 ${ui.statBox}`}>
+                          <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>{item[0]}</div>
+                          <div className="mt-1 text-lg font-bold">{item[1]}</div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className={`mt-3 rounded-2xl border px-4 py-3 text-sm ${ui.statBox}`}>
+                      <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Top setup</div>
+                      <div className="mt-1 font-semibold">{setupBreakdown ? `${setupBreakdown[0]} • ${setupBreakdown[1]} entries` : 'No journal entries yet.'}</div>
+                    </div>
+
+                    <div className={`mt-3 rounded-2xl border px-4 py-3 text-sm ${ui.statBox}`}>
+                      <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Most common emotion</div>
+                      <div className="mt-1 font-semibold">{emotionBreakdown ? `${emotionBreakdown[0]} • ${emotionBreakdown[1]} entries` : 'No journal entries yet.'}</div>
+                    </div>
+
+                    <div className={`mt-3 rounded-2xl border px-4 py-3 text-sm ${ui.statBox}`}>
+                      <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Most missed rule</div>
+                      <div className="mt-1 font-semibold">{mostMissedRule ? mostMissedRule[0] : 'No missed-rule data yet.'}</div>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {proView === 'prep' && (
-                <div className={`rounded-[24px] p-3 md:p-4 ${ui.card}`}>
-                  <div className="grid gap-3 xl:grid-cols-[1.25fr_0.75fr]">
-                    <div className={`rounded-[22px] p-3 ${ui.innerCard}`}>
-                      <div className="mb-3 flex items-center justify-between gap-3">
-                        <div>
-                          <div className={`text-sm font-semibold ${ui.secondaryStrong}`}>Trade context</div>
-                          <p className={`mt-1 text-xs ${ui.muted}`}>Set the trade context first, then let the checklist judge it.</p>
-                        </div>
-                        <div className={`rounded-full border px-3 py-1 text-[11px] font-semibold ${qualificationStyles.badge}`}>
-                          {proSetupType}
-                        </div>
-                      </div>
+              <div className={`rounded-[24px] p-3 md:p-4 ${ui.card}`}>
+                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                  <div>
+                    <div className={`text-sm font-semibold ${ui.secondaryStrong}`}>Recent journal entries</div>
+                    <p className={`mt-1 text-xs ${ui.muted}`}>Your latest trades, screenshots, and review notes.</p>
+                  </div>
 
-                      <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
-                        <select
-                          value={proInstrument}
-                          onChange={(e) => setProInstrument(e.target.value)}
-                          className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}
-                        >
-                          {['ES', 'NQ', 'Gold', 'Silver', 'Oil', 'BTC', 'EURUSD'].map((item) => (
-                            <option key={item} value={item}>
-                              Instrument: {item}
-                            </option>
-                          ))}
-                        </select>
-
-                        <select
-                          value={proSession}
-                          onChange={(e) => setProSession(e.target.value as SessionType)}
-                          className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}
-                        >
-                          {sessionOptions.map((item) => (
-                            <option key={item} value={item}>
-                              Session: {item}
-                            </option>
-                          ))}
-                        </select>
-
-                        <select
-                          value={proSetupType}
-                          onChange={(e) => setProSetupType(e.target.value as SetupType)}
-                          className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}
-                        >
-                          {setupTypeOptions.map((item) => (
-                            <option key={item} value={item}>
-                              Setup: {item}
-                            </option>
-                          ))}
-                        </select>
-
-                        <select
-                          value={proEmotion}
-                          onChange={(e) => setProEmotion(e.target.value as EmotionState)}
-                          className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}
-                        >
-                          {emotionOptions.map((item) => (
-                            <option key={item.value} value={item.value}>
-                              Emotion: {item.label}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div className={`mt-3 rounded-[20px] border p-3 ${ui.statBox}`}>
-                        <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Current context</div>
-                        <div className="mt-1 text-sm font-semibold">
-                          {proInstrument} • {proSession} • {proSetupType} • {activeEmotionLabel}
-                        </div>
-                        <p className={`mt-1 text-xs ${ui.muted}`}>{emotionWarning}</p>
-                      </div>
-                    </div>
-
-                    <div className="space-y-3">
-                      <div className={`rounded-[22px] p-3 ${ui.innerCard}`}>
-                        <div className={`mb-2 text-sm font-semibold ${ui.secondaryStrong}`}>Pause before entry</div>
-                        <p className={`mb-3 text-xs ${ui.muted}`}>Use a short pause if you tend to enter too quickly.</p>
-
-                        <div className="flex items-center gap-2">
-                          <select
-                            value={proTimerSeconds}
-                            onChange={(e) => setProTimerSeconds(Number(e.target.value))}
-                            className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}
-                          >
-                            {[10, 15, 20, 30, 45].map((item) => (
-                              <option key={item} value={item}>
-                                {item}s
-                              </option>
-                            ))}
-                          </select>
-
-                          {!proTimerActive ? (
-                            <button
-                              type="button"
-                              onClick={startPreTradeTimer}
-                              className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${styles.button}`}
-                            >
-                              Start
-                            </button>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={stopPreTradeTimer}
-                              className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${ui.secondaryBtn}`}
-                            >
-                              Stop
-                            </button>
-                          )}
-                        </div>
-
-                        <div className={`mt-2 text-sm font-semibold ${ui.primaryStrong}`}>
-                          {proTimerActive ? `${proTimerLeft}s remaining` : `${proTimerSeconds}s pause ready`}
-                        </div>
-                      </div>
-
-                      <div className={`rounded-[22px] p-3 ${ui.innerCard}`}>
-                        <div className={`mb-2 text-sm font-semibold ${ui.secondaryStrong}`}>Templates</div>
-                        <p className={`mb-3 text-xs ${ui.muted}`}>Load a saved checklist fast or save the one you use most.</p>
-
-                        <div className="grid gap-2">
-                          <select
-                            value={selectedRulePackId}
-                            onChange={(e) => applyRulePack(e.target.value)}
-                            className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}
-                          >
-                            {defaultRulePacks.map((pack) => (
-                              <option key={pack.id} value={pack.id}>
-                                Rule Pack: {pack.name}
-                              </option>
-                            ))}
-                          </select>
-
-                          <select
-                            value={selectedTemplateId}
-                            onChange={(e) => loadTemplate(e.target.value)}
-                            className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}
-                          >
-                            <option value="">Saved template...</option>
-                            {templates.map((template) => (
-                              <option key={template.id} value={template.id}>
-                                {template.name}
-                              </option>
-                            ))}
-                          </select>
-
-                          <div className="flex gap-2">
-                            <input
-                              value={templateName}
-                              onChange={(e) => setTemplateName(e.target.value)}
-                              placeholder="Template name"
-                              className={`w-full rounded-2xl px-3 py-2.5 text-sm outline-none transition ${ui.input}`}
-                            />
-                            <button
-                              type="button"
-                              onClick={saveCurrentTemplate}
-                              className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${styles.button}`}
-                            >
-                              Save
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                  <div className={`rounded-full border px-4 py-2 text-sm font-medium ${qualificationStyles.badge}`}>
+                    {journal.length} entries
                   </div>
                 </div>
-              )}
 
-              {proView === 'tools' && (
-                <div className={`rounded-[24px] p-3 md:p-4 ${ui.card}`}>
-                  <div className="grid gap-3 xl:grid-cols-[1fr_0.9fr]">
-                    <div className={`rounded-[22px] p-3 ${ui.innerCard}`}>
-                      <div className={`mb-2 text-sm font-semibold ${ui.secondaryStrong}`}>Decision support</div>
-                      <p className={`mb-3 text-xs ${ui.muted}`}>Only the information that helps you decide whether this trade is ready or not.</p>
-
-                      <div className={`rounded-2xl border px-4 py-3 text-sm ${ui.statBox}`}>
-                        <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Main blocker</div>
-                        <div className="mt-1 font-semibold">{mainBlockerText}</div>
-                      </div>
-
-                      {hasMissingRequired && (
-                        <div className={`mt-3 rounded-2xl border px-4 py-3 text-sm ${ui.statBox}`}>
-                          <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Missing mandatory</div>
-                          <div className="mt-1 font-semibold">
-                            {missingRequiredRules.map((rule) => rule.text).join(', ')}
-                          </div>
-                        </div>
-                      )}
-
-                      {!hasMissingRequired && (
-                        <div className={`mt-3 rounded-2xl border px-4 py-3 text-sm ${ui.statBox}`}>
-                          <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>What changed</div>
-                          <div className="mt-1 font-semibold">{changedMessage}</div>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className={`rounded-[22px] p-3 ${ui.innerCard}`}>
-                      <div className={`mb-2 text-sm font-semibold ${ui.secondaryStrong}`}>Risk helper</div>
-                      <p className={`mb-3 text-xs ${ui.muted}`}>Quick size check only. Use your broker specs if they differ.</p>
-
-                      <div className="grid gap-2 sm:grid-cols-3">
-                        <input
-                          type="number"
-                          min={1}
-                          value={riskAmount}
-                          onChange={(e) => setRiskAmount(Number(e.target.value) || 0)}
-                          className={`rounded-2xl px-3 py-2.5 text-sm outline-none transition ${ui.input}`}
-                          placeholder="Risk $"
-                        />
-                        <input
-                          type="number"
-                          min={0.01}
-                          step="0.01"
-                          value={stopDistance}
-                          onChange={(e) => setStopDistance(Number(e.target.value) || 0)}
-                          className={`rounded-2xl px-3 py-2.5 text-sm outline-none transition ${ui.input}`}
-                          placeholder="Stop distance"
-                        />
-                        <input
-                          type="number"
-                          min={0.01}
-                          step="0.01"
-                          value={pointValue}
-                          onChange={(e) => setPointValue(Number(e.target.value) || 0)}
-                          className={`rounded-2xl px-3 py-2.5 text-sm outline-none transition ${ui.input}`}
-                          placeholder="Point value"
-                        />
-                      </div>
-
-                      <div className={`mt-3 rounded-2xl border px-4 py-3 text-sm ${ui.statBox}`}>
-                        Position size estimate: <span className="font-bold">{positionSize}</span> units/contracts
-                      </div>
-                    </div>
+                {journal.length === 0 ? (
+                  <div className={`mt-3 rounded-[22px] border border-dashed p-6 text-center text-sm ${ui.statBox}`}>
+                    No journal entries yet. Save your first trade in Stats mode.
                   </div>
-                </div>
-              )}
-
-              {proView === 'review' && (
-                <div className={`rounded-[24px] p-3 md:p-4 ${ui.card}`}>
-                  <div className="grid gap-3 xl:grid-cols-[1.2fr_0.8fr]">
-                    <div className={`rounded-[22px] p-3 ${ui.innerCard}`}>
-                      <div className={`mb-2 text-sm font-semibold ${ui.secondaryStrong}`}>Save review</div>
-                      <p className={`mb-3 text-xs ${ui.muted}`}>Log what actually happened so you can spot discipline problems faster.</p>
-
-                      <div className="grid gap-2 sm:grid-cols-2">
-                        <select
-                          value={tradeOutcome}
-                          onChange={(e) => setTradeOutcome(e.target.value as JournalOutcome)}
-                          className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}
-                        >
-                          <option value="unknown">Outcome: not logged yet</option>
-                          <option value="win">Outcome: Win</option>
-                          <option value="loss">Outcome: Loss</option>
-                          <option value="no-trade">Outcome: No trade taken</option>
-                          <option value="saved-me">Outcome: Checklist saved me</option>
-                        </select>
-
-                        <select
-                          value={followedVerdict}
-                          onChange={(e) => setFollowedVerdict(e.target.value as FollowedVerdict)}
-                          className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}
-                        >
-                          <option value="yes">I followed the verdict</option>
-                          <option value="partially">I partly followed it</option>
-                          <option value="no">I ignored it</option>
-                        </select>
-                      </div>
-
-                      <textarea
-                        value={tradeNote}
-                        onChange={(e) => setTradeNote(e.target.value)}
-                        placeholder="One short note: why you took it, skipped it, or broke the rule."
-                        className={`mt-2 min-h-[108px] w-full rounded-[22px] px-3 py-3 text-sm outline-none transition ${ui.input}`}
-                      />
-
-                      <div className="mt-2">
-                        <button
-                          type="button"
-                          onClick={saveJournalEntry}
-                          className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${styles.button}`}
-                        >
-                          Save review
-                        </button>
-                      </div>
-
-                      {journal.length > 0 && (
-                        <div className="mt-3 space-y-2">
-                          {journal.slice(0, 2).map((entry) => (
-                            <div key={entry.id} className={`rounded-[18px] border p-3 ${ui.statBox}`}>
-                              <div className="flex flex-wrap items-center justify-between gap-2">
-                                <div className="text-sm font-semibold">{entry.verdict}</div>
-                                <div className={`text-xs ${ui.muted}`}>{formatDate(entry.createdAt)}</div>
+                ) : (
+                  <div className="mt-3 space-y-3">
+                    {journal.slice(0, 10).map((entry) => (
+                      <div key={entry.id} className={`rounded-[22px] border p-3 ${ui.statBox}`}>
+                        <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                          <div className="min-w-0">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <div className="text-sm font-semibold">{entry.instrument} • {entry.setupType}</div>
+                              <div className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold ${entry.outcome === 'win' ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-200' : entry.outcome === 'loss' ? 'border-red-500/20 bg-red-500/10 text-red-200' : entry.outcome === 'breakeven' ? 'border-amber-500/20 bg-amber-500/10 text-amber-200' : qualificationStyles.badge}`}>
+                                {entry.outcome}
                               </div>
-                              <div className={`mt-1 text-xs ${ui.muted}`}>
-                                {entry.instrument} • {entry.session} • {entry.setupType} • {entry.score}% • {entry.outcome}
+                              <div className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold ${entry.direction === 'long' ? 'border-sky-500/20 bg-sky-500/10 text-sky-200' : 'border-violet-500/20 bg-violet-500/10 text-violet-200'}`}>
+                                {entry.direction}
                               </div>
-                              {entry.note && <p className="mt-2 text-sm">{entry.note}</p>}
                             </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
 
-                    <div className={`rounded-[22px] p-3 ${ui.innerCard}`}>
-                      <div className={`mb-2 text-sm font-semibold ${ui.secondaryStrong}`}>Useful stats only</div>
-                      <p className={`mb-3 text-xs ${ui.muted}`}>Keep it simple: did the app save you, and where do you slip most often?</p>
+                            <div className={`mt-1 text-xs ${ui.muted}`}>
+                              {formatDate(entry.createdAt)} • {entry.session} • {entry.emotion} • score {entry.score}% • {entry.verdict}
+                            </div>
 
-                      <div className="grid grid-cols-2 gap-2">
-                        {[
-                          { label: 'Reviews', value: `${journal.length}` },
-                          { label: 'Saved me', value: `${savedMeCount}` },
-                          { label: 'Respected', value: `${respectedVerdictCount}/${journal.length || 0}` },
-                        ].map((item) => (
-                          <div key={item.label} className={`rounded-2xl border px-3 py-3 ${ui.statBox}`}>
-                            <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>{item.label}</div>
-                            <div className="mt-1 text-lg font-bold">{item.value}</div>
+                            <div className={`mt-2 flex flex-wrap gap-2 text-xs ${ui.muted}`}>
+                              <span>P&L: {entry.pnl >= 0 ? '+' : ''}{entry.pnl.toFixed(2)}</span>
+                              <span>R: {entry.rMultiple >= 0 ? '+' : ''}{entry.rMultiple.toFixed(2)}R</span>
+                              <span>{entry.followedVerdict === 'yes' ? 'Followed verdict' : entry.followedVerdict === 'partially' ? 'Partly followed verdict' : 'Ignored verdict'}</span>
+                            </div>
+
+                            {entry.note && <p className="mt-2 text-sm">{entry.note}</p>}
                           </div>
-                        ))}
-                      </div>
 
-                      <div className={`mt-3 rounded-2xl border px-4 py-3 text-sm ${ui.statBox}`}>
-                        <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Most missed rule</div>
-                        <div className="mt-1 font-semibold">{mostMissedRule ? mostMissedRule[0] : 'Not enough saved reviews yet.'}</div>
+                          <div className="flex gap-3 lg:flex-col lg:items-end">
+                            {entry.screenshotDataUrl ? (
+                              <img src={entry.screenshotDataUrl} alt="Journal screenshot" className="h-20 w-28 rounded-xl object-cover" />
+                            ) : null}
+
+                            <button type="button" onClick={() => setJournal((prev) => prev.filter((item) => item.id !== entry.id))} className={`rounded-xl px-3 py-2 text-xs font-semibold transition ${ui.deleteRule}`}>
+                              Delete
+                            </button>
+                          </div>
+                        </div>
                       </div>
-                    </div>
+                    ))}
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </>
           )}
 
+          {mode === 'standard' && (
+            <>
           <div className={`rounded-[24px] p-3 md:p-4 ${ui.card}`}>
             <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
               <div className={`rounded-[22px] p-3 ${ui.innerCard}`}>
@@ -2195,22 +2135,6 @@ ${emotionWarning}`
                   </div>
                 </div>
 
-                {mode === 'pro' && (
-                  <div className="mt-2">
-                    <select
-                      value={newRuleCategory}
-                      onChange={(e) => setNewRuleCategory(e.target.value as RuleCategory)}
-                      className={`h-10 w-full rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}
-                    >
-                      {categoryOptions.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          Category: {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-
                 {newRuleError && (
                   <div className={`mt-2 rounded-2xl px-3 py-2 text-[11px] leading-5 md:text-xs ${ui.errorBox}`}>
                     {newRuleError}
@@ -2242,63 +2166,6 @@ ${emotionWarning}`
               </div>
             </div>
           </div>
-
-          {mode === 'pro' && (
-            <div className={`rounded-[24px] p-3 md:p-4 ${ui.card}`}>
-              <div className="grid gap-3 xl:grid-cols-[1.2fr_0.8fr]">
-                <div className={`rounded-[22px] p-3 ${ui.innerCard}`}>
-                  <div className={`mb-2 text-sm font-semibold ${ui.secondaryStrong}`}>Journal this review</div>
-                  <div className="grid gap-2 sm:grid-cols-2">
-                    <select
-                      value={tradeOutcome}
-                      onChange={(e) => setTradeOutcome(e.target.value as JournalOutcome)}
-                      className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}
-                    >
-                      <option value="unknown">Outcome: not logged yet</option>
-                      <option value="win">Outcome: Win</option>
-                      <option value="loss">Outcome: Loss</option>
-                      <option value="no-trade">Outcome: No trade taken</option>
-                      <option value="saved-me">Outcome: Checklist saved me</option>
-                    </select>
-
-                    <select
-                      value={followedVerdict}
-                      onChange={(e) => setFollowedVerdict(e.target.value as FollowedVerdict)}
-                      className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}
-                    >
-                      <option value="yes">I followed the verdict</option>
-                      <option value="partially">I partly followed it</option>
-                      <option value="no">I ignored it</option>
-                    </select>
-                  </div>
-
-                  <textarea
-                    value={tradeNote}
-                    onChange={(e) => setTradeNote(e.target.value)}
-                    placeholder="Add a short note about why you took or skipped this setup."
-                    className={`mt-2 min-h-[108px] w-full rounded-[22px] px-3 py-3 text-sm outline-none transition ${ui.input}`}
-                  />
-
-                  <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">
-                    <label className={`inline-flex cursor-pointer items-center rounded-2xl px-3 py-2 text-xs font-semibold transition ${ui.secondaryBtn}`}>
-                      Upload screenshot
-                      <input type="file" accept="image/*" className="hidden" onChange={handleScreenshotUpload} />
-                    </label>
-
-                    <button
-                      type="button"
-                      onClick={saveJournalEntry}
-                      className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${styles.button}`}
-                    >
-                      Save review
-                    </button>
-                  </div>
-
-                  {screenshotDataUrl && (
-                    <div className="mt-3 overflow-hidden rounded-[20px] border border-white/10">
-                      <img src={screenshotDataUrl} alt="Uploaded chart" className="h-40 w-full object-cover" />
-                    </div>
-                  )}
 
                   {journal.length > 0 && (
                     <div className="mt-3 space-y-2">
@@ -2416,13 +2283,6 @@ ${emotionWarning}`
                       </button>
 
                       <div className="flex items-center gap-2">
-                        {mode === 'pro' && (
-                          <div
-                            className={`rounded-xl border px-2.5 py-2 text-[11px] font-medium md:text-xs ${categoryBadge.className}`}
-                          >
-                            {categoryBadge.label}
-                          </div>
-                        )}
 
                         <div
                           className={`rounded-xl border px-2.5 py-2 text-[11px] font-medium md:text-xs ${importanceBadge.className}`}
@@ -2444,6 +2304,9 @@ ${emotionWarning}`
               </div>
             )}
           </div>
+
+            </>
+          )}
         </div>
       </div>
     </main>
