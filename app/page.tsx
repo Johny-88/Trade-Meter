@@ -1005,6 +1005,20 @@ function getChangedMessage(previous: SetupSnapshot | null, current: SetupSnapsho
   return 'No major change since the last checkpoint.'
 }
 
+
+function getTopStat(values: string[]) {
+  const normalized = values.map((value) => value.trim()).filter(Boolean)
+  if (normalized.length === 0) return null
+
+  const counts = normalized.reduce<Record<string, number>>((acc, value) => {
+    acc[value] = (acc[value] ?? 0) + 1
+    return acc
+  }, {})
+
+  const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0]
+  return top ? { value: top[0], count: top[1] } : null
+}
+
 export default function Home() {
   const title = 'Edge Check'
   const [theme, setTheme] = useState<AppTheme>('light')
@@ -1014,6 +1028,8 @@ export default function Home() {
   const [newRuleCategory, setNewRuleCategory] = useState<RuleCategory>('confirmation')
   const [newRuleError, setNewRuleError] = useState('')
   const [showInstructions, setShowInstructions] = useState(false)
+  const [showAdvancedPerformance, setShowAdvancedPerformance] = useState(false)
+  const [selectedJournalEntry, setSelectedJournalEntry] = useState<JournalEntry | null>(null)
   const [showFocusMode, setShowFocusMode] = useState(false)
   const [proView, setProView] = useState<'prep' | 'tools' | 'review'>('prep')
   const [minScore, setMinScore] = useState(50)
@@ -1202,7 +1218,7 @@ export default function Home() {
   }, [journal])
 
   useEffect(() => {
-    if (!showInstructions && !showFocusMode) return
+    if (!showInstructions && !showFocusMode && !showAdvancedPerformance && !selectedJournalEntry) return
 
     const previousOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
@@ -1210,7 +1226,7 @@ export default function Home() {
     return () => {
       document.body.style.overflow = previousOverflow
     }
-  }, [showInstructions, showFocusMode])
+  }, [showInstructions, showFocusMode, showAdvancedPerformance, selectedJournalEntry])
 
   useEffect(() => {
     if (!proTimerActive) return
@@ -1361,6 +1377,47 @@ export default function Home() {
       return acc
     }, {})
   ).sort((a, b) => b[1] - a[1])[0]
+  const winningTrades = journal.filter((entry) => entry.outcome === 'win')
+  const losingTrades = journal.filter((entry) => entry.outcome === 'loss')
+  const topWinningEmotion = getTopStat(winningTrades.map((entry) => entry.emotion))
+  const topLosingEmotion = getTopStat(losingTrades.map((entry) => entry.emotion))
+  const topWinningSetup = getTopStat(winningTrades.map((entry) => entry.setupType))
+  const topLosingSetup = getTopStat(losingTrades.map((entry) => entry.setupType))
+  const topWinningInstrument = getTopStat(winningTrades.map((entry) => entry.instrument))
+  const topLosingInstrument = getTopStat(losingTrades.map((entry) => entry.instrument))
+  const topWinningDirection = getTopStat(winningTrades.map((entry) => entry.direction))
+  const topLosingDirection = getTopStat(losingTrades.map((entry) => entry.direction))
+  const topWinningSession = getTopStat(winningTrades.map((entry) => entry.session))
+  const topLosingSession = getTopStat(losingTrades.map((entry) => entry.session))
+  const topOverallDirection = getTopStat(journal.map((entry) => entry.direction))
+  const topOverallSession = getTopStat(journal.map((entry) => entry.session))
+  const topOverallInstrument = getTopStat(journal.map((entry) => entry.instrument))
+  const topOverallSetup = getTopStat(journal.map((entry) => entry.setupType))
+  const topOverallEmotion = getTopStat(journal.map((entry) => entry.emotion))
+  const bestSetupByAverageR = Object.entries(
+    journal.reduce<Record<string, { total: number; count: number }>>((acc, entry) => {
+      if (entry.outcome !== 'win' && entry.outcome !== 'loss' && entry.outcome !== 'breakeven') return acc
+      const current = acc[entry.setupType] ?? { total: 0, count: 0 }
+      current.total += entry.rMultiple
+      current.count += 1
+      acc[entry.setupType] = current
+      return acc
+    }, {})
+  )
+    .map(([setup, stats]) => ({ setup, avgR: stats.count > 0 ? stats.total / stats.count : 0 }))
+    .sort((a, b) => b.avgR - a.avgR)[0]
+  const worstSetupByAverageR = Object.entries(
+    journal.reduce<Record<string, { total: number; count: number }>>((acc, entry) => {
+      if (entry.outcome !== 'win' && entry.outcome !== 'loss' && entry.outcome !== 'breakeven') return acc
+      const current = acc[entry.setupType] ?? { total: 0, count: 0 }
+      current.total += entry.rMultiple
+      current.count += 1
+      acc[entry.setupType] = current
+      return acc
+    }, {})
+  )
+    .map(([setup, stats]) => ({ setup, avgR: stats.count > 0 ? stats.total / stats.count : 0 }))
+    .sort((a, b) => a.avgR - b.avgR)[0]
   const scoreCarryMessage =
     checkedPoints === 0
       ? 'No rules are confirmed yet.'
@@ -1735,6 +1792,117 @@ ${emotionWarning}`
             >
               Goal: follow the checklist exactly as written. This app is not here to predict the market. It is here to protect you from undisciplined trades.
             </div>
+          </div>
+        </div>
+      )}
+
+      {showAdvancedPerformance && (
+        <div className="fixed inset-0 z-[82] flex items-start justify-center overflow-y-auto bg-slate-950/65 px-4 py-4 backdrop-blur-sm sm:items-center">
+          <div className={`relative w-full max-w-4xl rounded-[28px] border p-5 shadow-2xl md:p-6 ${ui.card}`}>
+            <button
+              type="button"
+              onClick={() => setShowAdvancedPerformance(false)}
+              className={`absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full text-lg font-semibold transition ${ui.secondaryBtn}`}
+              aria-label="Close advanced performance"
+            >
+              ×
+            </button>
+
+            <div className="pr-10">
+              <h2 className="text-center text-xl font-bold md:text-2xl">Advanced performance snapshot</h2>
+              <p className={`mt-2 text-center text-sm leading-6 ${ui.subtle}`}>
+                Deep pattern recognition across winning and losing trades. Use this to see what keeps repeating in your journal.
+              </p>
+            </div>
+
+            <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+              {[
+                ['Winning emotion', topWinningEmotion ? `${topWinningEmotion.value} • ${topWinningEmotion.count}` : 'No winning trades yet.'],
+                ['Losing emotion', topLosingEmotion ? `${topLosingEmotion.value} • ${topLosingEmotion.count}` : 'No losing trades yet.'],
+                ['Winning setup', topWinningSetup ? `${topWinningSetup.value} • ${topWinningSetup.count}` : 'No winning trades yet.'],
+                ['Losing setup', topLosingSetup ? `${topLosingSetup.value} • ${topLosingSetup.count}` : 'No losing trades yet.'],
+                ['Winning instrument', topWinningInstrument ? `${topWinningInstrument.value} • ${topWinningInstrument.count}` : 'No winning trades yet.'],
+                ['Losing instrument', topLosingInstrument ? `${topLosingInstrument.value} • ${topLosingInstrument.count}` : 'No losing trades yet.'],
+                ['Winning direction', topWinningDirection ? `${topWinningDirection.value} • ${topWinningDirection.count}` : 'No winning trades yet.'],
+                ['Losing direction', topLosingDirection ? `${topLosingDirection.value} • ${topLosingDirection.count}` : 'No losing trades yet.'],
+                ['Winning session', topWinningSession ? `${topWinningSession.value} • ${topWinningSession.count}` : 'No winning trades yet.'],
+                ['Losing session', topLosingSession ? `${topLosingSession.value} • ${topLosingSession.count}` : 'No losing trades yet.'],
+                ['Most common direction', topOverallDirection ? `${topOverallDirection.value} • ${topOverallDirection.count}` : 'No data yet.'],
+                ['Most common session', topOverallSession ? `${topOverallSession.value} • ${topOverallSession.count}` : 'No data yet.'],
+                ['Most common instrument', topOverallInstrument ? `${topOverallInstrument.value} • ${topOverallInstrument.count}` : 'No data yet.'],
+                ['Most common setup', topOverallSetup ? `${topOverallSetup.value} • ${topOverallSetup.count}` : 'No data yet.'],
+                ['Most common emotion', topOverallEmotion ? `${topOverallEmotion.value} • ${topOverallEmotion.count}` : 'No data yet.'],
+                ['Best setup by avg R', bestSetupByAverageR ? `${bestSetupByAverageR.setup} • ${bestSetupByAverageR.avgR.toFixed(2)}R` : 'Not enough closed trades yet.'],
+                ['Worst setup by avg R', worstSetupByAverageR ? `${worstSetupByAverageR.setup} • ${worstSetupByAverageR.avgR.toFixed(2)}R` : 'Not enough closed trades yet.'],
+                ['Largest win', winningTrades.length > 0 ? `${Math.max(...winningTrades.map((entry) => entry.pnl)).toFixed(2)}` : 'No winning trades yet.'],
+                ['Largest loss', losingTrades.length > 0 ? `${Math.min(...losingTrades.map((entry) => entry.pnl)).toFixed(2)}` : 'No losing trades yet.'],
+              ].map((item) => (
+                <div key={item[0]} className={`rounded-[20px] border px-4 py-3 ${ui.statBox}`}>
+                  <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>{item[0]}</div>
+                  <div className="mt-1 text-sm font-semibold">{item[1]}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {selectedJournalEntry && (
+        <div className="fixed inset-0 z-[82] flex items-start justify-center overflow-y-auto bg-slate-950/65 px-4 py-4 backdrop-blur-sm sm:items-center">
+          <div className={`relative w-full max-w-3xl rounded-[28px] border p-5 shadow-2xl md:p-6 ${ui.card}`}>
+            <button
+              type="button"
+              onClick={() => setSelectedJournalEntry(null)}
+              className={`absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full text-lg font-semibold transition ${ui.secondaryBtn}`}
+              aria-label="Close journal entry"
+            >
+              ×
+            </button>
+
+            <div className="pr-10">
+              <h2 className="text-center text-xl font-bold md:text-2xl">Journal entry</h2>
+              <p className={`mt-2 text-center text-sm ${ui.subtle}`}>{formatDate(selectedJournalEntry.createdAt)} • {selectedJournalEntry.instrument} • {selectedJournalEntry.setupType}</p>
+            </div>
+
+            <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+              {[
+                ['Outcome', selectedJournalEntry.outcome],
+                ['Verdict', selectedJournalEntry.verdict],
+                ['Quality', selectedJournalEntry.quality],
+                ['Score / threshold', `${selectedJournalEntry.score}% / ${selectedJournalEntry.threshold}%`],
+                ['Session', selectedJournalEntry.session],
+                ['Emotion', selectedJournalEntry.emotion],
+                ['Direction', selectedJournalEntry.direction],
+                ['P&L', `${selectedJournalEntry.pnl >= 0 ? '+' : ''}${selectedJournalEntry.pnl.toFixed(2)}`],
+                ['R multiple', `${selectedJournalEntry.rMultiple >= 0 ? '+' : ''}${selectedJournalEntry.rMultiple.toFixed(2)}R`],
+                ['Followed verdict', selectedJournalEntry.followedVerdict === 'yes' ? 'Yes' : selectedJournalEntry.followedVerdict === 'partially' ? 'Partially' : 'No'],
+              ].map((item) => (
+                <div key={item[0]} className={`rounded-[20px] border px-4 py-3 ${ui.statBox}`}>
+                  <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>{item[0]}</div>
+                  <div className="mt-1 text-sm font-semibold">{item[1]}</div>
+                </div>
+              ))}
+            </div>
+
+            {selectedJournalEntry.note && (
+              <div className={`mt-4 rounded-[20px] border px-4 py-3 ${ui.statBox}`}>
+                <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Journal note</div>
+                <p className="mt-2 text-sm leading-6">{selectedJournalEntry.note}</p>
+              </div>
+            )}
+
+            <div className={`mt-4 rounded-[20px] border px-4 py-3 ${ui.statBox}`}>
+              <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Missing rules at save time</div>
+              <div className="mt-2 text-sm font-semibold">
+                {selectedJournalEntry.missingRuleTexts.length > 0 ? selectedJournalEntry.missingRuleTexts.join(', ') : 'No missing rules recorded.'}
+              </div>
+            </div>
+
+            {selectedJournalEntry.screenshotDataUrl && (
+              <div className="mt-4 overflow-hidden rounded-[20px] border border-white/10">
+                <img src={selectedJournalEntry.screenshotDataUrl} alt="Journal screenshot" className="max-h-[420px] w-full object-contain" />
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -2197,6 +2365,16 @@ ${emotionWarning}`
                       <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Most missed rule</div>
                       <div className="mt-1 font-semibold">{mostMissedRule ? mostMissedRule[0] : 'No missed-rule data yet.'}</div>
                     </div>
+
+                    <div className="mt-3 flex justify-center">
+                      <button
+                        type="button"
+                        onClick={() => setShowAdvancedPerformance(true)}
+                        className={`rounded-2xl px-4 py-2 text-xs font-semibold transition ${ui.secondaryBtn}`}
+                      >
+                        Advanced performance
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -2251,9 +2429,19 @@ ${emotionWarning}`
                               <img src={entry.screenshotDataUrl} alt="Journal screenshot" className="h-20 w-28 rounded-xl object-cover" />
                             ) : null}
 
-                            <button type="button" onClick={() => setJournal((prev) => prev.filter((item) => item.id !== entry.id))} className={`rounded-xl px-3 py-2 text-xs font-semibold transition ${ui.deleteRule}`}>
-                              Delete
-                            </button>
+                            <div className="flex gap-2">
+                              <button
+                                type="button"
+                                onClick={() => setSelectedJournalEntry(entry)}
+                                className={`rounded-xl px-3 py-2 text-xs font-semibold transition ${ui.secondaryBtn}`}
+                              >
+                                Show
+                              </button>
+
+                              <button type="button" onClick={() => setJournal((prev) => prev.filter((item) => item.id !== entry.id))} className={`rounded-xl px-3 py-2 text-xs font-semibold transition ${ui.deleteRule}`}>
+                                Delete
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </div>
