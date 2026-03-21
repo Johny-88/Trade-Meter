@@ -1592,7 +1592,7 @@ ${emotionWarning}`
 
       <div
         ref={liveScoreRef}
-        className="fixed inset-x-0 top-0 z-50 px-3 pt-2 md:px-4"
+        className={mode === 'stats' ? 'relative z-30 px-3 pt-2 md:px-4' : 'fixed inset-x-0 top-0 z-50 px-3 pt-2 md:px-4'}
       >
         <div
           className={`pointer-events-none absolute inset-x-0 top-0 h-full rounded-b-[28px] ${
@@ -1804,7 +1804,7 @@ ${emotionWarning}`
 
       <div
         className="relative mx-auto max-w-7xl px-4 pb-6 md:px-6 lg:px-8 lg:pb-8"
-        style={{ paddingTop: topOffset }}
+        style={{ paddingTop: mode === 'stats' ? 0 : topOffset }}
       >
         <div className={`mb-6 rounded-[28px] p-5 md:p-6 ${ui.card}`}>
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
