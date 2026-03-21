@@ -1873,19 +1873,18 @@ ${emotionWarning}`
                 ['Worst setup by avg R', worstSetupByAverageR ? `${worstSetupByAverageR.setup} • ${worstSetupByAverageR.avgR.toFixed(2)}R` : 'Not enough closed trades yet.'],
               ].map((item) => (
                 <div key={item[0]} className={`rounded-[20px] border px-3 py-3 text-center shadow-sm ${ui.statBox}`}>
-                  <div className="flex justify-center">
-                    <div className={`rounded-full border px-2.5 py-1 text-[8px] uppercase tracking-[0.16em] leading-4 ${ui.statBox} ${ui.muted}`}>{item[0]}</div>
-                  </div>
+                  <div className={`text-[8px] uppercase tracking-[0.16em] leading-4 ${ui.muted}`}>{item[0]}</div>
+                  <div className="mx-auto mt-2 h-px w-10 bg-white/10" />
                   <div className="mt-2 text-[12px] font-semibold leading-5 md:text-sm">{item[1]}</div>
                 </div>
               ))}
             </div>
 
-            <div className="mt-4 grid gap-3 md:grid-cols-2">
-              <div className={`rounded-[22px] border px-4 py-4 ${ui.statBox}`}>
+            <div className="mt-5 grid gap-4 md:grid-cols-2">
+              <div className={`rounded-[24px] border px-4 py-4 shadow-sm ${ui.statBox}`}>
                 <div className="flex items-center justify-between gap-3">
                   <div className="text-sm font-bold">Perfect winning combination</div>
-                  <div className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-semibold text-emerald-300">
+                  <div className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-[10px] font-semibold text-slate-950 shadow-sm">
                     Win pattern
                   </div>
                 </div>
@@ -1904,7 +1903,7 @@ ${emotionWarning}`
                         `Direction: ${perfectWinningCombination.direction}`,
                         `Session: ${perfectWinningCombination.session}`,
                       ].map((item) => (
-                        <div key={item} className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-semibold text-slate-950">
+                        <div key={item} className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-3 py-1.5 text-[11px] font-semibold text-slate-950 shadow-sm">
                           {item}
                         </div>
                       ))}
@@ -1919,10 +1918,10 @@ ${emotionWarning}`
                 )}
               </div>
 
-              <div className={`rounded-[22px] border px-4 py-4 ${ui.statBox}`}>
+              <div className={`rounded-[24px] border px-4 py-4 shadow-sm ${ui.statBox}`}>
                 <div className="flex items-center justify-between gap-3">
                   <div className="text-sm font-bold">Worst losing combination</div>
-                  <div className="rounded-full border border-red-500/20 bg-red-500/10 px-2.5 py-1 text-[10px] font-semibold text-red-300">
+                  <div className="rounded-full border border-red-500/20 bg-red-500/10 px-3 py-1 text-[10px] font-semibold text-slate-950 shadow-sm">
                     Loss pattern
                   </div>
                 </div>
@@ -1941,7 +1940,7 @@ ${emotionWarning}`
                         `Direction: ${worstLosingCombination.direction}`,
                         `Session: ${worstLosingCombination.session}`,
                       ].map((item) => (
-                        <div key={item} className="rounded-full border border-red-500/20 bg-red-500/10 px-2.5 py-1 text-[11px] font-semibold text-slate-950">
+                        <div key={item} className="rounded-2xl border border-red-500/20 bg-red-500/10 px-3 py-1.5 text-[11px] font-semibold text-slate-950 shadow-sm">
                           {item}
                         </div>
                       ))}
