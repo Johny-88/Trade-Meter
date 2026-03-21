@@ -1817,7 +1817,7 @@ ${emotionWarning}`
               </p>
             </div>
 
-            <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            <div className="mt-5 grid grid-cols-2 gap-2 md:gap-3 xl:grid-cols-3">
               {[
                 ['Winning emotion', topWinningEmotion ? `${topWinningEmotion.value} • ${topWinningEmotion.count}` : 'No winning trades yet.'],
                 ['Losing emotion', topLosingEmotion ? `${topLosingEmotion.value} • ${topLosingEmotion.count}` : 'No losing trades yet.'],
@@ -1837,9 +1837,9 @@ ${emotionWarning}`
                 ['Best setup by avg R', bestSetupByAverageR ? `${bestSetupByAverageR.setup} • ${bestSetupByAverageR.avgR.toFixed(2)}R` : 'Not enough closed trades yet.'],
                 ['Worst setup by avg R', worstSetupByAverageR ? `${worstSetupByAverageR.setup} • ${worstSetupByAverageR.avgR.toFixed(2)}R` : 'Not enough closed trades yet.'],
               ].map((item) => (
-                <div key={item[0]} className={`rounded-[20px] border px-4 py-3 ${ui.statBox}`}>
-                  <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>{item[0]}</div>
-                  <div className="mt-1 text-sm font-semibold">{item[1]}</div>
+                <div key={item[0]} className={`rounded-[18px] border px-3 py-2.5 ${ui.statBox}`}>
+                  <div className={`text-[8px] uppercase tracking-[0.16em] leading-4 ${ui.muted}`}>{item[0]}</div>
+                  <div className="mt-1 text-[12px] font-semibold leading-5 md:text-sm">{item[1]}</div>
                 </div>
               ))}
             </div>
