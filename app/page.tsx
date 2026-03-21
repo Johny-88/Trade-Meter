@@ -2653,7 +2653,6 @@ ${emotionWarning}`
               </div>
             )}
           </div>
-        </div>
 
             </>
           ) : (
