@@ -1365,6 +1365,8 @@ export default function Home() {
   const shortLosses = journal.filter((entry) => entry.direction === 'short' && entry.outcome === 'loss').length
   const totalNetPnl = journal.reduce((sum, entry) => sum + entry.pnl, 0)
   const averageR = closedTrades.length > 0 ? closedTrades.reduce((sum, entry) => sum + entry.rMultiple, 0) / closedTrades.length : 0
+  const winningTrades = journal.filter((entry) => entry.outcome === 'win')
+  const losingTrades = journal.filter((entry) => entry.outcome === 'loss')
   const largestWin = winningTrades.length > 0 ? Math.max(...winningTrades.map((entry) => entry.pnl)) : null
   const largestLoss = losingTrades.length > 0 ? Math.min(...losingTrades.map((entry) => entry.pnl)) : null
   const setupBreakdown = Object.entries(
@@ -1379,8 +1381,6 @@ export default function Home() {
       return acc
     }, {})
   ).sort((a, b) => b[1] - a[1])[0]
-  const winningTrades = journal.filter((entry) => entry.outcome === 'win')
-  const losingTrades = journal.filter((entry) => entry.outcome === 'loss')
   const topWinningEmotion = getTopStat(winningTrades.map((entry) => entry.emotion))
   const topLosingEmotion = getTopStat(losingTrades.map((entry) => entry.emotion))
   const topWinningSetup = getTopStat(winningTrades.map((entry) => entry.setupType))
