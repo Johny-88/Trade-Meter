@@ -1810,7 +1810,7 @@ ${emotionWarning}`
               ×
             </button>
 
-            <div className="pr-10">
+            <div className="px-8 sm:px-10">
               <h2 className="text-center text-xl font-bold md:text-2xl">Advanced performance snapshot</h2>
               <p className={`mt-2 text-center text-sm leading-6 ${ui.subtle}`}>
                 Deep pattern recognition across winning and losing trades. Use this to see what keeps repeating in your journal.
@@ -1837,7 +1837,7 @@ ${emotionWarning}`
                 ['Best setup by avg R', bestSetupByAverageR ? `${bestSetupByAverageR.setup} • ${bestSetupByAverageR.avgR.toFixed(2)}R` : 'Not enough closed trades yet.'],
                 ['Worst setup by avg R', worstSetupByAverageR ? `${worstSetupByAverageR.setup} • ${worstSetupByAverageR.avgR.toFixed(2)}R` : 'Not enough closed trades yet.'],
               ].map((item) => (
-                <div key={item[0]} className={`rounded-[18px] border px-3 py-2.5 ${ui.statBox}`}>
+                <div key={item[0]} className={`rounded-[18px] border px-3 py-2.5 text-center ${ui.statBox}`}>
                   <div className={`text-[8px] uppercase tracking-[0.16em] leading-4 ${ui.muted}`}>{item[0]}</div>
                   <div className="mt-1 text-[12px] font-semibold leading-5 md:text-sm">{item[1]}</div>
                 </div>
@@ -2155,28 +2155,23 @@ ${emotionWarning}`
                     Journal performance
                   </div>
 
-                  <div className="mt-3 flex items-center gap-3">
-                    <div
-                      className="relative h-24 w-24 shrink-0 rounded-full"
-                      style={{
-                        background: `conic-gradient(#34d399 0 ${winRate}%, #f87171 ${winRate}% ${Math.min(winRate + lossRate, 100)}%, ${
-                          theme === 'light' ? '#e2e8f0' : 'rgba(255,255,255,0.12)'
-                        } ${Math.min(winRate + lossRate, 100)}% 100%)`,
-                      }}
-                    >
-                      <div className={`absolute inset-[8px] rounded-full ${theme === 'light' ? 'bg-white' : 'bg-slate-950'}`} />
-                      <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <div className="text-2xl font-black leading-none">{winRate}%</div>
-                        <div className={`mt-1 text-[10px] font-semibold uppercase tracking-[0.16em] ${ui.muted}`}>Win</div>
-                      </div>
+                  <div className="mt-2 flex items-end justify-between gap-3">
+                    <div className="text-3xl font-black leading-none">{winRate}%</div>
+                    <div className={`text-[10px] font-semibold md:text-[11px] ${ui.subtle}`}>
+                      {totalReviewedTrades} logged • {closedTrades.length} closed
                     </div>
+                  </div>
 
-                    <div className="min-w-0">
-                      <div className="text-lg font-bold leading-none">{lossRate}%</div>
-                      <div className={`mt-1 text-[10px] font-semibold uppercase tracking-[0.16em] ${ui.muted}`}>Loss rate</div>
-                      <div className={`mt-3 text-[10px] font-semibold md:text-[11px] ${ui.subtle}`}>
-                        {totalReviewedTrades} logged • {closedTrades.length} closed
-                      </div>
+                  <div className={`mt-3 h-4 overflow-hidden rounded-full ${ui.barTrack}`}>
+                    <div className="flex h-full w-full">
+                      <div
+                        className="h-full bg-emerald-400 transition-all duration-500"
+                        style={{ width: `${winRate}%` }}
+                      />
+                      <div
+                        className="h-full bg-red-400/80 transition-all duration-500"
+                        style={{ width: `${Math.max(0, 100 - winRate)}%` }}
+                      />
                     </div>
                   </div>
                 </div>
