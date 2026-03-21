@@ -2167,62 +2167,6 @@ ${emotionWarning}`
             </div>
           </div>
 
-                  {journal.length > 0 && (
-                    <div className="mt-3 space-y-2">
-                      {journal.slice(0, 3).map((entry) => (
-                        <div key={entry.id} className={`rounded-[18px] border p-3 ${ui.statBox}`}>
-                          <div className="flex flex-wrap items-center justify-between gap-2">
-                            <div className="text-sm font-semibold">{entry.verdict}</div>
-                            <div className={`text-xs ${ui.muted}`}>{formatDate(entry.createdAt)}</div>
-                          </div>
-                          <div className={`mt-1 text-xs ${ui.muted}`}>
-                            {entry.instrument} • {entry.session} • {entry.setupType} • {entry.score}% • {entry.outcome}
-                          </div>
-                          {entry.note && <p className="mt-2 text-sm">{entry.note}</p>}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <div className={`rounded-[22px] p-3 ${ui.innerCard}`}>
-                  <div className={`mb-2 text-sm font-semibold ${ui.secondaryStrong}`}>Discipline dashboard</div>
-                  <div className="grid grid-cols-2 gap-2">
-                    {[
-                      ['Reviews', `${journal.length}`],
-                      ['Avg score', `${averageJournalScore}%`],
-                      ['Qualified', `${qualifiedJournalCount}`],
-                      ['Blocked', `${blockedJournalCount}`],
-                      ['Saved me', `${savedMeCount}`],
-                      ['Streak', `${currentRespectStreak}`],
-                    ].map((item) => (
-                      <div key={item[0]} className={`rounded-2xl border px-3 py-3 ${ui.statBox}`}>
-                        <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>{item[0]}</div>
-                        <div className="mt-1 text-lg font-bold">{item[1]}</div>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className={`mt-3 rounded-2xl border px-4 py-3 text-sm ${ui.statBox}`}>
-                    <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Most missed rule</div>
-                    <div className="mt-1 font-semibold">{mostMissedRule ? mostMissedRule[0] : 'Not enough saved reviews yet.'}</div>
-                  </div>
-
-                  <div className={`mt-3 rounded-2xl border px-4 py-3 text-sm ${ui.statBox}`}>
-                    <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Most missed category</div>
-                    <div className="mt-1 font-semibold">
-                      {mostMissedJournalCategory ? mostMissedJournalCategory[0] : 'Not enough saved reviews yet.'}
-                    </div>
-                  </div>
-
-                  <div className={`mt-3 rounded-2xl border px-4 py-3 text-sm ${ui.statBox}`}>
-                    <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Verdict respected</div>
-                    <div className="mt-1 font-semibold">{respectedVerdictCount}/{journal.length || 0} logged reviews</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
 
           <div className={`rounded-[28px] p-4 md:p-5 ${ui.card}`}>
             <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
