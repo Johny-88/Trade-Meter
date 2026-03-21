@@ -1019,6 +1019,38 @@ function getTopStat(values: string[]) {
   return top ? { value: top[0], count: top[1] } : null
 }
 
+
+function getCombinationSummary(entries: JournalEntry[]) {
+  if (entries.length === 0) return null
+
+  const topEmotion = getTopStat(entries.map((entry) => entry.emotion))
+  const topSetup = getTopStat(entries.map((entry) => entry.setupType))
+  const topInstrument = getTopStat(entries.map((entry) => entry.instrument))
+  const topDirection = getTopStat(entries.map((entry) => entry.direction))
+  const topSession = getTopStat(entries.map((entry) => entry.session))
+
+  if (!topEmotion || !topSetup || !topInstrument || !topDirection || !topSession) return null
+
+  const exactComboCount = entries.filter(
+    (entry) =>
+      entry.emotion === topEmotion.value &&
+      entry.setupType === topSetup.value &&
+      entry.instrument === topInstrument.value &&
+      entry.direction === topDirection.value &&
+      entry.session === topSession.value
+  ).length
+
+  return {
+    emotion: topEmotion.value,
+    setup: topSetup.value,
+    instrument: topInstrument.value,
+    direction: topDirection.value,
+    session: topSession.value,
+    exactComboCount,
+    sourceCount: entries.length,
+  }
+}
+
 export default function Home() {
   const title = 'Edge Check'
   const [theme, setTheme] = useState<AppTheme>('light')
@@ -1396,6 +1428,9 @@ export default function Home() {
   const topOverallInstrument = getTopStat(journal.map((entry) => entry.instrument))
   const topOverallSetup = getTopStat(journal.map((entry) => entry.setupType))
   const topOverallEmotion = getTopStat(journal.map((entry) => entry.emotion))
+  const perfectWinningCombination = getCombinationSummary(winningTrades)
+  const worstLosingCombination = getCombinationSummary(losingTrades)
+
   const bestSetupByAverageR = Object.entries(
     journal.reduce<Record<string, { total: number; count: number }>>((acc, entry) => {
       if (entry.outcome !== 'win' && entry.outcome !== 'loss' && entry.outcome !== 'breakeven') return acc
@@ -1842,6 +1877,82 @@ ${emotionWarning}`
                   <div className="mt-1 text-[12px] font-semibold leading-5 md:text-sm">{item[1]}</div>
                 </div>
               ))}
+            </div>
+
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+              <div className={`rounded-[22px] border px-4 py-4 ${ui.statBox}`}>
+                <div className="flex items-center justify-between gap-3">
+                  <div className="text-sm font-bold">Perfect winning combination</div>
+                  <div className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-semibold text-emerald-300">
+                    Win pattern
+                  </div>
+                </div>
+
+                {perfectWinningCombination ? (
+                  <>
+                    <p className={`mt-2 text-xs leading-5 ${ui.subtle}`}>
+                      The strongest repeated winning pattern from your journal so far.
+                    </p>
+
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {[
+                        `Emotion: ${perfectWinningCombination.emotion}`,
+                        `Setup: ${perfectWinningCombination.setup}`,
+                        `Instrument: ${perfectWinningCombination.instrument}`,
+                        `Direction: ${perfectWinningCombination.direction}`,
+                        `Session: ${perfectWinningCombination.session}`,
+                      ].map((item) => (
+                        <div key={item} className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-200">
+                          {item}
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className={`mt-3 text-xs ${ui.subtle}`}>
+                      Exact combo matches: <span className="font-semibold">{perfectWinningCombination.exactComboCount}</span> of {perfectWinningCombination.sourceCount} winning trades
+                    </div>
+                  </>
+                ) : (
+                  <p className={`mt-2 text-sm ${ui.subtle}`}>Not enough winning trades yet.</p>
+                )}
+              </div>
+
+              <div className={`rounded-[22px] border px-4 py-4 ${ui.statBox}`}>
+                <div className="flex items-center justify-between gap-3">
+                  <div className="text-sm font-bold">Worst losing combination</div>
+                  <div className="rounded-full border border-red-500/20 bg-red-500/10 px-2.5 py-1 text-[10px] font-semibold text-red-300">
+                    Loss pattern
+                  </div>
+                </div>
+
+                {worstLosingCombination ? (
+                  <>
+                    <p className={`mt-2 text-xs leading-5 ${ui.subtle}`}>
+                      The most repeated losing pattern from your journal so far.
+                    </p>
+
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {[
+                        `Emotion: ${worstLosingCombination.emotion}`,
+                        `Setup: ${worstLosingCombination.setup}`,
+                        `Instrument: ${worstLosingCombination.instrument}`,
+                        `Direction: ${worstLosingCombination.direction}`,
+                        `Session: ${worstLosingCombination.session}`,
+                      ].map((item) => (
+                        <div key={item} className="rounded-full border border-red-500/20 bg-red-500/10 px-2.5 py-1 text-[11px] font-semibold text-red-200">
+                          {item}
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className={`mt-3 text-xs ${ui.subtle}`}>
+                      Exact combo matches: <span className="font-semibold">{worstLosingCombination.exactComboCount}</span> of {worstLosingCombination.sourceCount} losing trades
+                    </div>
+                  </>
+                ) : (
+                  <p className={`mt-2 text-sm ${ui.subtle}`}>Not enough losing trades yet.</p>
+                )}
+              </div>
             </div>
           </div>
         </div>
