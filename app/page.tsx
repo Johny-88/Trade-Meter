@@ -49,8 +49,8 @@ type SavedTemplate = {
   rules: Rule[]
   session: SessionType
   instrument: string
-  setupType: SetupType
-  emotion: EmotionState
+  setupType: string
+  emotion: string
 }
 
 type JournalEntry = {
@@ -66,8 +66,8 @@ type JournalEntry = {
   screenshotDataUrl: string
   session: SessionType
   instrument: string
-  setupType: SetupType
-  emotion: EmotionState
+  setupType: string
+  emotion: string
   direction: TradeDirection
   pnl: number
   rMultiple: number
@@ -463,6 +463,126 @@ const emotionOptions: { value: EmotionState; label: string; tone: Tone }[] = [
   { value: 'tired', label: 'Tired', tone: 'orange' },
 ]
 
+
+const defaultJournalInstrumentOptions = ['ES', 'NQ', 'Gold', 'Silver', 'Oil', 'BTC', 'EURUSD']
+const defaultJournalSetupOptions = ['Breakout', 'Reversal', 'Support Bounce', 'Trendline Break', 'Pullback']
+const defaultJournalEmotionOptions = ['Calm', 'Focused', 'Slightly emotional', 'FOMO', 'Revenge mindset', 'Tired']
+const STATS_FORM_STORAGE_KEY = 'edge-check-stats-form-v1'
+
+type ManagedOptionDropdownProps = {
+  label: string
+  value: string
+  options: string[]
+  onSelect: (value: string) => void
+  onDelete: (value: string) => void
+  onAdd: (value: string) => void
+  theme: AppTheme
+  triggerClassName: string
+  inputClassName: string
+  mutedClassName: string
+  addButtonClassName: string
+  secondaryButtonClassName: string
+}
+
+function ManagedOptionDropdown({
+  label,
+  value,
+  options,
+  onSelect,
+  onDelete,
+  onAdd,
+  theme,
+  triggerClassName,
+  inputClassName,
+  mutedClassName,
+  addButtonClassName,
+  secondaryButtonClassName,
+}: ManagedOptionDropdownProps) {
+  const [open, setOpen] = useState(false)
+  const [draft, setDraft] = useState('')
+
+  const panelClassName =
+    theme === 'light'
+      ? 'border border-slate-200 bg-white shadow-2xl'
+      : 'border border-white/10 bg-slate-950 shadow-2xl'
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((prev) => !prev)}
+        className={`flex h-10 w-full items-center justify-between rounded-2xl px-3 text-left text-sm outline-none transition ${triggerClassName}`}
+      >
+        <span className="truncate">
+          {label}: {value}
+        </span>
+        <span className={`ml-3 shrink-0 text-xs ${mutedClassName}`}>{open ? '▲' : '▼'}</span>
+      </button>
+
+      {open && (
+        <div className={`absolute left-0 right-0 top-[calc(100%+0.5rem)] z-40 rounded-[22px] p-2 ${panelClassName}`}>
+          <div className="max-h-56 space-y-1 overflow-y-auto">
+            {options.map((item) => (
+              <div key={item} className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    onSelect(item)
+                    setOpen(false)
+                  }}
+                  className={`flex-1 rounded-2xl px-3 py-2 text-left text-sm transition ${secondaryButtonClassName}`}
+                >
+                  {item}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => onDelete(item)}
+                  className={`flex h-9 w-9 items-center justify-center rounded-full text-base font-bold transition ${secondaryButtonClassName}`}
+                  aria-label={`Remove ${item}`}
+                >
+                  −
+                </button>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-2 flex gap-2">
+            <input
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  const trimmed = draft.trim()
+                  if (!trimmed) return
+                  onAdd(trimmed)
+                  setDraft('')
+                  setOpen(false)
+                }
+              }}
+              placeholder={`Add ${label.toLowerCase()}`}
+              className={`w-full rounded-2xl px-3 py-2.5 text-sm outline-none transition ${inputClassName}`}
+            />
+            <button
+              type="button"
+              onClick={() => {
+                const trimmed = draft.trim()
+                if (!trimmed) return
+                onAdd(trimmed)
+                setDraft('')
+                setOpen(false)
+              }}
+              className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${addButtonClassName}`}
+            >
+              Add
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function getImportanceBadge(importance: Importance, theme: AppTheme) {
   if (importance === 'mandatory') {
     return {
@@ -567,14 +687,8 @@ function normalizeJournalEntry(entry: Partial<JournalEntry>): JournalEntry {
         ? entry.session
         : 'London',
     instrument: typeof entry.instrument === 'string' ? entry.instrument : 'ES',
-    setupType:
-      entry.setupType === 'Breakout' || entry.setupType === 'Reversal' || entry.setupType === 'Support Bounce' || entry.setupType === 'Trendline Break' || entry.setupType === 'Pullback'
-        ? entry.setupType
-        : 'Breakout',
-    emotion:
-      entry.emotion === 'focused' || entry.emotion === 'slightly-emotional' || entry.emotion === 'fomo' || entry.emotion === 'revenge' || entry.emotion === 'tired'
-        ? entry.emotion
-        : 'calm',
+    setupType: typeof entry.setupType === 'string' ? entry.setupType : 'Breakout',
+    emotion: typeof entry.emotion === 'string' ? entry.emotion : 'Calm',
     direction: entry.direction === 'short' ? 'short' : 'long',
     pnl: typeof entry.pnl === 'number' ? entry.pnl : 0,
     rMultiple: typeof entry.rMultiple === 'number' ? entry.rMultiple : 0,
@@ -907,6 +1021,12 @@ export default function Home() {
   const [proInstrument, setProInstrument] = useState('ES')
   const [proSetupType, setProSetupType] = useState<SetupType>('Breakout')
   const [proEmotion, setProEmotion] = useState<EmotionState>('calm')
+  const [journalInstrument, setJournalInstrument] = useState(defaultJournalInstrumentOptions[0])
+  const [journalSetup, setJournalSetup] = useState(defaultJournalSetupOptions[0])
+  const [journalEmotion, setJournalEmotion] = useState(defaultJournalEmotionOptions[0])
+  const [journalInstrumentOptions, setJournalInstrumentOptions] = useState<string[]>(defaultJournalInstrumentOptions)
+  const [journalSetupOptions, setJournalSetupOptions] = useState<string[]>(defaultJournalSetupOptions)
+  const [journalEmotionOptions, setJournalEmotionOptions] = useState<string[]>(defaultJournalEmotionOptions)
   const [proTimerSeconds, setProTimerSeconds] = useState(15)
   const [proTimerActive, setProTimerActive] = useState(false)
   const [proTimerLeft, setProTimerLeft] = useState(15)
@@ -983,6 +1103,28 @@ export default function Home() {
         }
       } catch {}
     }
+
+    const savedStatsForm = localStorage.getItem(STATS_FORM_STORAGE_KEY)
+    if (savedStatsForm) {
+      try {
+        const parsedStatsForm = JSON.parse(savedStatsForm)
+        if (Array.isArray(parsedStatsForm.instrumentOptions)) {
+          const nextInstruments = parsedStatsForm.instrumentOptions.filter((item: unknown): item is string => typeof item === 'string' && item.trim().length > 0)
+          if (nextInstruments.length > 0) setJournalInstrumentOptions(nextInstruments)
+        }
+        if (Array.isArray(parsedStatsForm.setupOptions)) {
+          const nextSetups = parsedStatsForm.setupOptions.filter((item: unknown): item is string => typeof item === 'string' && item.trim().length > 0)
+          if (nextSetups.length > 0) setJournalSetupOptions(nextSetups)
+        }
+        if (Array.isArray(parsedStatsForm.emotionOptions)) {
+          const nextEmotions = parsedStatsForm.emotionOptions.filter((item: unknown): item is string => typeof item === 'string' && item.trim().length > 0)
+          if (nextEmotions.length > 0) setJournalEmotionOptions(nextEmotions)
+        }
+        if (typeof parsedStatsForm.instrument === 'string') setJournalInstrument(parsedStatsForm.instrument)
+        if (typeof parsedStatsForm.setup === 'string') setJournalSetup(parsedStatsForm.setup)
+        if (typeof parsedStatsForm.emotion === 'string') setJournalEmotion(parsedStatsForm.emotion)
+      } catch {}
+    }
   }, [])
 
   useEffect(() => {
@@ -1036,6 +1178,20 @@ export default function Home() {
       })
     )
   }, [proSession, proInstrument, proSetupType, proEmotion, proView, proTimerSeconds])
+
+  useEffect(() => {
+    localStorage.setItem(
+      STATS_FORM_STORAGE_KEY,
+      JSON.stringify({
+        instrument: journalInstrument,
+        setup: journalSetup,
+        emotion: journalEmotion,
+        instrumentOptions: journalInstrumentOptions,
+        setupOptions: journalSetupOptions,
+        emotionOptions: journalEmotionOptions,
+      })
+    )
+  }, [journalInstrument, journalSetup, journalEmotion, journalInstrumentOptions, journalSetupOptions, journalEmotionOptions])
 
   useEffect(() => {
     localStorage.setItem(TEMPLATE_STORAGE_KEY, JSON.stringify(templates))
@@ -1360,9 +1516,9 @@ export default function Home() {
       minScore,
       rules: rules.map((rule) => ({ ...rule })),
       session: proSession,
-      instrument: proInstrument,
-      setupType: proSetupType,
-      emotion: proEmotion,
+      instrument: journalInstrument,
+      setupType: journalSetup,
+      emotion: journalEmotion,
     }
 
     setTemplates((prev) => [newTemplate, ...prev])
@@ -1404,6 +1560,62 @@ export default function Home() {
     reader.readAsDataURL(file)
   }
 
+
+  const addUniqueOption = (value: string, existing: string[]) => {
+    const trimmed = value.trim()
+    if (!trimmed) return existing
+    if (existing.some((item) => item.toLowerCase() === trimmed.toLowerCase())) return existing
+    return [...existing, trimmed]
+  }
+
+  const addJournalInstrumentOption = (value: string) => {
+    const trimmed = value.trim()
+    if (!trimmed) return
+    setJournalInstrumentOptions((prev) => addUniqueOption(trimmed, prev))
+    setJournalInstrument(trimmed)
+  }
+
+  const deleteJournalInstrumentOption = (value: string) => {
+    setJournalInstrumentOptions((prev) => {
+      const next = prev.filter((item) => item !== value)
+      if (next.length === 0) return prev
+      if (journalInstrument === value) setJournalInstrument(next[0])
+      return next
+    })
+  }
+
+  const addJournalSetupOption = (value: string) => {
+    const trimmed = value.trim()
+    if (!trimmed) return
+    setJournalSetupOptions((prev) => addUniqueOption(trimmed, prev))
+    setJournalSetup(trimmed)
+  }
+
+  const deleteJournalSetupOption = (value: string) => {
+    setJournalSetupOptions((prev) => {
+      const next = prev.filter((item) => item !== value)
+      if (next.length === 0) return prev
+      if (journalSetup === value) setJournalSetup(next[0])
+      return next
+    })
+  }
+
+  const addJournalEmotionOption = (value: string) => {
+    const trimmed = value.trim()
+    if (!trimmed) return
+    setJournalEmotionOptions((prev) => addUniqueOption(trimmed, prev))
+    setJournalEmotion(trimmed)
+  }
+
+  const deleteJournalEmotionOption = (value: string) => {
+    setJournalEmotionOptions((prev) => {
+      const next = prev.filter((item) => item !== value)
+      if (next.length === 0) return prev
+      if (journalEmotion === value) setJournalEmotion(next[0])
+      return next
+    })
+  }
+
   const saveJournalEntry = () => {
     const entry: JournalEntry = {
       id: makeId(),
@@ -1417,9 +1629,9 @@ export default function Home() {
       note: tradeNote.trim(),
       screenshotDataUrl,
       session: proSession,
-      instrument: proInstrument,
-      setupType: proSetupType,
-      emotion: proEmotion,
+      instrument: journalInstrument,
+      setupType: journalSetup,
+      emotion: journalEmotion,
       direction: journalDirection,
       pnl: journalPnl,
       rMultiple: journalRMultiple,
@@ -1806,7 +2018,6 @@ ${emotionWarning}`
         className="relative mx-auto max-w-7xl px-4 pb-6 md:px-6 lg:px-8 lg:pb-8"
         style={{ paddingTop: mode === 'stats' ? 0 : topOffset }}
       >
-        {mode === 'standard' && (
         <div className={`mb-6 rounded-[28px] p-5 md:p-6 ${ui.card}`}>
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div className="max-w-3xl">
@@ -1840,23 +2051,30 @@ ${emotionWarning}`
           </div>
         </div>
 
-        )}
-
         <div className="space-y-4">
           {mode === 'stats' && (
             <>
-              <div className={`rounded-[24px] p-3 md:p-4 ${ui.card}`}>
+              <div className={`max-h-[calc(100vh-11.5rem)] overflow-y-auto overscroll-contain rounded-[24px] p-3 md:max-h-none md:overflow-visible md:p-4 ${ui.card}`}>
                 <div className="grid gap-3 xl:grid-cols-[1.05fr_0.95fr]">
                   <div className={`rounded-[22px] p-3 ${ui.innerCard}`}>
                     <div className={`mb-2 text-sm font-semibold ${ui.secondaryStrong}`}>Journal entry</div>
                     <p className={`mb-3 text-xs ${ui.muted}`}>Log the trade, the emotion, and the result. Keep it honest and fast.</p>
 
                     <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
-                      <select value={proInstrument} onChange={(e) => setProInstrument(e.target.value)} className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}>
-                        {['ES', 'NQ', 'Gold', 'Silver', 'Oil', 'BTC', 'EURUSD'].map((item) => (
-                          <option key={item} value={item}>Instrument: {item}</option>
-                        ))}
-                      </select>
+                      <ManagedOptionDropdown
+                        label="Instrument"
+                        value={journalInstrument}
+                        options={journalInstrumentOptions}
+                        onSelect={setJournalInstrument}
+                        onDelete={deleteJournalInstrumentOption}
+                        onAdd={addJournalInstrumentOption}
+                        theme={theme}
+                        triggerClassName={ui.select}
+                        inputClassName={ui.input}
+                        mutedClassName={ui.muted}
+                        addButtonClassName={styles.button}
+                        secondaryButtonClassName={ui.secondaryBtn}
+                      />
 
                       <select value={proSession} onChange={(e) => setProSession(e.target.value as SessionType)} className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}>
                         {sessionOptions.map((item) => (
@@ -1864,17 +2082,35 @@ ${emotionWarning}`
                         ))}
                       </select>
 
-                      <select value={proSetupType} onChange={(e) => setProSetupType(e.target.value as SetupType)} className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}>
-                        {setupTypeOptions.map((item) => (
-                          <option key={item} value={item}>Setup: {item}</option>
-                        ))}
-                      </select>
+                      <ManagedOptionDropdown
+                        label="Setup"
+                        value={journalSetup}
+                        options={journalSetupOptions}
+                        onSelect={setJournalSetup}
+                        onDelete={deleteJournalSetupOption}
+                        onAdd={addJournalSetupOption}
+                        theme={theme}
+                        triggerClassName={ui.select}
+                        inputClassName={ui.input}
+                        mutedClassName={ui.muted}
+                        addButtonClassName={styles.button}
+                        secondaryButtonClassName={ui.secondaryBtn}
+                      />
 
-                      <select value={proEmotion} onChange={(e) => setProEmotion(e.target.value as EmotionState)} className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}>
-                        {emotionOptions.map((item) => (
-                          <option key={item.value} value={item.value}>Emotion: {item.label}</option>
-                        ))}
-                      </select>
+                      <ManagedOptionDropdown
+                        label="Emotion"
+                        value={journalEmotion}
+                        options={journalEmotionOptions}
+                        onSelect={setJournalEmotion}
+                        onDelete={deleteJournalEmotionOption}
+                        onAdd={addJournalEmotionOption}
+                        theme={theme}
+                        triggerClassName={ui.select}
+                        inputClassName={ui.input}
+                        mutedClassName={ui.muted}
+                        addButtonClassName={styles.button}
+                        secondaryButtonClassName={ui.secondaryBtn}
+                      />
 
                       <select value={journalDirection} onChange={(e) => setJournalDirection(e.target.value as TradeDirection)} className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}>
                         <option value="long">Direction: Long</option>
@@ -1886,8 +2122,6 @@ ${emotionWarning}`
                         <option value="win">Outcome: Win</option>
                         <option value="loss">Outcome: Loss</option>
                         <option value="breakeven">Outcome: Breakeven</option>
-                        <option value="no-trade">Outcome: No trade taken</option>
-                        <option value="saved-me">Outcome: Checklist saved me</option>
                       </select>
 
                       <input type="number" value={journalPnl || ''} onChange={(e) => setJournalPnl(Number(e.target.value) || 0)} className={`rounded-2xl px-3 py-2.5 text-sm outline-none transition ${ui.input}`} placeholder="Net P&L" />
