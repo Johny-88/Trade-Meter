@@ -2036,21 +2036,21 @@ ${emotionWarning}`
 
           <div className="flex items-center gap-2">
             <div
-              className={`inline-flex items-center gap-3 rounded-full px-3 py-1.5 ${
+              className={`inline-flex items-center gap-2 rounded-full px-2.5 py-1 ${
                 theme === 'light'
                   ? 'border border-slate-200 bg-white/90 shadow-md'
                   : 'border border-white/10 bg-slate-950/88 shadow-xl'
               }`}
             >
-              <span className={`text-xs font-semibold uppercase tracking-[0.16em] ${theme === 'light' ? 'text-slate-900' : 'text-white'}`}>
+              <span className={`text-[11px] font-semibold uppercase tracking-[0.16em] ${theme === 'light' ? 'text-slate-900' : 'text-white'}`}>
                 Stats
               </span>
               <button
                 type="button"
                 onClick={() => setMode((prev) => (prev === 'stats' ? 'standard' : 'stats'))}
-                className={`relative h-7 w-12 rounded-full transition ${
+                className={`relative h-6 w-10 rounded-full transition ${
                   mode === 'stats'
-                    ? 'bg-emerald-500 shadow-[0_0_24px_rgba(16,185,129,0.35)]'
+                    ? 'bg-emerald-500 shadow-[0_0_18px_rgba(16,185,129,0.30)]'
                     : theme === 'light'
                     ? 'bg-slate-300'
                     : 'bg-white/15'
@@ -2059,29 +2059,41 @@ ${emotionWarning}`
                 aria-label={mode === 'stats' ? 'Turn stats mode off' : 'Turn stats mode on'}
               >
                 <span
-                  className={`absolute top-1 h-5 w-5 rounded-full bg-white transition-all ${
-                    mode === 'stats' ? 'left-6' : 'left-1'
+                  className={`absolute top-1 h-4 w-4 rounded-full bg-white transition-all ${
+                    mode === 'stats' ? 'left-5' : 'left-1'
                   }`}
                 />
               </button>
             </div>
 
-            <div className={`inline-flex items-center gap-1 rounded-full p-1 ${ui.toggleShell}`}>
+            <div
+              className={`inline-flex items-center gap-2 rounded-full px-2.5 py-1 ${
+                theme === 'light'
+                  ? 'border border-slate-200 bg-white/90 shadow-md'
+                  : 'border border-white/10 bg-slate-950/88 shadow-xl'
+              }`}
+            >
+              <span className={`text-[11px] font-semibold uppercase tracking-[0.14em] ${theme === 'light' ? 'text-slate-900' : 'text-white'}`}>
+                {theme === 'dark' ? 'Dark' : 'Light'}
+              </span>
               <button
                 type="button"
-                onClick={() => setTheme('dark')}
-                className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${theme === 'dark' ? ui.toggleActive : ui.toggleInactive}`}
+                onClick={() => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))}
+                className={`relative h-6 w-11 rounded-full transition ${
+                  theme === 'light' ? 'bg-slate-200' : 'bg-slate-800'
+                }`}
                 aria-pressed={theme === 'dark'}
+                aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
               >
-                Dark
-              </button>
-              <button
-                type="button"
-                onClick={() => setTheme('light')}
-                className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${theme === 'light' ? ui.toggleActive : ui.toggleInactive}`}
-                aria-pressed={theme === 'light'}
-              >
-                Light
+                <span
+                  className={`absolute top-[2px] flex h-5 w-5 items-center justify-center rounded-full text-[11px] transition-all ${
+                    theme === 'dark'
+                      ? 'left-[22px] bg-white text-slate-900'
+                      : 'left-[2px] bg-white text-amber-500'
+                  }`}
+                >
+                  {theme === 'dark' ? '🌙' : '☀️'}
+                </span>
               </button>
             </div>
           </div>
@@ -2156,7 +2168,12 @@ ${emotionWarning}`
                   </div>
 
                   <div className="mt-2 flex items-end justify-between gap-3">
-                    <div className="text-3xl font-black leading-none">{winRate}%</div>
+                    <div className="flex items-end gap-2">
+                      <div className="text-3xl font-black leading-none">{winRate}%</div>
+                      <div className={`pb-0.5 text-[11px] font-semibold uppercase tracking-[0.14em] ${ui.subtle}`}>
+                        Winning rate
+                      </div>
+                    </div>
                     <div className={`text-[10px] font-semibold md:text-[11px] ${ui.subtle}`}>
                       {totalReviewedTrades} logged • {closedTrades.length} closed
                     </div>
@@ -2183,9 +2200,9 @@ ${emotionWarning}`
                     ['Long W/L', `${longWins}/${longLosses}`],
                     ['Short W/L', `${shortWins}/${shortLosses}`],
                   ].map((item) => (
-                    <div key={item[0]} className={`rounded-[18px] border px-3 py-2.5 text-center ${ui.statBox}`}>
-                      <div className={`text-[9px] uppercase tracking-[0.16em] ${ui.muted}`}>{item[0]}</div>
-                      <div className="mt-1 text-sm font-bold md:text-base">{item[1]}</div>
+                    <div key={item[0]} className={`rounded-[16px] border px-2.5 py-2 text-center ${ui.statBox}`}>
+                      <div className={`text-[8px] uppercase tracking-[0.14em] ${ui.muted}`}>{item[0]}</div>
+                      <div className="mt-1 text-[13px] font-bold leading-5 md:text-sm">{item[1]}</div>
                     </div>
                   ))}
                 </div>
@@ -2435,10 +2452,6 @@ ${emotionWarning}`
                           </div>
 
                           <div className="flex gap-3 lg:flex-col lg:items-end">
-                            {entry.screenshotDataUrl ? (
-                              <img src={entry.screenshotDataUrl} alt="Journal screenshot" className="h-20 w-28 rounded-xl object-cover" />
-                            ) : null}
-
                             <div className="flex gap-2">
                               <button
                                 type="button"
