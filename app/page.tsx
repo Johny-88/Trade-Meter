@@ -1534,9 +1534,12 @@ export default function Home() {
     setRules(template.rules.map((rule) => normalizeRule(rule)))
     setMinScore(template.minScore)
     setProSession(template.session)
-    setProInstrument(template.instrument)
-    setProSetupType(template.setupType)
-    setProEmotion(template.emotion)
+    setJournalInstrumentOptions((prev) => addUniqueOption(template.instrument, prev))
+    setJournalSetupOptions((prev) => addUniqueOption(template.setupType, prev))
+    setJournalEmotionOptions((prev) => addUniqueOption(template.emotion, prev))
+    setJournalInstrument(template.instrument)
+    setJournalSetup(template.setupType)
+    setJournalEmotion(template.emotion)
     setNewRuleError('')
   }
 
