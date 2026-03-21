@@ -1123,7 +1123,7 @@ export default function Home() {
         execution: 0,
       }
     )
-  const mostMissedCurrentCategory = Object.entries(categoryMissCounts).sort((a, b) => b[1] - a[1])[0]
+  const mostMissedCurrentCategory = Object.entries(categoryMissCounts).sort((a, b) => Number(b[1]) - Number(a[1]))[0]
   const averageJournalScore =
     journal.length > 0 ? Math.round(journal.reduce((sum, entry) => sum + entry.score, 0) / journal.length) : 0
   const blockedJournalCount = journal.filter((entry) => entry.verdict.includes('BLOCKED')).length
@@ -1144,12 +1144,12 @@ export default function Home() {
     acc[ruleText] = (acc[ruleText] ?? 0) + 1
     return acc
   }, {})
-  const mostMissedRule = Object.entries(mostMissedRuleMap).sort((a, b) => b[1] - a[1])[0]
+  const mostMissedRule = Object.entries(mostMissedRuleMap).sort((a, b) => Number(b[1]) - Number(a[1]))[0]
   const mostMissedCategoryMap = journal.flatMap((entry) => entry.missingCategories).reduce<Record<string, number>>((acc, category) => {
     acc[category] = (acc[category] ?? 0) + 1
     return acc
   }, {})
-  const mostMissedJournalCategory = Object.entries(mostMissedCategoryMap).sort((a, b) => b[1] - a[1])[0]
+  const mostMissedJournalCategory = Object.entries(mostMissedCategoryMap).sort((a, b) => Number(b[1]) - Number(a[1]))[0]
   const scoreCarryMessage =
     checkedPoints === 0
       ? 'No rules are confirmed yet.'
@@ -1167,16 +1167,16 @@ export default function Home() {
       : 0
   const positionSize = effectiveStopDistance > 0 && pointValue > 0 ? Math.max(Math.floor(riskAmount / (effectiveStopDistance * pointValue)), 0) : 0
   const activeEmotionLabel = emotionOptions.find((option) => option.value === proEmotion)?.label ?? 'Calm'
-  const proRiskMessage =
+  const proExecutionNote =
     hasMissingRequired
-      ? 'Checklist is still blocked by a missing Mandatory rule.'
+      ? 'Execution plan is blocked until every Mandatory rule is confirmed.'
       : !meetsMinScore
-      ? 'Checklist still does not meet your minimum threshold.'
+      ? 'Execution plan may be valid structurally, but the checklist is still below your threshold.'
       : rrMultiple > 0 && rrMultiple < 2
-      ? 'Risk-to-reward is still below 2R. Improve target or tighten invalidation.'
+      ? 'Checklist qualifies, but the plan is still below 2R.'
       : rrMultiple >= 2
-      ? 'Risk plan and checklist look aligned.'
-      : 'Add entry, stop, and target to complete the execution plan.'
+      ? 'Checklist and execution plan are aligned.'
+      : 'Complete entry, stop, and target to finish the pro execution plan.'
   const proViewMeta =
     proView === 'prep'
       ? {
@@ -1607,23 +1607,28 @@ ${emotionWarning}`
 </div>
 
           <div className="flex items-center gap-2">
-            <div className={`inline-flex items-center gap-1 rounded-full p-1 ${ui.toggleShell}`}>
-              <button
-                type="button"
-                onClick={() => setMode('standard')}
-                className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${mode === 'standard' ? ui.toggleActive : ui.toggleInactive}`}
-                aria-pressed={mode === 'standard'}
-                aria-label="Standard mode"
-              >
-                <span className="block w-8">&nbsp;</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setMode('pro')}
-                className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${mode === 'pro' ? ui.toggleActive : ui.toggleInactive}`}
-                aria-pressed={mode === 'pro'}
-              >
+            <div className="flex items-center gap-2">
+              <span className={`text-xs font-semibold uppercase tracking-[0.18em] ${theme === 'light' ? 'text-slate-700' : 'text-slate-300'}`}>
                 Pro
+              </span>
+              <button
+                type="button"
+                onClick={() => setMode((prev) => (prev === 'pro' ? 'standard' : 'pro'))}
+                aria-pressed={mode === 'pro'}
+                aria-label={mode === 'pro' ? 'Turn Pro mode off' : 'Turn Pro mode on'}
+                className={`relative inline-flex h-7 w-14 items-center rounded-full transition ${
+                  mode === 'pro'
+                    ? 'bg-emerald-500 shadow-[0_0_0_1px_rgba(16,185,129,0.45)]'
+                    : theme === 'light'
+                    ? 'bg-slate-300'
+                    : 'bg-slate-700'
+                }`}
+              >
+                <span
+                  className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition ${
+                    mode === 'pro' ? 'translate-x-8' : 'translate-x-1'
+                  }`}
+                />
               </button>
             </div>
 
@@ -1751,6 +1756,552 @@ ${emotionWarning}`
         </div>
 
         <div className="space-y-4">
+          {mode === 'pro' && (
+            <div className={`rounded-[24px] p-3 md:p-4 ${ui.card}`}>
+              <div className="mb-3 flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                  <div className={`text-sm font-semibold ${ui.secondaryStrong}`}>Pro workspace</div>
+                  <p className={`mt-1 text-xs ${ui.muted}`}>
+                    Built for traders who want a real pre-trade plan: context, execution, and discipline in one place.
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className={`rounded-full border px-3 py-1 text-[11px] font-semibold ${qualificationStyles.badge}`}>
+                    {proPlaybook || 'Playbook not set'}
+                  </div>
+                  <div className={`rounded-full border px-3 py-1 text-[11px] font-semibold ${decisionStyles.badge}`}>
+                    {rating.decisionLabel}
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid gap-3 xl:grid-cols-[1.1fr_0.9fr]">
+                <div className={`rounded-[22px] p-3 ${ui.innerCard}`}>
+                  <div className={`mb-2 text-sm font-semibold ${ui.secondaryStrong}`}>Trade plan</div>
+                  <p className={`mb-3 text-xs ${ui.muted}`}>Set the market context and write the thesis before you let the checklist approve the setup.</p>
+
+                  <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                    <select
+                      value={proInstrument}
+                      onChange={(e) => setProInstrument(e.target.value)}
+                      className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}
+                    >
+                      {['ES', 'NQ', 'Gold', 'Silver', 'Oil', 'BTC', 'EURUSD'].map((item) => (
+                        <option key={item} value={item}>
+                          Instrument: {item}
+                        </option>
+                      ))}
+                    </select>
+
+                    <select
+                      value={proSession}
+                      onChange={(e) => setProSession(e.target.value as SessionType)}
+                      className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}
+                    >
+                      {sessionOptions.map((item) => (
+                        <option key={item} value={item}>
+                          Session: {item}
+                        </option>
+                      ))}
+                    </select>
+
+                    <select
+                      value={proSetupType}
+                      onChange={(e) => setProSetupType(e.target.value as SetupType)}
+                      className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}
+                    >
+                      {setupTypeOptions.map((item) => (
+                        <option key={item} value={item}>
+                          Setup: {item}
+                        </option>
+                      ))}
+                    </select>
+
+                    <select
+                      value={proDirection}
+                      onChange={(e) => setProDirection(e.target.value as TradeDirection)}
+                      className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}
+                    >
+                      {(['Long', 'Short'] as TradeDirection[]).map((item) => (
+                        <option key={item} value={item}>
+                          Direction: {item}
+                        </option>
+                      ))}
+                    </select>
+
+                    <select
+                      value={proEmotion}
+                      onChange={(e) => setProEmotion(e.target.value as EmotionState)}
+                      className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}
+                    >
+                      {emotionOptions.map((item) => (
+                        <option key={item.value} value={item.value}>
+                          Emotion: {item.label}
+                        </option>
+                      ))}
+                    </select>
+
+                    <input
+                      value={proPlaybook}
+                      onChange={(e) => setProPlaybook(e.target.value)}
+                      placeholder="Playbook / setup name"
+                      className={`rounded-2xl px-3 py-2.5 text-sm outline-none transition ${ui.input}`}
+                    />
+                  </div>
+
+                  <textarea
+                    value={proThesis}
+                    onChange={(e) => setProThesis(e.target.value)}
+                    placeholder="Trade thesis: why this setup exists, what confirms it, and what would invalidate it?"
+                    className={`mt-3 min-h-[96px] w-full rounded-[22px] px-3 py-3 text-sm outline-none transition ${ui.input}`}
+                  />
+
+                  <div className="mt-3 grid gap-2 lg:grid-cols-[1fr_auto]">
+                    <div className={`rounded-2xl border px-4 py-3 text-sm ${ui.statBox}`}>
+                      <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Current context</div>
+                      <div className="mt-1 font-semibold">
+                        {proInstrument} • {proSession} • {proSetupType} • {proDirection} • {activeEmotionLabel}
+                      </div>
+                      <p className={`mt-1 text-xs ${ui.muted}`}>{emotionWarning}</p>
+                    </div>
+
+                    <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-1">
+                      <select
+                        value={selectedRulePackId}
+                        onChange={(e) => applyRulePack(e.target.value)}
+                        className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}
+                      >
+                        {defaultRulePacks.map((pack) => (
+                          <option key={pack.id} value={pack.id}>
+                            Rule Pack: {pack.name}
+                          </option>
+                        ))}
+                      </select>
+
+                      <select
+                        value={selectedTemplateId}
+                        onChange={(e) => loadTemplate(e.target.value)}
+                        className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}
+                      >
+                        <option value="">Load saved template...</option>
+                        {templates.map((template) => (
+                          <option key={template.id} value={template.id}>
+                            {template.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+                    <input
+                      value={templateName}
+                      onChange={(e) => setTemplateName(e.target.value)}
+                      placeholder="Save current checklist as template"
+                      className={`w-full rounded-2xl px-3 py-2.5 text-sm outline-none transition ${ui.input}`}
+                    />
+                    <button
+                      type="button"
+                      onClick={saveCurrentTemplate}
+                      className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${styles.button}`}
+                    >
+                      Save template
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div className={`rounded-[22px] p-3 ${ui.innerCard}`}>
+                    <div className={`mb-2 text-sm font-semibold ${ui.secondaryStrong}`}>Execution plan</div>
+                    <p className={`mb-3 text-xs ${ui.muted}`}>Define entry, stop, target, and size before execution. This is what pros actually need.</p>
+
+                    <div className="grid gap-2 sm:grid-cols-3">
+                      <input
+                        type="number"
+                        value={entryPrice || ''}
+                        onChange={(e) => setEntryPrice(Number(e.target.value) || 0)}
+                        className={`rounded-2xl px-3 py-2.5 text-sm outline-none transition ${ui.input}`}
+                        placeholder="Entry"
+                      />
+                      <input
+                        type="number"
+                        value={stopPrice || ''}
+                        onChange={(e) => setStopPrice(Number(e.target.value) || 0)}
+                        className={`rounded-2xl px-3 py-2.5 text-sm outline-none transition ${ui.input}`}
+                        placeholder="Stop"
+                      />
+                      <input
+                        type="number"
+                        value={targetPrice || ''}
+                        onChange={(e) => setTargetPrice(Number(e.target.value) || 0)}
+                        className={`rounded-2xl px-3 py-2.5 text-sm outline-none transition ${ui.input}`}
+                        placeholder="Target"
+                      />
+                    </div>
+
+                    <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                      <input
+                        type="number"
+                        min={1}
+                        value={riskAmount}
+                        onChange={(e) => setRiskAmount(Number(e.target.value) || 0)}
+                        className={`rounded-2xl px-3 py-2.5 text-sm outline-none transition ${ui.input}`}
+                        placeholder="Risk $"
+                      />
+                      <input
+                        type="number"
+                        min={0.01}
+                        step="0.01"
+                        value={pointValue}
+                        onChange={(e) => setPointValue(Number(e.target.value) || 0)}
+                        className={`rounded-2xl px-3 py-2.5 text-sm outline-none transition ${ui.input}`}
+                        placeholder="Point value"
+                      />
+                    </div>
+
+                    <div className="mt-3 grid grid-cols-3 gap-2">
+                      <div className={`rounded-2xl border px-3 py-3 ${ui.statBox}`}>
+                        <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Stop dist.</div>
+                        <div className="mt-1 text-lg font-bold">{effectiveStopDistance > 0 ? effectiveStopDistance.toFixed(2) : '—'}</div>
+                      </div>
+                      <div className={`rounded-2xl border px-3 py-3 ${ui.statBox}`}>
+                        <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>R multiple</div>
+                        <div className="mt-1 text-lg font-bold">{rrMultiple > 0 ? `${rrMultiple.toFixed(2)}R` : '—'}</div>
+                      </div>
+                      <div className={`rounded-2xl border px-3 py-3 ${ui.statBox}`}>
+                        <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Size</div>
+                        <div className="mt-1 text-lg font-bold">{positionSize > 0 ? positionSize : '—'}</div>
+                      </div>
+                    </div>
+
+                    <div className={`mt-3 rounded-2xl border px-4 py-3 text-sm ${ui.statBox}`}>
+                      <div className="font-semibold">{proExecutionNote}</div>
+                    </div>
+                  </div>
+
+                  <div className={`rounded-[22px] p-3 ${ui.innerCard}`}>
+                    <div className={`mb-2 text-sm font-semibold ${ui.secondaryStrong}`}>Discipline check</div>
+                    <p className={`mb-3 text-xs ${ui.muted}`}>Use a forced pause if you feel rushed, and let the blocker tell you why this trade still fails.</p>
+
+                    <div className={`rounded-2xl border px-4 py-3 text-sm ${ui.statBox}`}>
+                      <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Main blocker</div>
+                      <div className="mt-1 font-semibold">{mainBlockerText}</div>
+                    </div>
+
+                    <div className="mt-3 flex items-center gap-2">
+                      <select
+                        value={proTimerSeconds}
+                        onChange={(e) => setProTimerSeconds(Number(e.target.value))}
+                        className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}
+                      >
+                        {[10, 15, 20, 30, 45].map((item) => (
+                          <option key={item} value={item}>
+                            {item}s
+                          </option>
+                        ))}
+                      </select>
+
+                      {!proTimerActive ? (
+                        <button
+                          type="button"
+                          onClick={startPreTradeTimer}
+                          className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${styles.button}`}
+                        >
+                          Start pause
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={stopPreTradeTimer}
+                          className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${ui.secondaryBtn}`}
+                        >
+                          Stop
+                        </button>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={() => setShowFocusMode(true)}
+                        className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${ui.secondaryBtn}`}
+                      >
+                        Focus mode
+                      </button>
+                    </div>
+
+                    <div className={`mt-2 text-sm font-semibold ${ui.primaryStrong}`}>
+                      {proTimerActive ? `${proTimerLeft}s remaining` : `${proTimerSeconds}s pause ready`}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className={`rounded-[24px] p-3 md:p-4 ${ui.card}`}>
+            <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+              <div className={`rounded-[22px] p-3 ${ui.innerCard}`}>
+                <div className="mb-2 flex items-center justify-between gap-3">
+                  <div className={`text-sm font-semibold ${ui.secondaryStrong}`}>
+                    Set your minimum setup quality threshold
+                  </div>
+                  <div className={`text-sm font-semibold ${ui.primaryStrong}`}>{minScore}%</div>
+                </div>
+
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  step={5}
+                  value={minScore}
+                  onChange={(e) => setMinScore(Number(e.target.value))}
+                  className="w-full accent-emerald-400"
+                />
+
+
+                <div className="mt-3 flex flex-wrap gap-2 text-[11px] md:text-xs">
+                  <div
+                    className={`rounded-full border px-2.5 py-1 ${
+                      theme === 'light'
+                        ? 'border-red-300 bg-red-50 text-red-700'
+                        : 'border-red-500/20 bg-red-500/10 text-red-200'
+                    }`}
+                  >
+                    No Trade 0–34%
+                  </div>
+                  <div
+                    className={`rounded-full border px-2.5 py-1 ${
+                      theme === 'light'
+                        ? 'border-orange-300 bg-orange-50 text-orange-700'
+                        : 'border-orange-500/20 bg-orange-500/10 text-orange-200'
+                    }`}
+                  >
+                    Weak 35–54%
+                  </div>
+                  <div
+                    className={`rounded-full border px-2.5 py-1 ${
+                      theme === 'light'
+                        ? 'border-amber-300 bg-amber-50 text-amber-700'
+                        : 'border-amber-500/20 bg-amber-500/10 text-amber-200'
+                    }`}
+                  >
+                    Average 55–74%
+                  </div>
+                  <div
+                    className={`rounded-full border px-2.5 py-1 ${
+                      theme === 'light'
+                        ? 'border-lime-300 bg-lime-50 text-lime-700'
+                        : 'border-lime-500/20 bg-lime-500/10 text-lime-200'
+                    }`}
+                  >
+                    Good 75–89%
+                  </div>
+                  <div
+                    className={`rounded-full border px-2.5 py-1 ${
+                      theme === 'light'
+                        ? 'border-emerald-300 bg-emerald-50 text-emerald-700'
+                        : 'border-emerald-500/20 bg-emerald-500/10 text-emerald-200'
+                    }`}
+                  >
+                    A+ 90–100%
+                  </div>
+                </div>
+              </div>
+
+              <div className={`rounded-[22px] p-3 ${ui.innerCard}`}>
+                <div className={`mb-2 text-sm font-semibold ${ui.secondaryStrong}`}>
+                  Add your own rules to checklist
+                </div>
+
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                  <input
+                    value={newRule}
+                    onChange={(e) => {
+                      setNewRule(e.target.value)
+                      if (newRuleError) setNewRuleError('')
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') addRule()
+                    }}
+                    placeholder="Example: Reward is at least 2R"
+                    className={`w-full rounded-2xl px-3 py-2.5 text-sm outline-none transition ${ui.input}`}
+                  />
+
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={newRuleImportance}
+                      onChange={(e) => setNewRuleImportance(e.target.value as Importance)}
+                      className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}
+                    >
+                      {importanceOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+
+                    <button
+                      onClick={addRule}
+                      aria-label="Add rule"
+                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl text-xl font-bold transition ${styles.button}`}
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+
+                {mode === 'pro' && (
+                  <div className="mt-2">
+                    <select
+                      value={newRuleCategory}
+                      onChange={(e) => setNewRuleCategory(e.target.value as RuleCategory)}
+                      className={`h-10 w-full rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}
+                    >
+                      {categoryOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          Category: {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {newRuleError && (
+                  <div className={`mt-2 rounded-2xl px-3 py-2 text-[11px] leading-5 md:text-xs ${ui.errorBox}`}>
+                    {newRuleError}
+                  </div>
+                )}
+
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button
+                    onClick={loadStarterRules}
+                    className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${ui.secondaryBtn}`}
+                  >
+                    Load Starter Set
+                  </button>
+
+                  <button
+                    onClick={resetChecks}
+                    className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${ui.secondaryBtn}`}
+                  >
+                    Reset
+                  </button>
+
+                  <button
+                    onClick={clearAllRules}
+                    className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${ui.dangerBtn}`}
+                  >
+                    Delete rules
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {mode === 'pro' && (
+            <div className={`rounded-[24px] p-3 md:p-4 ${ui.card}`}>
+              <div className="grid gap-3 xl:grid-cols-[1.1fr_0.9fr]">
+                <div className={`rounded-[22px] p-3 ${ui.innerCard}`}>
+                  <div className={`mb-2 text-sm font-semibold ${ui.secondaryStrong}`}>Post-trade review</div>
+                  <p className={`mb-3 text-xs ${ui.muted}`}>Log the result and whether you respected the verdict. That is what professionals review later.</p>
+
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    <select
+                      value={tradeOutcome}
+                      onChange={(e) => setTradeOutcome(e.target.value as JournalOutcome)}
+                      className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}
+                    >
+                      <option value="unknown">Outcome: not logged yet</option>
+                      <option value="win">Outcome: Win</option>
+                      <option value="loss">Outcome: Loss</option>
+                      <option value="no-trade">Outcome: No trade taken</option>
+                      <option value="saved-me">Outcome: Checklist saved me</option>
+                    </select>
+
+                    <select
+                      value={followedVerdict}
+                      onChange={(e) => setFollowedVerdict(e.target.value as FollowedVerdict)}
+                      className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}
+                    >
+                      <option value="yes">I followed the verdict</option>
+                      <option value="partially">I partly followed it</option>
+                      <option value="no">I ignored it</option>
+                    </select>
+                  </div>
+
+                  <textarea
+                    value={tradeNote}
+                    onChange={(e) => setTradeNote(e.target.value)}
+                    placeholder="One honest note: why you took it, skipped it, or ignored the plan."
+                    className={`mt-2 min-h-[108px] w-full rounded-[22px] px-3 py-3 text-sm outline-none transition ${ui.input}`}
+                  />
+
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={saveJournalEntry}
+                      className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${styles.button}`}
+                    >
+                      Save review
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={shareSummary}
+                      className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${ui.secondaryBtn}`}
+                    >
+                      {copiedSummary ? 'Copied' : 'Copy summary'}
+                    </button>
+                  </div>
+
+                  {journal.length > 0 && (
+                    <div className="mt-3 space-y-2">
+                      {journal.slice(0, 2).map((entry) => (
+                        <div key={entry.id} className={`rounded-[18px] border p-3 ${ui.statBox}`}>
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <div className="text-sm font-semibold">{entry.verdict}</div>
+                            <div className={`text-xs ${ui.muted}`}>{formatDate(entry.createdAt)}</div>
+                          </div>
+                          <div className={`mt-1 text-xs ${ui.muted}`}>
+                            {entry.instrument} • {entry.session} • {entry.setupType} • {entry.score}% • {entry.outcome}
+                          </div>
+                          {entry.note && <p className="mt-2 text-sm">{entry.note}</p>}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className={`rounded-[22px] p-3 ${ui.innerCard}`}>
+                  <div className={`mb-2 text-sm font-semibold ${ui.secondaryStrong}`}>Professional snapshot</div>
+                  <p className={`mb-3 text-xs ${ui.muted}`}>Only the stats that actually help a serious trader improve.</p>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      { label: 'Saved me', value: `${savedMeCount}` },
+                      { label: 'Respected', value: `${respectedVerdictCount}/${journal.length || 0}` },
+                      { label: 'Avg score', value: `${averageJournalScore}%` },
+                      { label: 'Missing', value: hasMissingRequired ? `${missingRequiredRules.length} mandatory` : `${missingCount} rules` },
+                    ].map((item) => (
+                      <div key={item.label} className={`rounded-2xl border px-3 py-3 ${ui.statBox}`}>
+                        <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>{item.label}</div>
+                        <div className="mt-1 text-lg font-bold">{item.value}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className={`mt-3 rounded-2xl border px-4 py-3 text-sm ${ui.statBox}`}>
+                    <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Most missed rule</div>
+                    <div className="mt-1 font-semibold">{mostMissedRule ? mostMissedRule[0] : 'Not enough saved reviews yet.'}</div>
+                  </div>
+
+                  <div className={`mt-3 rounded-2xl border px-4 py-3 text-sm ${ui.statBox}`}>
+                    <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Current focus</div>
+                    <div className="mt-1 font-semibold">{proPlaybook || 'Playbook not set'} • {proDirection} • {proSession}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className={`rounded-[28px] p-4 md:p-5 ${ui.card}`}>
             <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
