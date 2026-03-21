@@ -1854,28 +1854,27 @@ ${emotionWarning}`
 
             <div className="mt-5 grid grid-cols-2 gap-2 md:gap-3 xl:grid-cols-3">
               {[
-                ['Winning emotion', topWinningEmotion ? `${topWinningEmotion.value}` : 'No winning trades yet.'],
-                ['Losing emotion', topLosingEmotion ? `${topLosingEmotion.value}` : 'No losing trades yet.'],
-                ['Winning setup', topWinningSetup ? `${topWinningSetup.value}` : 'No winning trades yet.'],
-                ['Losing setup', topLosingSetup ? `${topLosingSetup.value}` : 'No losing trades yet.'],
-                ['Winning instrument', topWinningInstrument ? `${topWinningInstrument.value}` : 'No winning trades yet.'],
-                ['Losing instrument', topLosingInstrument ? `${topLosingInstrument.value}` : 'No losing trades yet.'],
-                ['Winning direction', topWinningDirection ? `${topWinningDirection.value}` : 'No winning trades yet.'],
-                ['Losing direction', topLosingDirection ? `${topLosingDirection.value}` : 'No losing trades yet.'],
-                ['Winning session', topWinningSession ? `${topWinningSession.value}` : 'No winning trades yet.'],
-                ['Losing session', topLosingSession ? `${topLosingSession.value}` : 'No losing trades yet.'],
-                ['Most common direction', topOverallDirection ? `${topOverallDirection.value}` : 'No data yet.'],
-                ['Most common session', topOverallSession ? `${topOverallSession.value}` : 'No data yet.'],
-                ['Most common instrument', topOverallInstrument ? `${topOverallInstrument.value}` : 'No data yet.'],
-                ['Most common setup', topOverallSetup ? `${topOverallSetup.value}` : 'No data yet.'],
-                ['Most common emotion', topOverallEmotion ? `${topOverallEmotion.value}` : 'No data yet.'],
-                ['Best setup by avg R', bestSetupByAverageR ? `${bestSetupByAverageR.setup} • ${bestSetupByAverageR.avgR.toFixed(2)}R` : 'Not enough closed trades yet.'],
-                ['Worst setup by avg R', worstSetupByAverageR ? `${worstSetupByAverageR.setup} • ${worstSetupByAverageR.avgR.toFixed(2)}R` : 'Not enough closed trades yet.'],
+                ['Win emotion', topWinningEmotion ? `${topWinningEmotion.value}` : 'No winning trades yet.'],
+                ['Loss emotion', topLosingEmotion ? `${topLosingEmotion.value}` : 'No losing trades yet.'],
+                ['Win setup', topWinningSetup ? `${topWinningSetup.value}` : 'No winning trades yet.'],
+                ['Loss setup', topLosingSetup ? `${topLosingSetup.value}` : 'No losing trades yet.'],
+                ['Win instrument', topWinningInstrument ? `${topWinningInstrument.value}` : 'No winning trades yet.'],
+                ['Loss instrument', topLosingInstrument ? `${topLosingInstrument.value}` : 'No losing trades yet.'],
+                ['Win direction', topWinningDirection ? `${topWinningDirection.value}` : 'No winning trades yet.'],
+                ['Loss direction', topLosingDirection ? `${topLosingDirection.value}` : 'No losing trades yet.'],
+                ['Win session', topWinningSession ? `${topWinningSession.value}` : 'No winning trades yet.'],
+                ['Loss session', topLosingSession ? `${topLosingSession.value}` : 'No losing trades yet.'],
+                ['Top direction', topOverallDirection ? `${topOverallDirection.value}` : 'No data yet.'],
+                ['Top session', topOverallSession ? `${topOverallSession.value}` : 'No data yet.'],
+                ['Top instrument', topOverallInstrument ? `${topOverallInstrument.value}` : 'No data yet.'],
+                ['Top setup', topOverallSetup ? `${topOverallSetup.value}` : 'No data yet.'],
+                ['Top emotion', topOverallEmotion ? `${topOverallEmotion.value}` : 'No data yet.'],
+                ['Best avg R', bestSetupByAverageR ? `${bestSetupByAverageR.setup} • ${bestSetupByAverageR.avgR.toFixed(2)}R` : 'Not enough closed trades yet.'],
+                ['Worst avg R', worstSetupByAverageR ? `${worstSetupByAverageR.setup} • ${worstSetupByAverageR.avgR.toFixed(2)}R` : 'Not enough closed trades yet.'],
               ].map((item) => (
-                <div key={item[0]} className={`rounded-[20px] border px-3 py-3 text-center shadow-sm ${ui.statBox}`}>
-                  <div className={`text-[8px] uppercase tracking-[0.16em] leading-4 ${ui.muted}`}>{item[0]}</div>
-                  <div className="mx-auto mt-2 h-px w-10 bg-white/10" />
-                  <div className="mt-2 text-[12px] font-semibold leading-5 md:text-sm">{item[1]}</div>
+                <div key={item[0]} className={`rounded-[16px] border px-3 py-2.5 text-center shadow-sm ${ui.statBox}`}>
+                  <div className={`text-[8px] uppercase tracking-[0.12em] leading-4 ${ui.muted}`}>{item[0]}</div>
+                  <div className="mt-1.5 text-[13px] font-semibold leading-5 md:text-sm">{item[1]}</div>
                 </div>
               ))}
             </div>
@@ -1884,7 +1883,7 @@ ${emotionWarning}`
               <div className={`rounded-[24px] border px-4 py-4 shadow-sm ${ui.statBox}`}>
                 <div className="flex items-center justify-between gap-3">
                   <div className="text-sm font-bold">Perfect winning combination</div>
-                  <div className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-[10px] font-semibold text-slate-950 shadow-sm">
+                  <div className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-semibold text-slate-950 shadow-sm">
                     Win pattern
                   </div>
                 </div>
@@ -1903,7 +1902,7 @@ ${emotionWarning}`
                         `Direction: ${perfectWinningCombination.direction}`,
                         `Session: ${perfectWinningCombination.session}`,
                       ].map((item) => (
-                        <div key={item} className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-3 py-1.5 text-[11px] font-semibold text-slate-950 shadow-sm">
+                        <div key={item} className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-semibold text-slate-950 shadow-sm">
                           {item}
                         </div>
                       ))}
@@ -1921,7 +1920,7 @@ ${emotionWarning}`
               <div className={`rounded-[24px] border px-4 py-4 shadow-sm ${ui.statBox}`}>
                 <div className="flex items-center justify-between gap-3">
                   <div className="text-sm font-bold">Worst losing combination</div>
-                  <div className="rounded-full border border-red-500/20 bg-red-500/10 px-3 py-1 text-[10px] font-semibold text-slate-950 shadow-sm">
+                  <div className="rounded-full border border-red-500/20 bg-red-500/10 px-2.5 py-0.5 text-[10px] font-semibold text-slate-950 shadow-sm">
                     Loss pattern
                   </div>
                 </div>
@@ -1940,7 +1939,7 @@ ${emotionWarning}`
                         `Direction: ${worstLosingCombination.direction}`,
                         `Session: ${worstLosingCombination.session}`,
                       ].map((item) => (
-                        <div key={item} className="rounded-2xl border border-red-500/20 bg-red-500/10 px-3 py-1.5 text-[11px] font-semibold text-slate-950 shadow-sm">
+                        <div key={item} className="rounded-full border border-red-500/20 bg-red-500/10 px-2.5 py-1 text-[10px] font-semibold text-slate-950 shadow-sm">
                           {item}
                         </div>
                       ))}
@@ -2429,28 +2428,49 @@ ${emotionWarning}`
                         secondaryButtonClassName={ui.secondaryBtn}
                       />
 
-                      <select value={journalDirection} onChange={(e) => setJournalDirection(e.target.value as TradeDirection)} className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}>
-                        <option value="long">Direction: Long</option>
-                        <option value="short">Direction: Short</option>
-                      </select>
+                      <div className="relative">
+                        <select
+                          value={journalDirection}
+                          onChange={(e) => setJournalDirection(e.target.value as TradeDirection)}
+                          className={`h-10 w-full appearance-none rounded-2xl px-3 pr-10 text-sm outline-none transition ${ui.select}`}
+                        >
+                          <option value="long">Direction: Long</option>
+                          <option value="short">Direction: Short</option>
+                        </select>
+                        <span className={`pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[11px] leading-none ${ui.muted}`}>▼</span>
+                      </div>
 
-                      <select value={tradeOutcome} onChange={(e) => setTradeOutcome(e.target.value as JournalOutcome)} className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}>
-                        <option value="unknown">Outcome: not logged yet</option>
-                        <option value="win">Outcome: Win</option>
-                        <option value="loss">Outcome: Loss</option>
-                        <option value="breakeven">Outcome: Breakeven</option>
-                      </select>
+                      <div className="relative">
+                        <select
+                          value={tradeOutcome}
+                          onChange={(e) => setTradeOutcome(e.target.value as JournalOutcome)}
+                          className={`h-10 w-full appearance-none rounded-2xl px-3 pr-10 text-sm outline-none transition ${ui.select}`}
+                        >
+                          <option value="unknown">Outcome: not logged yet</option>
+                          <option value="win">Outcome: Win</option>
+                          <option value="loss">Outcome: Loss</option>
+                          <option value="breakeven">Outcome: Breakeven</option>
+                        </select>
+                        <span className={`pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[11px] leading-none ${ui.muted}`}>▼</span>
+                      </div>
 
                       <input type="number" value={journalPnl || ''} onChange={(e) => setJournalPnl(Number(e.target.value) || 0)} className={`rounded-2xl px-3 py-2.5 text-sm outline-none transition ${ui.input}`} placeholder="Net P&L" />
                       <input type="number" step="0.1" value={journalRMultiple || ''} onChange={(e) => setJournalRMultiple(Number(e.target.value) || 0)} className={`rounded-2xl px-3 py-2.5 text-sm outline-none transition ${ui.input}`} placeholder="Result in R" />
                     </div>
 
                     <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                      <select value={followedVerdict} onChange={(e) => setFollowedVerdict(e.target.value as FollowedVerdict)} className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}>
-                        <option value="yes">I followed the verdict</option>
-                        <option value="partially">I partly followed it</option>
-                        <option value="no">I ignored it</option>
-                      </select>
+                      <div className="relative">
+                        <select
+                          value={followedVerdict}
+                          onChange={(e) => setFollowedVerdict(e.target.value as FollowedVerdict)}
+                          className={`h-10 w-full appearance-none rounded-2xl px-3 pr-10 text-sm outline-none transition ${ui.select}`}
+                        >
+                          <option value="yes">I followed the verdict</option>
+                          <option value="partially">I partly followed it</option>
+                          <option value="no">I ignored it</option>
+                        </select>
+                        <span className={`pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[11px] leading-none ${ui.muted}`}>▼</span>
+                      </div>
 
                       <label className={`inline-flex cursor-pointer items-center justify-center rounded-2xl px-3 py-2 text-xs font-semibold transition ${ui.secondaryBtn}`}>
                         Upload screenshot
