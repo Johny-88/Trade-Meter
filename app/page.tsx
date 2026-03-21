@@ -1854,27 +1854,29 @@ ${emotionWarning}`
 
             <div className="mt-5 grid grid-cols-2 gap-2 md:gap-3 xl:grid-cols-3">
               {[
-                ['Winning emotion', topWinningEmotion ? `${topWinningEmotion.value} • ${topWinningEmotion.count}` : 'No winning trades yet.'],
-                ['Losing emotion', topLosingEmotion ? `${topLosingEmotion.value} • ${topLosingEmotion.count}` : 'No losing trades yet.'],
-                ['Winning setup', topWinningSetup ? `${topWinningSetup.value} • ${topWinningSetup.count}` : 'No winning trades yet.'],
-                ['Losing setup', topLosingSetup ? `${topLosingSetup.value} • ${topLosingSetup.count}` : 'No losing trades yet.'],
-                ['Winning instrument', topWinningInstrument ? `${topWinningInstrument.value} • ${topWinningInstrument.count}` : 'No winning trades yet.'],
-                ['Losing instrument', topLosingInstrument ? `${topLosingInstrument.value} • ${topLosingInstrument.count}` : 'No losing trades yet.'],
-                ['Winning direction', topWinningDirection ? `${topWinningDirection.value} • ${topWinningDirection.count}` : 'No winning trades yet.'],
-                ['Losing direction', topLosingDirection ? `${topLosingDirection.value} • ${topLosingDirection.count}` : 'No losing trades yet.'],
-                ['Winning session', topWinningSession ? `${topWinningSession.value} • ${topWinningSession.count}` : 'No winning trades yet.'],
-                ['Losing session', topLosingSession ? `${topLosingSession.value} • ${topLosingSession.count}` : 'No losing trades yet.'],
-                ['Most common direction', topOverallDirection ? `${topOverallDirection.value} • ${topOverallDirection.count}` : 'No data yet.'],
-                ['Most common session', topOverallSession ? `${topOverallSession.value} • ${topOverallSession.count}` : 'No data yet.'],
-                ['Most common instrument', topOverallInstrument ? `${topOverallInstrument.value} • ${topOverallInstrument.count}` : 'No data yet.'],
-                ['Most common setup', topOverallSetup ? `${topOverallSetup.value} • ${topOverallSetup.count}` : 'No data yet.'],
-                ['Most common emotion', topOverallEmotion ? `${topOverallEmotion.value} • ${topOverallEmotion.count}` : 'No data yet.'],
+                ['Winning emotion', topWinningEmotion ? `${topWinningEmotion.value}` : 'No winning trades yet.'],
+                ['Losing emotion', topLosingEmotion ? `${topLosingEmotion.value}` : 'No losing trades yet.'],
+                ['Winning setup', topWinningSetup ? `${topWinningSetup.value}` : 'No winning trades yet.'],
+                ['Losing setup', topLosingSetup ? `${topLosingSetup.value}` : 'No losing trades yet.'],
+                ['Winning instrument', topWinningInstrument ? `${topWinningInstrument.value}` : 'No winning trades yet.'],
+                ['Losing instrument', topLosingInstrument ? `${topLosingInstrument.value}` : 'No losing trades yet.'],
+                ['Winning direction', topWinningDirection ? `${topWinningDirection.value}` : 'No winning trades yet.'],
+                ['Losing direction', topLosingDirection ? `${topLosingDirection.value}` : 'No losing trades yet.'],
+                ['Winning session', topWinningSession ? `${topWinningSession.value}` : 'No winning trades yet.'],
+                ['Losing session', topLosingSession ? `${topLosingSession.value}` : 'No losing trades yet.'],
+                ['Most common direction', topOverallDirection ? `${topOverallDirection.value}` : 'No data yet.'],
+                ['Most common session', topOverallSession ? `${topOverallSession.value}` : 'No data yet.'],
+                ['Most common instrument', topOverallInstrument ? `${topOverallInstrument.value}` : 'No data yet.'],
+                ['Most common setup', topOverallSetup ? `${topOverallSetup.value}` : 'No data yet.'],
+                ['Most common emotion', topOverallEmotion ? `${topOverallEmotion.value}` : 'No data yet.'],
                 ['Best setup by avg R', bestSetupByAverageR ? `${bestSetupByAverageR.setup} • ${bestSetupByAverageR.avgR.toFixed(2)}R` : 'Not enough closed trades yet.'],
                 ['Worst setup by avg R', worstSetupByAverageR ? `${worstSetupByAverageR.setup} • ${worstSetupByAverageR.avgR.toFixed(2)}R` : 'Not enough closed trades yet.'],
               ].map((item) => (
-                <div key={item[0]} className={`rounded-[18px] border px-3 py-2.5 text-center ${ui.statBox}`}>
-                  <div className={`text-[8px] uppercase tracking-[0.16em] leading-4 ${ui.muted}`}>{item[0]}</div>
-                  <div className="mt-1 text-[12px] font-semibold leading-5 md:text-sm">{item[1]}</div>
+                <div key={item[0]} className={`rounded-[20px] border px-3 py-3 text-center shadow-sm ${ui.statBox}`}>
+                  <div className="flex justify-center">
+                    <div className={`rounded-full border px-2.5 py-1 text-[8px] uppercase tracking-[0.16em] leading-4 ${ui.statBox} ${ui.muted}`}>{item[0]}</div>
+                  </div>
+                  <div className="mt-2 text-[12px] font-semibold leading-5 md:text-sm">{item[1]}</div>
                 </div>
               ))}
             </div>
@@ -1902,7 +1904,7 @@ ${emotionWarning}`
                         `Direction: ${perfectWinningCombination.direction}`,
                         `Session: ${perfectWinningCombination.session}`,
                       ].map((item) => (
-                        <div key={item} className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-200">
+                        <div key={item} className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-semibold text-slate-950">
                           {item}
                         </div>
                       ))}
@@ -1939,7 +1941,7 @@ ${emotionWarning}`
                         `Direction: ${worstLosingCombination.direction}`,
                         `Session: ${worstLosingCombination.session}`,
                       ].map((item) => (
-                        <div key={item} className="rounded-full border border-red-500/20 bg-red-500/10 px-2.5 py-1 text-[11px] font-semibold text-red-200">
+                        <div key={item} className="rounded-full border border-red-500/20 bg-red-500/10 px-2.5 py-1 text-[11px] font-semibold text-slate-950">
                           {item}
                         </div>
                       ))}
@@ -1953,6 +1955,10 @@ ${emotionWarning}`
                   <p className={`mt-2 text-sm ${ui.subtle}`}>Not enough losing trades yet.</p>
                 )}
               </div>
+            </div>
+
+            <div className={`mt-4 rounded-[20px] border px-4 py-3 text-center text-sm leading-6 ${ui.statBox}`}>
+              <span className="font-semibold">Important note:</span> the more consistently you journal your trades, the more accurate and reliable these advanced performance patterns become over time.
             </div>
           </div>
         </div>
