@@ -514,7 +514,7 @@ function ManagedOptionDropdown({
       : 'border border-white/10 bg-slate-950 shadow-2xl'
 
   return (
-    <div className="relative">
+    <div className={open ? "relative z-[80]" : "relative"}>
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
@@ -527,7 +527,7 @@ function ManagedOptionDropdown({
       </button>
 
       {open && (
-        <div className={`absolute left-0 right-0 top-[calc(100%+0.5rem)] z-40 rounded-[22px] p-2 ${panelClassName}`}>
+        <div className={`absolute left-0 right-0 top-[calc(100%+0.5rem)] z-[90] rounded-[22px] p-2 ${panelClassName}`}>
           <div className="max-h-56 space-y-1 overflow-y-auto">
             {options.map((item) => (
               <div key={item} className="flex items-center gap-2">
@@ -1591,7 +1591,9 @@ export default function Home() {
   ])
 
   const loadStarterRules = () => {
-    setRules(createRulesFromPack({ id: 'starter', name: 'Starter', minScore, rules: starterRules, defaultCheckedIndexes: [] }, selectedStrategy))
+    setSelectedStrategy('General')
+    setRules(createRulesFromPack({ id: 'starter', name: 'Starter', minScore, rules: starterRules, defaultCheckedIndexes: [] }, 'General'))
+    setShowSavedRulesPicker(false)
     setNewRuleError('')
   }
 
@@ -2787,7 +2789,7 @@ ${emotionWarning}`
             <>
           <div className={`rounded-[24px] p-3 md:p-4 ${ui.card}`}>
             <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-              <div className={`rounded-[22px] p-3 ${ui.innerCard}`}>
+              <div className={`relative z-20 rounded-[22px] p-3 ${ui.innerCard}`}>
                 <div className="mb-2 flex items-center justify-between gap-3">
                   <div className={`text-sm font-semibold ${ui.secondaryStrong}`}>
                     Set your minimum setup quality threshold
@@ -3027,7 +3029,7 @@ ${emotionWarning}`
                         </div>
                       </button>
 
-                      <div className="flex shrink-0 flex-col items-end gap-1 md:flex-row md:items-center md:gap-2">
+                      <div className="grid shrink-0 grid-cols-2 gap-1 justify-items-end md:flex md:items-center md:gap-2">
 
                         <div
                           className={`rounded-lg border px-2 py-1 text-[10px] font-medium leading-none md:rounded-xl md:px-2.5 md:py-2 md:text-xs ${importanceBadge.className}`}
@@ -3043,7 +3045,7 @@ ${emotionWarning}`
 
                         <button
                           onClick={() => deleteRule(rule.id)}
-                          className={`flex h-8 w-8 items-center justify-center rounded-lg text-base transition md:h-10 md:w-10 md:rounded-xl md:text-lg ${ui.deleteRule}`}
+                          className={`col-span-2 flex h-7 w-7 items-center justify-center justify-self-end rounded-lg text-sm transition md:col-auto md:h-10 md:w-10 md:rounded-xl md:text-lg ${ui.deleteRule}`}
                           aria-label="Delete rule"
                         >
                           -
