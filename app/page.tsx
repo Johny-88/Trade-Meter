@@ -1175,9 +1175,11 @@ export default function Home() {
       try {
         const parsedStrategies = JSON.parse(savedStrategies)
         if (Array.isArray(parsedStrategies.options)) {
-          const nextOptions = parsedStrategies.options.filter((item: unknown): item is string => typeof item === 'string' && item.trim().length > 0)
+          const nextOptions: string[] = parsedStrategies.options.filter(
+            (item: unknown): item is string => typeof item === 'string' && item.trim().length > 0
+          )
           if (nextOptions.length > 0) {
-            const withGeneral = nextOptions.some((item) => item.toLowerCase() === 'general')
+            const withGeneral = nextOptions.some((item: string) => item.toLowerCase() === 'general')
               ? nextOptions
               : [...nextOptions, 'General']
             setStrategyOptions(withGeneral)
