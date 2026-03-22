@@ -527,7 +527,11 @@ function ManagedOptionDropdown({
       </button>
 
       {open && (
-        <div className={`absolute left-0 right-0 top-[calc(100%+0.5rem)] z-[90] rounded-[22px] p-2 ${panelClassName}`}>
+        <div
+          className={`absolute left-0 right-0 z-[90] rounded-[22px] p-2 ${panelClassName} ${
+            label === 'Strategy' ? 'bottom-[calc(100%+0.5rem)]' : 'top-[calc(100%+0.5rem)]'
+          }`}
+        >
           <div className="max-h-56 space-y-1 overflow-y-auto">
             {options.map((item) => (
               <div key={item} className="flex items-center gap-2">
