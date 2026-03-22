@@ -1106,7 +1106,7 @@ export default function Home() {
   const [selectedTemplateId, setSelectedTemplateId] = useState('')
   const [selectedRulePackId, setSelectedRulePackId] = useState(defaultRulePacks[0].id)
   const [tradeNote, setTradeNote] = useState('')
-  const [tradeOutcome, setTradeOutcome] = useState<JournalOutcome>('unknown')
+  const [tradeOutcome, setTradeOutcome] = useState<JournalOutcome>('breakeven')
   const [followedVerdict, setFollowedVerdict] = useState<FollowedVerdict>('yes')
   const [journalDirection, setJournalDirection] = useState<TradeDirection>('long')
   const [journalPnl, setJournalPnl] = useState(0)
@@ -1889,7 +1889,7 @@ export default function Home() {
 
     setJournal((prev) => [entry, ...prev])
     setTradeNote('')
-    setTradeOutcome('unknown')
+    setTradeOutcome('breakeven')
     setFollowedVerdict('yes')
     setJournalDirection('long')
     setJournalPnl(0)
@@ -2609,7 +2609,6 @@ ${emotionWarning}`
                           onChange={(e) => setTradeOutcome(e.target.value as JournalOutcome)}
                           className={`h-10 w-full appearance-none rounded-2xl px-3 pr-10 text-sm outline-none transition ${ui.select}`}
                         >
-                          <option value="unknown">Outcome: not logged yet</option>
                           <option value="win">Outcome: Win</option>
                           <option value="loss">Outcome: Loss</option>
                           <option value="breakeven">Outcome: Breakeven</option>
@@ -2897,8 +2896,8 @@ ${emotionWarning}`
                       mutedClassName={ui.muted}
                       addButtonClassName={styles.button}
                       secondaryButtonClassName={ui.secondaryBtn}
-                    >
-                    </ManagedOptionDropdown>
+                    />
+
                     <div className="relative">
                       <select
                         value={newRuleImportance}
@@ -2929,7 +2928,6 @@ ${emotionWarning}`
                     {newRuleError}
                   </div>
                 )}
-
               </div>
             </div>
           </div>
@@ -3084,4 +3082,43 @@ ${emotionWarning}`
                     <div className="space-y-2">
                       {ruleLibrary
                         .filter((rule) => rule.strategy === selectedStrategy)
-                        .filter((rule) => !rules.some((currentRule) => normalizeRuleText(currentRule.text) === normalizeRuleText(rule.text) && currentRule.strategy.toLowerC
+                        .filter((rule) => !rules.some((currentRule) => normalizeRuleText(currentRule.text) === normalizeRuleText(rule.text) && currentRule.strategy.toLowerCase() === rule.strategy.toLowerCase()))
+                        .map((rule) => {
+                          const importanceBadge = getImportanceBadge(rule.importance, theme)
+                          return (
+                            <div key={rule.id} className={`flex items-center gap-2 rounded-[18px] border p-3 ${ui.statBox}`}>
+                              <div className="min-w-0 flex-1">
+                                <div className="text-sm font-semibold">{rule.text}</div>
+                                <div className="mt-1 flex flex-wrap gap-2">
+                                  <div className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold ${importanceBadge.className}`}>
+                                    {importanceBadge.label}
+                                  </div>
+                                  <div className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold ${theme === 'light' ? 'border-slate-300 bg-slate-100 text-slate-700' : 'border-white/10 bg-white/5 text-slate-300'}`}>
+                                    {rule.strategy}
+                                  </div>
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => addSavedRuleToChecklist(rule)}
+                                className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${ui.secondaryBtn}`}
+                              >
+                                Add
+                              </button>
+                            </div>
+                          )
+                        })}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+            </>
+          )}
+        </div>
+      </div>
+    </main>
+  )
+}
