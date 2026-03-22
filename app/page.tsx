@@ -71,7 +71,6 @@ type JournalEntry = {
   instrument: string
   setupType: string
   strategy: string
-  marketCondition: string
   emotion: string
   direction: TradeDirection
   pnl: number
@@ -475,14 +474,6 @@ const emotionOptions: { value: EmotionState; label: string; tone: Tone }[] = [
 const defaultJournalInstrumentOptions = ['ES', 'NQ', 'Gold', 'Silver', 'Oil', 'BTC', 'EURUSD']
 const defaultJournalSetupOptions = ['Breakout', 'Reversal', 'Support Bounce', 'Trendline Break', 'Pullback']
 const defaultJournalEmotionOptions = ['Calm', 'Focused', 'Slightly emotional', 'FOMO', 'Revenge mindset', 'Tired']
-const defaultMarketConditionOptions = [
-  'Trending',
-  'Range-bound',
-  'Consolidation',
-  'Breakout expansion',
-  'High volatility',
-  'Low volatility',
-]
 const STATS_FORM_STORAGE_KEY = 'edge-check-stats-form-v1'
 
 type ManagedOptionDropdownProps = {
@@ -709,7 +700,6 @@ function normalizeJournalEntry(entry: Partial<JournalEntry>): JournalEntry {
     instrument: typeof entry.instrument === 'string' ? entry.instrument : 'ES',
     setupType: typeof entry.setupType === 'string' ? entry.setupType : 'Breakout',
     strategy: typeof entry.strategy === 'string' && entry.strategy.trim().length > 0 ? entry.strategy : 'General',
-    marketCondition: typeof entry.marketCondition === 'string' && entry.marketCondition.trim().length > 0 ? entry.marketCondition : 'Trending',
     emotion: typeof entry.emotion === 'string' ? entry.emotion : 'Calm',
     direction: entry.direction === 'short' ? 'short' : 'long',
     pnl: typeof entry.pnl === 'number' ? entry.pnl : 0,
@@ -1111,12 +1101,9 @@ export default function Home() {
   const [proEmotion, setProEmotion] = useState<EmotionState>('calm')
   const [journalInstrument, setJournalInstrument] = useState(defaultJournalInstrumentOptions[0])
   const [journalSetup, setJournalSetup] = useState(defaultJournalSetupOptions[0])
-  const [journalStrategy, setJournalStrategy] = useState('General')
-  const [journalMarketCondition, setJournalMarketCondition] = useState(defaultMarketConditionOptions[0])
   const [journalEmotion, setJournalEmotion] = useState(defaultJournalEmotionOptions[0])
   const [journalInstrumentOptions, setJournalInstrumentOptions] = useState<string[]>(defaultJournalInstrumentOptions)
   const [journalSetupOptions, setJournalSetupOptions] = useState<string[]>(defaultJournalSetupOptions)
-  const [journalMarketConditionOptions, setJournalMarketConditionOptions] = useState<string[]>(defaultMarketConditionOptions)
   const [journalEmotionOptions, setJournalEmotionOptions] = useState<string[]>(defaultJournalEmotionOptions)
   const [proTimerSeconds, setProTimerSeconds] = useState(15)
   const [proTimerActive, setProTimerActive] = useState(false)
@@ -1235,14 +1222,8 @@ export default function Home() {
           const nextEmotions = parsedStatsForm.emotionOptions.filter((item: unknown): item is string => typeof item === 'string' && item.trim().length > 0)
           if (nextEmotions.length > 0) setJournalEmotionOptions(nextEmotions)
         }
-        if (Array.isArray(parsedStatsForm.marketConditionOptions)) {
-          const nextMarketConditions = parsedStatsForm.marketConditionOptions.filter((item: unknown): item is string => typeof item === 'string' && item.trim().length > 0)
-          if (nextMarketConditions.length > 0) setJournalMarketConditionOptions(nextMarketConditions)
-        }
         if (typeof parsedStatsForm.instrument === 'string') setJournalInstrument(parsedStatsForm.instrument)
         if (typeof parsedStatsForm.setup === 'string') setJournalSetup(parsedStatsForm.setup)
-        if (typeof parsedStatsForm.strategy === 'string') setJournalStrategy(parsedStatsForm.strategy)
-        if (typeof parsedStatsForm.marketCondition === 'string') setJournalMarketCondition(parsedStatsForm.marketCondition)
         if (typeof parsedStatsForm.emotion === 'string') setJournalEmotion(parsedStatsForm.emotion)
       } catch {}
     }
@@ -1306,16 +1287,13 @@ export default function Home() {
       JSON.stringify({
         instrument: journalInstrument,
         setup: journalSetup,
-        strategy: journalStrategy,
-        marketCondition: journalMarketCondition,
         emotion: journalEmotion,
         instrumentOptions: journalInstrumentOptions,
         setupOptions: journalSetupOptions,
-        marketConditionOptions: journalMarketConditionOptions,
         emotionOptions: journalEmotionOptions,
       })
     )
-  }, [journalInstrument, journalSetup, journalStrategy, journalMarketCondition, journalEmotion, journalInstrumentOptions, journalSetupOptions, journalMarketConditionOptions, journalEmotionOptions])
+  }, [journalInstrument, journalSetup, journalEmotion, journalInstrumentOptions, journalSetupOptions, journalEmotionOptions])
 
   useEffect(() => {
     localStorage.setItem(
@@ -1750,8 +1728,7 @@ export default function Home() {
       session: proSession,
       instrument: journalInstrument,
       setupType: journalSetup,
-      strategy: journalStrategy,
-      marketCondition: journalMarketCondition,
+      strategy: selectedStrategy,
       emotion: journalEmotion,
     }
 
@@ -1858,22 +1835,6 @@ export default function Home() {
     })
   }
 
-  const addJournalMarketConditionOption = (value: string) => {
-    const trimmed = value.trim()
-    if (!trimmed) return
-    setJournalMarketConditionOptions((prev) => addUniqueOption(trimmed, prev))
-    setJournalMarketCondition(trimmed)
-  }
-
-  const deleteJournalMarketConditionOption = (value: string) => {
-    setJournalMarketConditionOptions((prev) => {
-      const next = prev.filter((item) => item !== value)
-      if (next.length === 0) return prev
-      if (journalMarketCondition === value) setJournalMarketCondition(next[0])
-      return next
-    })
-  }
-
   const addStrategyOption = (value: string) => {
     const trimmed = value.trim()
     if (!trimmed) return
@@ -1926,12 +1887,6 @@ export default function Home() {
     setNewRuleError('')
   }
 
-  useEffect(() => {
-    if (!journalStrategyOptions.includes(journalStrategy)) {
-      setJournalStrategy(journalStrategyOptions[0])
-    }
-  }, [journalStrategyOptions, journalStrategy])
-
   const addSavedRuleToChecklist = (ruleToAdd: Rule) => {
     const exists = rules.some(
       (rule) =>
@@ -1970,7 +1925,8 @@ export default function Home() {
       session: proSession,
       instrument: journalInstrument,
       setupType: journalSetup,
-      strategy: selectedStrategy,
+      strategy: journalStrategy,
+      marketCondition: journalMarketCondition,
       emotion: journalEmotion,
       direction: journalDirection,
       pnl: journalPnl,
@@ -2235,7 +2191,6 @@ ${emotionWarning}`
                 ['Score / threshold', `${selectedJournalEntry.score}% / ${selectedJournalEntry.threshold}%`],
                 ['Session', selectedJournalEntry.session],
                 ['Strategy', selectedJournalEntry.strategy],
-                ['Market condition', selectedJournalEntry.marketCondition],
                 ['Emotion', selectedJournalEntry.emotion],
                 ['Direction', selectedJournalEntry.direction],
                 ['P&L', `${selectedJournalEntry.pnl >= 0 ? '+' : ''}${selectedJournalEntry.pnl.toFixed(2)}`],
@@ -2670,34 +2625,6 @@ ${emotionWarning}`
                         secondaryButtonClassName={ui.secondaryBtn}
                       />
 
-                      <div className="relative">
-                        <select
-                          value={journalStrategy}
-                          onChange={(e) => setJournalStrategy(e.target.value)}
-                          className={`h-10 w-full appearance-none rounded-2xl px-3 pr-10 text-sm outline-none transition ${ui.select}`}
-                        >
-                          {journalStrategyOptions.map((item) => (
-                            <option key={item} value={item}>Strategy: {item}</option>
-                          ))}
-                        </select>
-                        <span className={`pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[11px] leading-none ${ui.muted}`}>▼</span>
-                      </div>
-
-                      <ManagedOptionDropdown
-                        label="Market conditions"
-                        value={journalMarketCondition}
-                        options={journalMarketConditionOptions}
-                        onSelect={setJournalMarketCondition}
-                        onDelete={deleteJournalMarketConditionOption}
-                        onAdd={addJournalMarketConditionOption}
-                        theme={theme}
-                        triggerClassName={ui.select}
-                        inputClassName={ui.input}
-                        mutedClassName={ui.muted}
-                        addButtonClassName={styles.button}
-                        secondaryButtonClassName={ui.secondaryBtn}
-                      />
-
                       <ManagedOptionDropdown
                         label="Emotion"
                         value={journalEmotion}
@@ -2867,7 +2794,7 @@ ${emotionWarning}`
                             </div>
 
                             <div className={`mt-1 text-xs ${ui.muted}`}>
-                              {formatDate(entry.createdAt)} • {entry.session} • {entry.strategy} • {entry.marketCondition} • {entry.emotion} • score {entry.score}% • {entry.verdict}
+                              {formatDate(entry.createdAt)} • {entry.session} • {entry.strategy} • {entry.emotion} • score {entry.score}% • {entry.verdict}
                             </div>
 
                             <div className={`mt-2 flex flex-wrap gap-2 text-xs ${ui.muted}`}>
