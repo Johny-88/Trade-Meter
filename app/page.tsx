@@ -1163,7 +1163,15 @@ export default function Home() {
       try {
         const parsedTemplates = JSON.parse(savedTemplates)
         if (Array.isArray(parsedTemplates)) {
-          setTemplates(parsedTemplates)
+          setTemplates(
+            parsedTemplates.map((item) => ({
+              ...item,
+              marketCondition:
+                typeof item?.marketCondition === 'string' && item.marketCondition.trim().length > 0
+                  ? item.marketCondition
+                  : 'Volatile',
+            }))
+          )
         }
       } catch {}
     }
@@ -1765,7 +1773,8 @@ export default function Home() {
       session: proSession,
       instrument: journalInstrument,
       setupType: journalSetup,
-      strategy: selectedStrategy,
+      strategy: journalStrategy,
+      marketCondition: journalMarketCondition,
       emotion: journalEmotion,
     }
 
@@ -1784,9 +1793,12 @@ export default function Home() {
     setProSession(template.session)
     setJournalInstrumentOptions((prev) => addUniqueOption(template.instrument, prev))
     setJournalSetupOptions((prev) => addUniqueOption(template.setupType, prev))
+    setJournalMarketConditionOptions((prev) => addUniqueOption(template.marketCondition, prev))
     setJournalEmotionOptions((prev) => addUniqueOption(template.emotion, prev))
     setJournalInstrument(template.instrument)
     setJournalSetup(template.setupType)
+    setJournalStrategy(template.strategy)
+    setJournalMarketCondition(template.marketCondition)
     setJournalEmotion(template.emotion)
     if (template.rules.length > 0) {
       const templateStrategy = normalizeRule(template.rules[0]).strategy
