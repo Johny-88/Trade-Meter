@@ -71,6 +71,7 @@ type JournalEntry = {
   instrument: string
   setupType: string
   strategy: string
+  marketCondition: string
   emotion: string
   direction: TradeDirection
   pnl: number
@@ -474,6 +475,14 @@ const emotionOptions: { value: EmotionState; label: string; tone: Tone }[] = [
 const defaultJournalInstrumentOptions = ['ES', 'NQ', 'Gold', 'Silver', 'Oil', 'BTC', 'EURUSD']
 const defaultJournalSetupOptions = ['Breakout', 'Reversal', 'Support Bounce', 'Trendline Break', 'Pullback']
 const defaultJournalEmotionOptions = ['Calm', 'Focused', 'Slightly emotional', 'FOMO', 'Revenge mindset', 'Tired']
+const defaultMarketConditionOptions = [
+  'Trending',
+  'Range-bound',
+  'Consolidation',
+  'Breakout expansion',
+  'High volatility',
+  'Low volatility',
+]
 const STATS_FORM_STORAGE_KEY = 'edge-check-stats-form-v1'
 
 type ManagedOptionDropdownProps = {
@@ -700,6 +709,7 @@ function normalizeJournalEntry(entry: Partial<JournalEntry>): JournalEntry {
     instrument: typeof entry.instrument === 'string' ? entry.instrument : 'ES',
     setupType: typeof entry.setupType === 'string' ? entry.setupType : 'Breakout',
     strategy: typeof entry.strategy === 'string' && entry.strategy.trim().length > 0 ? entry.strategy : 'General',
+    marketCondition: typeof entry.marketCondition === 'string' && entry.marketCondition.trim().length > 0 ? entry.marketCondition : 'Trending',
     emotion: typeof entry.emotion === 'string' ? entry.emotion : 'Calm',
     direction: entry.direction === 'short' ? 'short' : 'long',
     pnl: typeof entry.pnl === 'number' ? entry.pnl : 0,
@@ -1080,8 +1090,7 @@ export default function Home() {
   const [theme, setTheme] = useState<AppTheme>('light')
   const [mode, setMode] = useState<AppMode>('standard')
   const [newRule, setNewRule] = useState('')
-  const [newRuleImportance, setNewRuleImportance] = useState<Importance | ''>('')
-  const [importanceNeedsAttention, setImportanceNeedsAttention] = useState(false)
+  const [newRuleImportance, setNewRuleImportance] = useState<Importance>('important')
   const [newRuleCategory, setNewRuleCategory] = useState<RuleCategory>('confirmation')
   const [strategyOptions, setStrategyOptions] = useState<string[]>(defaultStrategyOptions)
   const [selectedStrategy, setSelectedStrategy] = useState(defaultStrategyOptions[0])
@@ -1102,9 +1111,12 @@ export default function Home() {
   const [proEmotion, setProEmotion] = useState<EmotionState>('calm')
   const [journalInstrument, setJournalInstrument] = useState(defaultJournalInstrumentOptions[0])
   const [journalSetup, setJournalSetup] = useState(defaultJournalSetupOptions[0])
+  const [journalStrategy, setJournalStrategy] = useState('General')
+  const [journalMarketCondition, setJournalMarketCondition] = useState(defaultMarketConditionOptions[0])
   const [journalEmotion, setJournalEmotion] = useState(defaultJournalEmotionOptions[0])
   const [journalInstrumentOptions, setJournalInstrumentOptions] = useState<string[]>(defaultJournalInstrumentOptions)
   const [journalSetupOptions, setJournalSetupOptions] = useState<string[]>(defaultJournalSetupOptions)
+  const [journalMarketConditionOptions, setJournalMarketConditionOptions] = useState<string[]>(defaultMarketConditionOptions)
   const [journalEmotionOptions, setJournalEmotionOptions] = useState<string[]>(defaultJournalEmotionOptions)
   const [proTimerSeconds, setProTimerSeconds] = useState(15)
   const [proTimerActive, setProTimerActive] = useState(false)
@@ -1133,7 +1145,6 @@ export default function Home() {
   )
   const [topOffset, setTopOffset] = useState(0)
   const liveScoreRef = useRef<HTMLDivElement | null>(null)
-  const importanceSelectRef = useRef<HTMLSelectElement | null>(null)
   const previousSnapshotRef = useRef<SetupSnapshot | null>(null)
 
   useEffect(() => {
@@ -1224,8 +1235,14 @@ export default function Home() {
           const nextEmotions = parsedStatsForm.emotionOptions.filter((item: unknown): item is string => typeof item === 'string' && item.trim().length > 0)
           if (nextEmotions.length > 0) setJournalEmotionOptions(nextEmotions)
         }
+        if (Array.isArray(parsedStatsForm.marketConditionOptions)) {
+          const nextMarketConditions = parsedStatsForm.marketConditionOptions.filter((item: unknown): item is string => typeof item === 'string' && item.trim().length > 0)
+          if (nextMarketConditions.length > 0) setJournalMarketConditionOptions(nextMarketConditions)
+        }
         if (typeof parsedStatsForm.instrument === 'string') setJournalInstrument(parsedStatsForm.instrument)
         if (typeof parsedStatsForm.setup === 'string') setJournalSetup(parsedStatsForm.setup)
+        if (typeof parsedStatsForm.strategy === 'string') setJournalStrategy(parsedStatsForm.strategy)
+        if (typeof parsedStatsForm.marketCondition === 'string') setJournalMarketCondition(parsedStatsForm.marketCondition)
         if (typeof parsedStatsForm.emotion === 'string') setJournalEmotion(parsedStatsForm.emotion)
       } catch {}
     }
@@ -1289,13 +1306,16 @@ export default function Home() {
       JSON.stringify({
         instrument: journalInstrument,
         setup: journalSetup,
+        strategy: journalStrategy,
+        marketCondition: journalMarketCondition,
         emotion: journalEmotion,
         instrumentOptions: journalInstrumentOptions,
         setupOptions: journalSetupOptions,
+        marketConditionOptions: journalMarketConditionOptions,
         emotionOptions: journalEmotionOptions,
       })
     )
-  }, [journalInstrument, journalSetup, journalEmotion, journalInstrumentOptions, journalSetupOptions, journalEmotionOptions])
+  }, [journalInstrument, journalSetup, journalStrategy, journalMarketCondition, journalEmotion, journalInstrumentOptions, journalSetupOptions, journalMarketConditionOptions, journalEmotionOptions])
 
   useEffect(() => {
     localStorage.setItem(
@@ -1603,7 +1623,6 @@ export default function Home() {
     setRules(createRulesFromPack({ id: 'starter', name: 'Starter', minScore, rules: starterRules, defaultCheckedIndexes: [] }, 'General'))
     setShowSavedRulesPicker(false)
     setShowLoadStrategyPicker(false)
-    setImportanceNeedsAttention(false)
     setNewRuleError('')
   }
 
@@ -1612,8 +1631,7 @@ export default function Home() {
     setShowSavedRulesPicker(false)
     setShowLoadStrategyPicker(false)
     setNewRule('')
-    setNewRuleImportance('')
-    setImportanceNeedsAttention(false)
+    setNewRuleImportance('important')
     setNewRuleCategory('confirmation')
     setNewRuleError('')
   }
@@ -1626,23 +1644,6 @@ export default function Home() {
   const addRule = () => {
     const trimmed = newRule.trim()
     if (!trimmed) return
-
-    if (!newRuleImportance) {
-      setNewRuleError('Choose the importance level for this rule before adding it.')
-      setImportanceNeedsAttention(true)
-      importanceSelectRef.current?.animate(
-        [
-          { transform: 'translateX(0px)' },
-          { transform: 'translateX(-5px)' },
-          { transform: 'translateX(5px)' },
-          { transform: 'translateX(-4px)' },
-          { transform: 'translateX(4px)' },
-          { transform: 'translateX(0px)' },
-        ],
-        { duration: 280, easing: 'ease-out' }
-      )
-      return
-    }
 
     const normalizedNewRule = normalizeRuleText(trimmed)
     const alreadyExistsOnChecklist = rules.some(
@@ -1666,8 +1667,7 @@ export default function Home() {
     setRuleLibrary((prev) => [...prev, { ...rule, checked: false }])
     setShowSavedRulesPicker(false)
     setNewRule('')
-    setNewRuleImportance('')
-    setImportanceNeedsAttention(false)
+    setNewRuleImportance('important')
     setNewRuleCategory('confirmation')
     setNewRuleError('')
   }
@@ -1750,7 +1750,8 @@ export default function Home() {
       session: proSession,
       instrument: journalInstrument,
       setupType: journalSetup,
-      strategy: selectedStrategy,
+      strategy: journalStrategy,
+      marketCondition: journalMarketCondition,
       emotion: journalEmotion,
     }
 
@@ -1857,6 +1858,22 @@ export default function Home() {
     })
   }
 
+  const addJournalMarketConditionOption = (value: string) => {
+    const trimmed = value.trim()
+    if (!trimmed) return
+    setJournalMarketConditionOptions((prev) => addUniqueOption(trimmed, prev))
+    setJournalMarketCondition(trimmed)
+  }
+
+  const deleteJournalMarketConditionOption = (value: string) => {
+    setJournalMarketConditionOptions((prev) => {
+      const next = prev.filter((item) => item !== value)
+      if (next.length === 0) return prev
+      if (journalMarketCondition === value) setJournalMarketCondition(next[0])
+      return next
+    })
+  }
+
   const addStrategyOption = (value: string) => {
     const trimmed = value.trim()
     if (!trimmed) return
@@ -1881,11 +1898,7 @@ export default function Home() {
     setRules((prev) => prev.filter((rule) => rule.strategy !== value))
   }
 
-  const visibleStrategyOptions = strategyOptions.filter(
-    (strategy) => strategy.toLowerCase() !== 'general'
-  )
-
-  const availableStrategyRuleOptions = visibleStrategyOptions.filter((strategy) =>
+  const availableStrategyRuleOptions = strategyOptions.filter((strategy) =>
     ruleLibrary.some((rule) => rule.strategy.toLowerCase() === strategy.toLowerCase())
   )
 
@@ -1912,6 +1925,12 @@ export default function Home() {
     setShowLoadStrategyPicker(false)
     setNewRuleError('')
   }
+
+  useEffect(() => {
+    if (!journalStrategyOptions.includes(journalStrategy)) {
+      setJournalStrategy(journalStrategyOptions[0])
+    }
+  }, [journalStrategyOptions, journalStrategy])
 
   const addSavedRuleToChecklist = (ruleToAdd: Rule) => {
     const exists = rules.some(
@@ -2216,6 +2235,7 @@ ${emotionWarning}`
                 ['Score / threshold', `${selectedJournalEntry.score}% / ${selectedJournalEntry.threshold}%`],
                 ['Session', selectedJournalEntry.session],
                 ['Strategy', selectedJournalEntry.strategy],
+                ['Market condition', selectedJournalEntry.marketCondition],
                 ['Emotion', selectedJournalEntry.emotion],
                 ['Direction', selectedJournalEntry.direction],
                 ['P&L', `${selectedJournalEntry.pnl >= 0 ? '+' : ''}${selectedJournalEntry.pnl.toFixed(2)}`],
@@ -2476,10 +2496,8 @@ ${emotionWarning}`
                     />
                   </div>
 
-                  <div className={`mt-1.5 flex flex-wrap items-center gap-1.5 text-[10px] font-semibold md:text-[11px] ${ui.subtle}`}>
-                    <span>{checkedCount}/{totalCount} rules</span>
-                    <span>•</span>
-                    <span>Strategy: {selectedStrategy}</span>
+                  <div className={`mt-1.5 text-[10px] font-semibold md:text-[11px] ${ui.subtle}`}>
+                    {checkedCount}/{totalCount} rules
                   </div>
                 </div>
 
@@ -2644,6 +2662,34 @@ ${emotionWarning}`
                         onSelect={setJournalSetup}
                         onDelete={deleteJournalSetupOption}
                         onAdd={addJournalSetupOption}
+                        theme={theme}
+                        triggerClassName={ui.select}
+                        inputClassName={ui.input}
+                        mutedClassName={ui.muted}
+                        addButtonClassName={styles.button}
+                        secondaryButtonClassName={ui.secondaryBtn}
+                      />
+
+                      <div className="relative">
+                        <select
+                          value={journalStrategy}
+                          onChange={(e) => setJournalStrategy(e.target.value)}
+                          className={`h-10 w-full appearance-none rounded-2xl px-3 pr-10 text-sm outline-none transition ${ui.select}`}
+                        >
+                          {journalStrategyOptions.map((item) => (
+                            <option key={item} value={item}>Strategy: {item}</option>
+                          ))}
+                        </select>
+                        <span className={`pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[11px] leading-none ${ui.muted}`}>▼</span>
+                      </div>
+
+                      <ManagedOptionDropdown
+                        label="Market conditions"
+                        value={journalMarketCondition}
+                        options={journalMarketConditionOptions}
+                        onSelect={setJournalMarketCondition}
+                        onDelete={deleteJournalMarketConditionOption}
+                        onAdd={addJournalMarketConditionOption}
                         theme={theme}
                         triggerClassName={ui.select}
                         inputClassName={ui.input}
@@ -2821,7 +2867,7 @@ ${emotionWarning}`
                             </div>
 
                             <div className={`mt-1 text-xs ${ui.muted}`}>
-                              {formatDate(entry.createdAt)} • {entry.session} • {entry.strategy} • {entry.emotion} • score {entry.score}% • {entry.verdict}
+                              {formatDate(entry.createdAt)} • {entry.session} • {entry.strategy} • {entry.marketCondition} • {entry.emotion} • score {entry.score}% • {entry.verdict}
                             </div>
 
                             <div className={`mt-2 flex flex-wrap gap-2 text-xs ${ui.muted}`}>
@@ -2951,70 +2997,12 @@ ${emotionWarning}`
                     className={`w-full rounded-2xl px-3 py-2.5 text-sm outline-none transition ${ui.input}`}
                   />
 
-                  <button
-                    type="button"
-                    onClick={() => setShowEditStrategyRuleSet((prev) => !prev)}
-                    className={`rounded-2xl px-3 py-2 text-left text-[11px] font-semibold transition sm:text-xs ${ui.secondaryBtn}`}
-                  >
-                    Edit your strategy ruleset
-                  </button>
-
-                  {showEditStrategyRuleSet && (
-                    <div className={`rounded-[22px] border p-3 ${ui.innerCard}`}>
-                      <div className={`text-sm font-semibold ${ui.secondaryStrong}`}>{selectedStrategy} ruleset</div>
-                      <p className={`mt-1 text-xs leading-5 ${ui.muted}`}>
-                        Remove rules from this selected strategy whenever you want to refine or clean up the set.
-                      </p>
-
-                      <div className="mt-3 space-y-2">
-                        {ruleLibrary.filter((rule) => rule.strategy.toLowerCase() === selectedStrategy.toLowerCase()).length === 0 ? (
-                          <div className={`rounded-2xl px-3 py-3 text-sm ${ui.empty}`}>
-                            No saved rules yet inside {selectedStrategy}.
-                          </div>
-                        ) : (
-                          ruleLibrary
-                            .filter((rule) => rule.strategy.toLowerCase() === selectedStrategy.toLowerCase())
-                            .map((rule) => {
-                              const importanceBadge = getImportanceBadge(rule.importance, theme)
-                              return (
-                                <div key={rule.id} className={`flex items-center gap-2 rounded-[18px] border p-3 ${ui.statBox}`}>
-                                  <div className="min-w-0 flex-1">
-                                    <div className="text-sm font-semibold">{rule.text}</div>
-                                    <div className="mt-1 flex flex-wrap gap-1">
-                                      <div className={`rounded-full border px-2 py-1 text-[10px] font-semibold ${importanceBadge.className}`}>
-                                        {importanceBadge.label}
-                                      </div>
-                                      <div className={`rounded-full border px-2 py-1 text-[10px] font-semibold ${theme === 'light' ? 'border-slate-300 bg-slate-100 text-slate-700' : 'border-white/10 bg-white/5 text-slate-300'}`}>
-                                        {rule.strategy}
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  <button
-                                    type="button"
-                                    onClick={() => removeRuleFromStrategySet(rule)}
-                                    className={`flex h-8 min-w-[42px] items-center justify-center rounded-full px-2 text-sm font-semibold transition ${ui.deleteRule}`}
-                                  >
-                                    -
-                                  </button>
-                                </div>
-                              )
-                            })
-                        )}
-                      </div>
-                    </div>
-                  )}
-
                   <ManagedOptionDropdown
                     label="Strategy"
                     value={selectedStrategy}
-                    options={visibleStrategyOptions}
+                    options={strategyOptions}
                     onSelect={(value) => {
                       setSelectedStrategy(value)
-                      setShowSavedRulesPicker(false)
-                      setShowLoadStrategyPicker(false)
-                      setShowEditStrategyRuleSet(false)
-                      setImportanceNeedsAttention(false)
                       setNewRuleError('')
                     }}
                     onDelete={deleteStrategyOption}
@@ -3030,26 +3018,10 @@ ${emotionWarning}`
                   <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
                     <div className="relative">
                       <select
-                        ref={importanceSelectRef}
                         value={newRuleImportance}
-                        onChange={(e) => {
-                          setNewRuleImportance(e.target.value as Importance | '')
-                          setImportanceNeedsAttention(false)
-                          if (newRuleError === 'Choose the importance level for this rule before adding it.') {
-                            setNewRuleError('')
-                          }
-                        }}
-                        className={`h-10 w-full appearance-none rounded-2xl px-3 pr-10 text-sm outline-none transition ${ui.select} ${
-                          importanceNeedsAttention
-                            ? theme === 'light'
-                              ? 'border-red-400 bg-red-50 ring-2 ring-red-200'
-                              : 'border-red-400/60 bg-red-500/10 ring-2 ring-red-500/20'
-                            : ''
-                        }`}
+                        onChange={(e) => setNewRuleImportance(e.target.value as Importance)}
+                        className={`h-10 w-full appearance-none rounded-2xl px-3 pr-10 text-sm outline-none transition ${ui.select}`}
                       >
-                        <option value="" disabled>
-                          Choose the importance level
-                        </option>
                         {importanceOptions.map((option) => (
                           <option key={option.value} value={option.value}>
                             {option.label}
@@ -3113,7 +3085,6 @@ ${emotionWarning}`
                     return
                   }
                   setShowSavedRulesPicker(false)
-                  setShowEditStrategyRuleSet(false)
                   setShowLoadStrategyPicker((prev) => !prev)
                 }}
                 className={`rounded-2xl px-3 py-2 text-[11px] font-semibold transition sm:text-xs ${ui.secondaryBtn}`}
@@ -3230,7 +3201,7 @@ ${emotionWarning}`
 
                         <button
                           onClick={() => deleteRule(rule.id)}
-                          className={`flex h-6 min-w-[40px] items-center justify-center rounded-full px-2 text-sm transition md:h-10 md:min-w-[52px] md:rounded-full md:text-lg ${ui.deleteRule}`}
+                          className={`flex h-6 min-w-[40px] items-center justify-center rounded-lg px-2 text-sm transition md:h-10 md:min-w-[52px] md:rounded-xl md:text-lg ${ui.deleteRule}`}
                           aria-label="Delete rule"
                         >
                           -
@@ -3243,6 +3214,15 @@ ${emotionWarning}`
             )}
 
             <div className="mt-4 flex flex-col items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setShowSavedRulesPicker((prev) => !prev)}
+                className={`flex h-10 w-10 items-center justify-center rounded-full text-xl font-bold transition ${styles.button}`}
+                aria-label="Add saved rule"
+              >
+                +
+              </button>
+
               {showSavedRulesPicker && (
                 <div className={`w-full rounded-[22px] border p-3 ${ui.innerCard}`}>
                   <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
