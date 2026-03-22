@@ -71,7 +71,6 @@ type JournalEntry = {
   instrument: string
   setupType: string
   strategy: string
-  marketCondition: string
   emotion: string
   direction: TradeDirection
   pnl: number
@@ -475,7 +474,6 @@ const emotionOptions: { value: EmotionState; label: string; tone: Tone }[] = [
 const defaultJournalInstrumentOptions = ['ES', 'NQ', 'Gold', 'Silver', 'Oil', 'BTC', 'EURUSD']
 const defaultJournalSetupOptions = ['Breakout', 'Reversal', 'Support Bounce', 'Trendline Break', 'Pullback']
 const defaultJournalEmotionOptions = ['Calm', 'Focused', 'Slightly emotional', 'FOMO', 'Revenge mindset', 'Tired']
-const defaultMarketConditionOptions = ['Volatile', 'Sideways', 'Trending up', 'Trending down']
 const STATS_FORM_STORAGE_KEY = 'edge-check-stats-form-v1'
 
 type ManagedOptionDropdownProps = {
@@ -702,7 +700,6 @@ function normalizeJournalEntry(entry: Partial<JournalEntry>): JournalEntry {
     instrument: typeof entry.instrument === 'string' ? entry.instrument : 'ES',
     setupType: typeof entry.setupType === 'string' ? entry.setupType : 'Breakout',
     strategy: typeof entry.strategy === 'string' && entry.strategy.trim().length > 0 ? entry.strategy : 'General',
-    marketCondition: typeof entry.marketCondition === 'string' && entry.marketCondition.trim().length > 0 ? entry.marketCondition : 'Volatile',
     emotion: typeof entry.emotion === 'string' ? entry.emotion : 'Calm',
     direction: entry.direction === 'short' ? 'short' : 'long',
     pnl: typeof entry.pnl === 'number' ? entry.pnl : 0,
@@ -1083,7 +1080,8 @@ export default function Home() {
   const [theme, setTheme] = useState<AppTheme>('light')
   const [mode, setMode] = useState<AppMode>('standard')
   const [newRule, setNewRule] = useState('')
-  const [newRuleImportance, setNewRuleImportance] = useState<Importance>('important')
+  const [newRuleImportance, setNewRuleImportance] = useState<Importance | ''>('')
+  const [importanceNeedsAttention, setImportanceNeedsAttention] = useState(false)
   const [newRuleCategory, setNewRuleCategory] = useState<RuleCategory>('confirmation')
   const [strategyOptions, setStrategyOptions] = useState<string[]>(defaultStrategyOptions)
   const [selectedStrategy, setSelectedStrategy] = useState(defaultStrategyOptions[0])
@@ -1104,12 +1102,9 @@ export default function Home() {
   const [proEmotion, setProEmotion] = useState<EmotionState>('calm')
   const [journalInstrument, setJournalInstrument] = useState(defaultJournalInstrumentOptions[0])
   const [journalSetup, setJournalSetup] = useState(defaultJournalSetupOptions[0])
-  const [journalStrategy, setJournalStrategy] = useState('General')
-  const [journalMarketCondition, setJournalMarketCondition] = useState(defaultMarketConditionOptions[0])
   const [journalEmotion, setJournalEmotion] = useState(defaultJournalEmotionOptions[0])
   const [journalInstrumentOptions, setJournalInstrumentOptions] = useState<string[]>(defaultJournalInstrumentOptions)
   const [journalSetupOptions, setJournalSetupOptions] = useState<string[]>(defaultJournalSetupOptions)
-  const [journalMarketConditionOptions, setJournalMarketConditionOptions] = useState<string[]>(defaultMarketConditionOptions)
   const [journalEmotionOptions, setJournalEmotionOptions] = useState<string[]>(defaultJournalEmotionOptions)
   const [proTimerSeconds, setProTimerSeconds] = useState(15)
   const [proTimerActive, setProTimerActive] = useState(false)
@@ -1138,6 +1133,7 @@ export default function Home() {
   )
   const [topOffset, setTopOffset] = useState(0)
   const liveScoreRef = useRef<HTMLDivElement | null>(null)
+  const importanceSelectRef = useRef<HTMLSelectElement | null>(null)
   const previousSnapshotRef = useRef<SetupSnapshot | null>(null)
 
   useEffect(() => {
@@ -1293,13 +1289,16 @@ export default function Home() {
       JSON.stringify({
         instrument: journalInstrument,
         setup: journalSetup,
+        strategy: journalStrategy,
+        marketCondition: journalMarketCondition,
         emotion: journalEmotion,
         instrumentOptions: journalInstrumentOptions,
         setupOptions: journalSetupOptions,
+        marketConditionOptions: journalMarketConditionOptions,
         emotionOptions: journalEmotionOptions,
       })
     )
-  }, [journalInstrument, journalSetup, journalEmotion, journalInstrumentOptions, journalSetupOptions, journalEmotionOptions])
+  }, [journalInstrument, journalSetup, journalStrategy, journalMarketCondition, journalEmotion, journalInstrumentOptions, journalSetupOptions, journalMarketConditionOptions, journalEmotionOptions])
 
   useEffect(() => {
     localStorage.setItem(
@@ -1607,7 +1606,7 @@ export default function Home() {
     setRules(createRulesFromPack({ id: 'starter', name: 'Starter', minScore, rules: starterRules, defaultCheckedIndexes: [] }, 'General'))
     setShowSavedRulesPicker(false)
     setShowLoadStrategyPicker(false)
-    setShowEditStrategyRuleSet(false)
+    setImportanceNeedsAttention(false)
     setNewRuleError('')
   }
 
@@ -1615,9 +1614,9 @@ export default function Home() {
     setRules([])
     setShowSavedRulesPicker(false)
     setShowLoadStrategyPicker(false)
-    setShowEditStrategyRuleSet(false)
     setNewRule('')
-    setNewRuleImportance('important')
+    setNewRuleImportance('')
+    setImportanceNeedsAttention(false)
     setNewRuleCategory('confirmation')
     setNewRuleError('')
   }
@@ -1630,6 +1629,23 @@ export default function Home() {
   const addRule = () => {
     const trimmed = newRule.trim()
     if (!trimmed) return
+
+    if (!newRuleImportance) {
+      setNewRuleError('Choose this rule importance level before adding the rule.')
+      setImportanceNeedsAttention(true)
+      importanceSelectRef.current?.animate(
+        [
+          { transform: 'translateX(0px)' },
+          { transform: 'translateX(-5px)' },
+          { transform: 'translateX(5px)' },
+          { transform: 'translateX(-4px)' },
+          { transform: 'translateX(4px)' },
+          { transform: 'translateX(0px)' },
+        ],
+        { duration: 280, easing: 'ease-out' }
+      )
+      return
+    }
 
     const normalizedNewRule = normalizeRuleText(trimmed)
     const alreadyExistsOnChecklist = rules.some(
@@ -1653,7 +1669,7 @@ export default function Home() {
     setRuleLibrary((prev) => [...prev, { ...rule, checked: false }])
     setShowSavedRulesPicker(false)
     setNewRule('')
-    setNewRuleImportance('important')
+    setNewRuleImportance('')
     setNewRuleCategory('confirmation')
     setNewRuleError('')
   }
@@ -1883,7 +1899,12 @@ export default function Home() {
     setRules((prev) => prev.filter((rule) => rule.strategy !== value))
   }
 
-  const availableStrategyRuleOptions = strategyOptions.filter((strategy) =>
+  const visibleStrategyOptions = strategyOptions.filter(
+    (strategy) => strategy.toLowerCase() !== 'general'
+  )
+  const journalStrategyOptions = visibleStrategyOptions.length > 0 ? visibleStrategyOptions : ['General']
+
+  const availableStrategyRuleOptions = visibleStrategyOptions.filter((strategy) =>
     ruleLibrary.some((rule) => rule.strategy.toLowerCase() === strategy.toLowerCase())
   )
 
@@ -2987,14 +3008,14 @@ ${emotionWarning}`
                     onClick={() => setShowEditStrategyRuleSet((prev) => !prev)}
                     className={`rounded-2xl px-3 py-2 text-left text-[11px] font-semibold transition sm:text-xs ${ui.secondaryBtn}`}
                   >
-                    Edit your strategy rule set
+                    Edit your strategy ruleset
                   </button>
 
                   {showEditStrategyRuleSet && (
                     <div className={`rounded-[22px] border p-3 ${ui.innerCard}`}>
-                      <div className={`text-sm font-semibold ${ui.secondaryStrong}`}>{selectedStrategy} rule set</div>
+                      <div className={`text-sm font-semibold ${ui.secondaryStrong}`}>{selectedStrategy} ruleset</div>
                       <p className={`mt-1 text-xs leading-5 ${ui.muted}`}>
-                        Add new rules above using the text field and + button. Remove old rules below to adjust this strategy over time.
+                        Remove rules from this selected strategy whenever you want to refine or clean up the set.
                       </p>
 
                       <div className="mt-3 space-y-2">
@@ -3024,7 +3045,7 @@ ${emotionWarning}`
                                   <button
                                     type="button"
                                     onClick={() => removeRuleFromStrategySet(rule)}
-                                    className={`flex h-8 min-w-[42px] items-center justify-center rounded-xl px-2 text-sm font-semibold transition ${ui.deleteRule}`}
+                                    className={`flex h-8 min-w-[42px] items-center justify-center rounded-full px-2 text-sm font-semibold transition ${ui.deleteRule}`}
                                   >
                                     -
                                   </button>
@@ -3039,11 +3060,13 @@ ${emotionWarning}`
                   <ManagedOptionDropdown
                     label="Strategy"
                     value={selectedStrategy}
-                    options={strategyOptions}
+                    options={visibleStrategyOptions}
                     onSelect={(value) => {
                       setSelectedStrategy(value)
                       setShowSavedRulesPicker(false)
                       setShowLoadStrategyPicker(false)
+                      setShowEditStrategyRuleSet(false)
+                      setImportanceNeedsAttention(false)
                       setNewRuleError('')
                     }}
                     onDelete={deleteStrategyOption}
@@ -3059,10 +3082,26 @@ ${emotionWarning}`
                   <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
                     <div className="relative">
                       <select
+                        ref={importanceSelectRef}
                         value={newRuleImportance}
-                        onChange={(e) => setNewRuleImportance(e.target.value as Importance)}
-                        className={`h-10 w-full appearance-none rounded-2xl px-3 pr-10 text-sm outline-none transition ${ui.select}`}
+                        onChange={(e) => {
+                          setNewRuleImportance(e.target.value as Importance | '')
+                          setImportanceNeedsAttention(false)
+                          if (newRuleError === 'Choose this rule importance level before adding the rule.') {
+                            setNewRuleError('')
+                          }
+                        }}
+                        className={`h-10 w-full appearance-none rounded-2xl px-3 pr-10 text-sm outline-none transition ${ui.select} ${
+                          importanceNeedsAttention
+                            ? theme === 'light'
+                              ? 'border-red-400 bg-red-50 ring-2 ring-red-200'
+                              : 'border-red-400/60 bg-red-500/10 ring-2 ring-red-500/20'
+                            : ''
+                        }`}
                       >
+                        <option value="" disabled>
+                          Choose this rule importance level
+                        </option>
                         {importanceOptions.map((option) => (
                           <option key={option.value} value={option.value}>
                             {option.label}
@@ -3243,7 +3282,7 @@ ${emotionWarning}`
 
                         <button
                           onClick={() => deleteRule(rule.id)}
-                          className={`flex h-6 min-w-[40px] items-center justify-center rounded-lg px-2 text-sm transition md:h-10 md:min-w-[52px] md:rounded-xl md:text-lg ${ui.deleteRule}`}
+                          className={`flex h-6 min-w-[40px] items-center justify-center rounded-full px-2 text-sm transition md:h-10 md:min-w-[52px] md:rounded-full md:text-lg ${ui.deleteRule}`}
                           aria-label="Delete rule"
                         >
                           -
@@ -3256,15 +3295,6 @@ ${emotionWarning}`
             )}
 
             <div className="mt-4 flex flex-col items-center gap-3">
-              <button
-                type="button"
-                onClick={() => setShowSavedRulesPicker((prev) => !prev)}
-                className={`flex h-10 w-10 items-center justify-center rounded-full text-xl font-bold transition ${styles.button}`}
-                aria-label="Add saved rule"
-              >
-                +
-              </button>
-
               {showSavedRulesPicker && (
                 <div className={`w-full rounded-[22px] border p-3 ${ui.innerCard}`}>
                   <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
