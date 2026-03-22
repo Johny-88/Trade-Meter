@@ -511,12 +511,18 @@ function ManagedOptionDropdown({
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className={`flex h-10 w-full items-center justify-between rounded-2xl px-3 text-left text-sm outline-none transition ${triggerClassName}`}
+        className={`relative flex h-10 w-full items-center rounded-2xl px-3 pr-10 text-left text-sm outline-none transition ${triggerClassName}`}
       >
         <span className="truncate">
           {label}: {value}
         </span>
-        <span className={`ml-3 shrink-0 text-xs ${mutedClassName}`}>{open ? '▲' : '▼'}</span>
+        <span
+          className={`pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[11px] leading-none ${
+            theme === 'light' ? 'text-slate-900' : 'text-white'
+          }`}
+        >
+          ▼
+        </span>
       </button>
 
       {open && (
@@ -1083,7 +1089,7 @@ export default function Home() {
   const [selectedTemplateId, setSelectedTemplateId] = useState('')
   const [selectedRulePackId, setSelectedRulePackId] = useState(defaultRulePacks[0].id)
   const [tradeNote, setTradeNote] = useState('')
-  const [tradeOutcome, setTradeOutcome] = useState<JournalOutcome>('unknown')
+  const [tradeOutcome, setTradeOutcome] = useState<JournalOutcome>('breakeven')
   const [followedVerdict, setFollowedVerdict] = useState<FollowedVerdict>('yes')
   const [journalDirection, setJournalDirection] = useState<TradeDirection>('long')
   const [journalPnl, setJournalPnl] = useState(0)
@@ -1739,7 +1745,7 @@ export default function Home() {
 
     setJournal((prev) => [entry, ...prev])
     setTradeNote('')
-    setTradeOutcome('unknown')
+    setTradeOutcome('breakeven')
     setFollowedVerdict('yes')
     setJournalDirection('long')
     setJournalPnl(0)
@@ -2371,127 +2377,6 @@ ${emotionWarning}`
           {mode === 'stats' && (
             <>
               <div className={`mt-4 rounded-[24px] p-3 md:p-4 ${ui.card}`}>
-                <div className="grid gap-3 xl:grid-cols-[1.05fr_0.95fr]">
-                  <div className={`rounded-[22px] p-3 ${ui.innerCard}`}>
-                    <div className={`mb-2 text-sm font-semibold ${ui.secondaryStrong}`}>Journal entry</div>
-                    <p className={`mb-3 text-xs ${ui.muted}`}>Log the trade, the emotion, and the result. Keep it honest and fast.</p>
-
-                    <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
-                      <ManagedOptionDropdown
-                        label="Instrument"
-                        value={journalInstrument}
-                        options={journalInstrumentOptions}
-                        onSelect={setJournalInstrument}
-                        onDelete={deleteJournalInstrumentOption}
-                        onAdd={addJournalInstrumentOption}
-                        theme={theme}
-                        triggerClassName={ui.select}
-                        inputClassName={ui.input}
-                        mutedClassName={ui.muted}
-                        addButtonClassName={styles.button}
-                        secondaryButtonClassName={ui.secondaryBtn}
-                      />
-
-                      <select value={proSession} onChange={(e) => setProSession(e.target.value as SessionType)} className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}>
-                        {sessionOptions.map((item) => (
-                          <option key={item} value={item}>Session: {item}</option>
-                        ))}
-                      </select>
-
-                      <ManagedOptionDropdown
-                        label="Setup"
-                        value={journalSetup}
-                        options={journalSetupOptions}
-                        onSelect={setJournalSetup}
-                        onDelete={deleteJournalSetupOption}
-                        onAdd={addJournalSetupOption}
-                        theme={theme}
-                        triggerClassName={ui.select}
-                        inputClassName={ui.input}
-                        mutedClassName={ui.muted}
-                        addButtonClassName={styles.button}
-                        secondaryButtonClassName={ui.secondaryBtn}
-                      />
-
-                      <ManagedOptionDropdown
-                        label="Emotion"
-                        value={journalEmotion}
-                        options={journalEmotionOptions}
-                        onSelect={setJournalEmotion}
-                        onDelete={deleteJournalEmotionOption}
-                        onAdd={addJournalEmotionOption}
-                        theme={theme}
-                        triggerClassName={ui.select}
-                        inputClassName={ui.input}
-                        mutedClassName={ui.muted}
-                        addButtonClassName={styles.button}
-                        secondaryButtonClassName={ui.secondaryBtn}
-                      />
-
-                      <div className="relative">
-                        <select
-                          value={journalDirection}
-                          onChange={(e) => setJournalDirection(e.target.value as TradeDirection)}
-                          className={`h-10 w-full appearance-none rounded-2xl px-3 pr-10 text-sm outline-none transition ${ui.select}`}
-                        >
-                          <option value="long">Direction: Long</option>
-                          <option value="short">Direction: Short</option>
-                        </select>
-                        <span className={`pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[11px] leading-none ${ui.muted}`}>▼</span>
-                      </div>
-
-                      <div className="relative">
-                        <select
-                          value={tradeOutcome}
-                          onChange={(e) => setTradeOutcome(e.target.value as JournalOutcome)}
-                          className={`h-10 w-full appearance-none rounded-2xl px-3 pr-10 text-sm outline-none transition ${ui.select}`}
-                        >
-                          <option value="unknown">Outcome: not logged yet</option>
-                          <option value="win">Outcome: Win</option>
-                          <option value="loss">Outcome: Loss</option>
-                          <option value="breakeven">Outcome: Breakeven</option>
-                        </select>
-                        <span className={`pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[11px] leading-none ${ui.muted}`}>▼</span>
-                      </div>
-
-                      <input type="number" value={journalPnl || ''} onChange={(e) => setJournalPnl(Number(e.target.value) || 0)} className={`rounded-2xl px-3 py-2.5 text-sm outline-none transition ${ui.input}`} placeholder="Net P&L" />
-                      <input type="number" step="0.1" value={journalRMultiple || ''} onChange={(e) => setJournalRMultiple(Number(e.target.value) || 0)} className={`rounded-2xl px-3 py-2.5 text-sm outline-none transition ${ui.input}`} placeholder="Result in R" />
-                    </div>
-
-                    <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                      <div className="relative">
-                        <select
-                          value={followedVerdict}
-                          onChange={(e) => setFollowedVerdict(e.target.value as FollowedVerdict)}
-                          className={`h-10 w-full appearance-none rounded-2xl px-3 pr-10 text-sm outline-none transition ${ui.select}`}
-                        >
-                          <option value="yes">I followed the verdict</option>
-                          <option value="partially">I partly followed it</option>
-                          <option value="no">I ignored it</option>
-                        </select>
-                        <span className={`pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[11px] leading-none ${ui.muted}`}>▼</span>
-                      </div>
-
-                      <label className={`inline-flex cursor-pointer items-center justify-center rounded-2xl px-3 py-2 text-xs font-semibold transition ${ui.secondaryBtn}`}>
-                        Upload screenshot
-                        <input type="file" accept="image/*" className="hidden" onChange={handleScreenshotUpload} />
-                      </label>
-                    </div>
-
-                    <textarea value={tradeNote} onChange={(e) => setTradeNote(e.target.value)} placeholder="What happened? Why did you take it, skip it, or break the verdict?" className={`mt-2 min-h-[108px] w-full rounded-[22px] px-3 py-3 text-sm outline-none transition ${ui.input}`} />
-
-                    <div className="mt-2 flex flex-wrap items-center gap-2">
-                      <button type="button" onClick={saveJournalEntry} className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${styles.button}`}>Save journal entry</button>
-                      <button type="button" onClick={shareSummary} className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${ui.secondaryBtn}`}>{copiedSummary ? 'Copied' : 'Copy summary'}</button>
-                    </div>
-
-                    {screenshotDataUrl && (
-                      <div className="mt-3 overflow-hidden rounded-[20px] border border-white/10">
-                        <img src={screenshotDataUrl} alt="Uploaded chart" className="h-40 w-full object-cover" />
-                      </div>
-                    )}
-                  </div>
-
                   <div className={`rounded-[22px] p-3 ${ui.innerCard}`}>
                     <div className={`mb-2 text-sm font-semibold ${ui.secondaryStrong}`}>Performance snapshot</div>
                     <p className={`mb-3 text-xs ${ui.muted}`}>The stats that matter most when reviewing discipline and execution.</p>
@@ -2538,6 +2423,136 @@ ${emotionWarning}`
                         Advanced performance
                       </button>
                     </div>
+              </div>
+
+              <div className={`mt-4 rounded-[24px] p-3 md:p-4 ${ui.card}`}>
+                <div className="grid gap-3">
+                  <div className={`rounded-[22px] p-3 ${ui.innerCard}`}>
+                    <div className={`mb-2 text-sm font-semibold ${ui.secondaryStrong}`}>Journal entry</div>
+                    <p className={`mb-3 text-xs ${ui.muted}`}>Log the trade, the emotion, and the result. Keep it honest and fast.</p>
+
+                    <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+                      <ManagedOptionDropdown
+                        label="Instrument"
+                        value={journalInstrument}
+                        options={journalInstrumentOptions}
+                        onSelect={setJournalInstrument}
+                        onDelete={deleteJournalInstrumentOption}
+                        onAdd={addJournalInstrumentOption}
+                        theme={theme}
+                        triggerClassName={ui.select}
+                        inputClassName={ui.input}
+                        mutedClassName={ui.muted}
+                        addButtonClassName={styles.button}
+                        secondaryButtonClassName={ui.secondaryBtn}
+                      />
+
+                      <div className="relative">
+                        <select
+                          value={proSession}
+                          onChange={(e) => setProSession(e.target.value as SessionType)}
+                          className={`h-10 w-full appearance-none rounded-2xl px-3 pr-10 text-sm outline-none transition ${ui.select}`}
+                        >
+                          {sessionOptions.map((item) => (
+                            <option key={item} value={item}>Session: {item}</option>
+                          ))}
+                        </select>
+                        <span className={`pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[11px] leading-none ${theme === 'light' ? 'text-slate-900' : 'text-white'}`}>▼</span>
+                      </div>
+
+                      <ManagedOptionDropdown
+                        label="Setup"
+                        value={journalSetup}
+                        options={journalSetupOptions}
+                        onSelect={setJournalSetup}
+                        onDelete={deleteJournalSetupOption}
+                        onAdd={addJournalSetupOption}
+                        theme={theme}
+                        triggerClassName={ui.select}
+                        inputClassName={ui.input}
+                        mutedClassName={ui.muted}
+                        addButtonClassName={styles.button}
+                        secondaryButtonClassName={ui.secondaryBtn}
+                      />
+
+                      <ManagedOptionDropdown
+                        label="Emotion"
+                        value={journalEmotion}
+                        options={journalEmotionOptions}
+                        onSelect={setJournalEmotion}
+                        onDelete={deleteJournalEmotionOption}
+                        onAdd={addJournalEmotionOption}
+                        theme={theme}
+                        triggerClassName={ui.select}
+                        inputClassName={ui.input}
+                        mutedClassName={ui.muted}
+                        addButtonClassName={styles.button}
+                        secondaryButtonClassName={ui.secondaryBtn}
+                      />
+
+                      <div className="relative">
+                        <select
+                          value={journalDirection}
+                          onChange={(e) => setJournalDirection(e.target.value as TradeDirection)}
+                          className={`h-10 w-full appearance-none rounded-2xl px-3 pr-10 text-sm outline-none transition ${ui.select}`}
+                        >
+                          <option value="long">Direction: Long</option>
+                          <option value="short">Direction: Short</option>
+                        </select>
+                        <span className={`pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[11px] leading-none ${theme === 'light' ? 'text-slate-900' : 'text-white'}`}>▼</span>
+                      </div>
+
+                      <div className="relative">
+                        <select
+                          value={tradeOutcome}
+                          onChange={(e) => setTradeOutcome(e.target.value as JournalOutcome)}
+                          className={`h-10 w-full appearance-none rounded-2xl px-3 pr-10 text-sm outline-none transition ${ui.select}`}
+                        >
+                          <option value="win">Outcome: Win</option>
+                          <option value="loss">Outcome: Loss</option>
+                          <option value="breakeven">Outcome: Breakeven</option>
+                        </select>
+                        <span className={`pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[11px] leading-none ${theme === 'light' ? 'text-slate-900' : 'text-white'}`}>▼</span>
+                      </div>
+
+                      <input type="number" value={journalPnl || ''} onChange={(e) => setJournalPnl(Number(e.target.value) || 0)} className={`rounded-2xl px-3 py-2.5 text-sm outline-none transition ${ui.input}`} placeholder="Net P&L" />
+                      <input type="number" step="0.1" value={journalRMultiple || ''} onChange={(e) => setJournalRMultiple(Number(e.target.value) || 0)} className={`rounded-2xl px-3 py-2.5 text-sm outline-none transition ${ui.input}`} placeholder="Result in R" />
+                    </div>
+
+                    <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                      <div className="relative">
+                        <select
+                          value={followedVerdict}
+                          onChange={(e) => setFollowedVerdict(e.target.value as FollowedVerdict)}
+                          className={`h-10 w-full appearance-none rounded-2xl px-3 pr-10 text-sm outline-none transition ${ui.select}`}
+                        >
+                          <option value="yes">I followed the verdict</option>
+                          <option value="partially">I partly followed it</option>
+                          <option value="no">I ignored it</option>
+                        </select>
+                        <span className={`pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[11px] leading-none ${theme === 'light' ? 'text-slate-900' : 'text-white'}`}>▼</span>
+                      </div>
+
+                      <label className={`inline-flex cursor-pointer items-center justify-center rounded-2xl px-3 py-2 text-xs font-semibold transition ${ui.secondaryBtn}`}>
+                        Upload screenshot
+                        <input type="file" accept="image/*" className="hidden" onChange={handleScreenshotUpload} />
+                      </label>
+                    </div>
+
+                    <textarea value={tradeNote} onChange={(e) => setTradeNote(e.target.value)} placeholder="What happened? Why did you take it, skip it, or break the verdict?" className={`mt-2 min-h-[108px] w-full rounded-[22px] px-3 py-3 text-sm outline-none transition ${ui.input}`} />
+
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      <button type="button" onClick={saveJournalEntry} className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${styles.button}`}>Save journal entry</button>
+                      <button type="button" onClick={shareSummary} className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${ui.secondaryBtn}`}>{copiedSummary ? 'Copied' : 'Copy summary'}</button>
+                    </div>
+
+                    {screenshotDataUrl && (
+                      <div className="mt-3 overflow-hidden rounded-[20px] border border-white/10">
+                        <img src={screenshotDataUrl} alt="Uploaded chart" className="h-40 w-full object-cover" />
+                      </div>
+                    )}
+                  </div>
+
                   </div>
                 </div>
               </div>
