@@ -53,6 +53,7 @@ type SavedTemplate = {
   instrument: string
   setupType: string
   strategy: string
+  marketCondition: string
   emotion: string
 }
 
@@ -474,6 +475,7 @@ const emotionOptions: { value: EmotionState; label: string; tone: Tone }[] = [
 const defaultJournalInstrumentOptions = ['ES', 'NQ', 'Gold', 'Silver', 'Oil', 'BTC', 'EURUSD']
 const defaultJournalSetupOptions = ['Breakout', 'Reversal', 'Support Bounce', 'Trendline Break', 'Pullback']
 const defaultJournalEmotionOptions = ['Calm', 'Focused', 'Slightly emotional', 'FOMO', 'Revenge mindset', 'Tired']
+const defaultMarketConditionOptions = ['Volatile', 'Sideways', 'Trending up', 'Trending down']
 const STATS_FORM_STORAGE_KEY = 'edge-check-stats-form-v1'
 
 type ManagedOptionDropdownProps = {
@@ -700,6 +702,7 @@ function normalizeJournalEntry(entry: Partial<JournalEntry>): JournalEntry {
     instrument: typeof entry.instrument === 'string' ? entry.instrument : 'ES',
     setupType: typeof entry.setupType === 'string' ? entry.setupType : 'Breakout',
     strategy: typeof entry.strategy === 'string' && entry.strategy.trim().length > 0 ? entry.strategy : 'General',
+    marketCondition: typeof entry.marketCondition === 'string' && entry.marketCondition.trim().length > 0 ? entry.marketCondition : 'Volatile',
     emotion: typeof entry.emotion === 'string' ? entry.emotion : 'Calm',
     direction: entry.direction === 'short' ? 'short' : 'long',
     pnl: typeof entry.pnl === 'number' ? entry.pnl : 0,
@@ -1102,9 +1105,12 @@ export default function Home() {
   const [proEmotion, setProEmotion] = useState<EmotionState>('calm')
   const [journalInstrument, setJournalInstrument] = useState(defaultJournalInstrumentOptions[0])
   const [journalSetup, setJournalSetup] = useState(defaultJournalSetupOptions[0])
+  const [journalStrategy, setJournalStrategy] = useState('General')
+  const [journalMarketCondition, setJournalMarketCondition] = useState(defaultMarketConditionOptions[0])
   const [journalEmotion, setJournalEmotion] = useState(defaultJournalEmotionOptions[0])
   const [journalInstrumentOptions, setJournalInstrumentOptions] = useState<string[]>(defaultJournalInstrumentOptions)
   const [journalSetupOptions, setJournalSetupOptions] = useState<string[]>(defaultJournalSetupOptions)
+  const [journalMarketConditionOptions, setJournalMarketConditionOptions] = useState<string[]>(defaultMarketConditionOptions)
   const [journalEmotionOptions, setJournalEmotionOptions] = useState<string[]>(defaultJournalEmotionOptions)
   const [proTimerSeconds, setProTimerSeconds] = useState(15)
   const [proTimerActive, setProTimerActive] = useState(false)
@@ -1224,8 +1230,14 @@ export default function Home() {
           const nextEmotions = parsedStatsForm.emotionOptions.filter((item: unknown): item is string => typeof item === 'string' && item.trim().length > 0)
           if (nextEmotions.length > 0) setJournalEmotionOptions(nextEmotions)
         }
+        if (Array.isArray(parsedStatsForm.marketConditionOptions)) {
+          const nextMarketConditions = parsedStatsForm.marketConditionOptions.filter((item: unknown): item is string => typeof item === 'string' && item.trim().length > 0)
+          if (nextMarketConditions.length > 0) setJournalMarketConditionOptions(nextMarketConditions)
+        }
         if (typeof parsedStatsForm.instrument === 'string') setJournalInstrument(parsedStatsForm.instrument)
         if (typeof parsedStatsForm.setup === 'string') setJournalSetup(parsedStatsForm.setup)
+        if (typeof parsedStatsForm.strategy === 'string') setJournalStrategy(parsedStatsForm.strategy)
+        if (typeof parsedStatsForm.marketCondition === 'string') setJournalMarketCondition(parsedStatsForm.marketCondition)
         if (typeof parsedStatsForm.emotion === 'string') setJournalEmotion(parsedStatsForm.emotion)
       } catch {}
     }
