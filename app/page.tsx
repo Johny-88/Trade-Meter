@@ -1087,6 +1087,7 @@ export default function Home() {
   const [ruleLibrary, setRuleLibrary] = useState<Rule[]>([])
   const [showSavedRulesPicker, setShowSavedRulesPicker] = useState(false)
   const [showLoadStrategyPicker, setShowLoadStrategyPicker] = useState(false)
+  const [showEditStrategyRuleSet, setShowEditStrategyRuleSet] = useState(false)
   const [newRuleError, setNewRuleError] = useState('')
   const [showInstructions, setShowInstructions] = useState(false)
   const [showAdvancedPerformance, setShowAdvancedPerformance] = useState(false)
@@ -1600,6 +1601,7 @@ export default function Home() {
     setRules(createRulesFromPack({ id: 'starter', name: 'Starter', minScore, rules: starterRules, defaultCheckedIndexes: [] }, 'General'))
     setShowSavedRulesPicker(false)
     setShowLoadStrategyPicker(false)
+    setShowEditStrategyRuleSet(false)
     setNewRuleError('')
   }
 
@@ -1607,6 +1609,7 @@ export default function Home() {
     setRules([])
     setShowSavedRulesPicker(false)
     setShowLoadStrategyPicker(false)
+    setShowEditStrategyRuleSet(false)
     setNewRule('')
     setNewRuleImportance('important')
     setNewRuleCategory('confirmation')
@@ -1659,6 +1662,33 @@ export default function Home() {
 
   const deleteRule = (id: string) => {
     setRules((prev) => prev.filter((rule) => rule.id !== id))
+    setNewRuleError('')
+  }
+
+  const removeRuleFromStrategySet = (ruleToRemove: Rule) => {
+    const normalizedText = normalizeRuleText(ruleToRemove.text)
+    const normalizedStrategy = ruleToRemove.strategy.toLowerCase()
+
+    setRuleLibrary((prev) =>
+      prev.filter(
+        (rule) =>
+          !(
+            normalizeRuleText(rule.text) === normalizedText &&
+            rule.strategy.toLowerCase() === normalizedStrategy
+          )
+      )
+    )
+
+    setRules((prev) =>
+      prev.filter(
+        (rule) =>
+          !(
+            normalizeRuleText(rule.text) === normalizedText &&
+            rule.strategy.toLowerCase() === normalizedStrategy
+          )
+      )
+    )
+
     setNewRuleError('')
   }
 
@@ -2895,12 +2925,68 @@ ${emotionWarning}`
                     className={`w-full rounded-2xl px-3 py-2.5 text-sm outline-none transition ${ui.input}`}
                   />
 
+                  <button
+                    type="button"
+                    onClick={() => setShowEditStrategyRuleSet((prev) => !prev)}
+                    className={`rounded-2xl px-3 py-2 text-left text-[11px] font-semibold transition sm:text-xs ${ui.secondaryBtn}`}
+                  >
+                    Edit your strategy rule set
+                  </button>
+
+                  {showEditStrategyRuleSet && (
+                    <div className={`rounded-[22px] border p-3 ${ui.innerCard}`}>
+                      <div className={`text-sm font-semibold ${ui.secondaryStrong}`}>{selectedStrategy} rule set</div>
+                      <p className={`mt-1 text-xs leading-5 ${ui.muted}`}>
+                        Add new rules above using the text field and + button. Remove old rules below to adjust this strategy over time.
+                      </p>
+
+                      <div className="mt-3 space-y-2">
+                        {ruleLibrary.filter((rule) => rule.strategy.toLowerCase() === selectedStrategy.toLowerCase()).length === 0 ? (
+                          <div className={`rounded-2xl px-3 py-3 text-sm ${ui.empty}`}>
+                            No saved rules yet inside {selectedStrategy}.
+                          </div>
+                        ) : (
+                          ruleLibrary
+                            .filter((rule) => rule.strategy.toLowerCase() === selectedStrategy.toLowerCase())
+                            .map((rule) => {
+                              const importanceBadge = getImportanceBadge(rule.importance, theme)
+                              return (
+                                <div key={rule.id} className={`flex items-center gap-2 rounded-[18px] border p-3 ${ui.statBox}`}>
+                                  <div className="min-w-0 flex-1">
+                                    <div className="text-sm font-semibold">{rule.text}</div>
+                                    <div className="mt-1 flex flex-wrap gap-1">
+                                      <div className={`rounded-full border px-2 py-1 text-[10px] font-semibold ${importanceBadge.className}`}>
+                                        {importanceBadge.label}
+                                      </div>
+                                      <div className={`rounded-full border px-2 py-1 text-[10px] font-semibold ${theme === 'light' ? 'border-slate-300 bg-slate-100 text-slate-700' : 'border-white/10 bg-white/5 text-slate-300'}`}>
+                                        {rule.strategy}
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => removeRuleFromStrategySet(rule)}
+                                    className={`flex h-8 min-w-[42px] items-center justify-center rounded-xl px-2 text-sm font-semibold transition ${ui.deleteRule}`}
+                                  >
+                                    -
+                                  </button>
+                                </div>
+                              )
+                            })
+                        )}
+                      </div>
+                    </div>
+                  )}
+
                   <ManagedOptionDropdown
                     label="Strategy"
                     value={selectedStrategy}
                     options={strategyOptions}
                     onSelect={(value) => {
                       setSelectedStrategy(value)
+                      setShowSavedRulesPicker(false)
+                      setShowLoadStrategyPicker(false)
                       setNewRuleError('')
                     }}
                     onDelete={deleteStrategyOption}
@@ -2983,6 +3069,7 @@ ${emotionWarning}`
                     return
                   }
                   setShowSavedRulesPicker(false)
+                  setShowEditStrategyRuleSet(false)
                   setShowLoadStrategyPicker((prev) => !prev)
                 }}
                 className={`rounded-2xl px-3 py-2 text-[11px] font-semibold transition sm:text-xs ${ui.secondaryBtn}`}
@@ -3081,23 +3168,25 @@ ${emotionWarning}`
                         </div>
                       </button>
 
-                      <div className="grid shrink-0 grid-cols-2 gap-x-1 gap-y-1 justify-items-end md:flex md:items-center md:gap-2">
+                      <div className="flex shrink-0 flex-col items-end gap-1 md:flex-row md:items-center md:gap-2">
 
-                        <div
-                          className={`rounded-lg border px-2 py-1 text-[10px] font-medium leading-none md:rounded-xl md:px-2.5 md:py-2 md:text-xs ${importanceBadge.className}`}
-                        >
-                          {importanceBadge.label}
-                        </div>
+                        <div className="flex items-center gap-1">
+                          <div
+                            className={`inline-flex h-6 items-center rounded-lg border px-2 text-[10px] font-medium leading-none md:h-auto md:rounded-xl md:px-2.5 md:py-2 md:text-xs ${importanceBadge.className}`}
+                          >
+                            {importanceBadge.label}
+                          </div>
 
-                        <div
-                          className={`rounded-lg border px-2 py-1 text-[10px] font-medium leading-none md:rounded-xl md:px-2.5 md:py-2 md:text-xs ${strategyBadgeClassName}`}
-                        >
-                          {rule.strategy}
+                          <div
+                            className={`inline-flex h-6 items-center rounded-lg border px-2 text-[10px] font-medium leading-none md:h-auto md:rounded-xl md:px-2.5 md:py-2 md:text-xs ${strategyBadgeClassName}`}
+                          >
+                            {rule.strategy}
+                          </div>
                         </div>
 
                         <button
                           onClick={() => deleteRule(rule.id)}
-                          className={`col-span-2 flex h-7 min-w-[44px] items-center justify-center justify-self-end rounded-lg px-2 text-sm transition md:col-auto md:h-10 md:min-w-[52px] md:rounded-xl md:text-lg ${ui.deleteRule}`}
+                          className={`flex h-6 min-w-[40px] items-center justify-center rounded-lg px-2 text-sm transition md:h-10 md:min-w-[52px] md:rounded-xl md:text-lg ${ui.deleteRule}`}
                           aria-label="Delete rule"
                         >
                           -
