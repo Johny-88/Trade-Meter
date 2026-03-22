@@ -1080,8 +1080,7 @@ export default function Home() {
   const [theme, setTheme] = useState<AppTheme>('light')
   const [mode, setMode] = useState<AppMode>('standard')
   const [newRule, setNewRule] = useState('')
-  const [newRuleImportance, setNewRuleImportance] = useState<Importance | ''>('')
-  const [importanceNeedsAttention, setImportanceNeedsAttention] = useState(false)
+  const [newRuleImportance, setNewRuleImportance] = useState<Importance>('important')
   const [newRuleCategory, setNewRuleCategory] = useState<RuleCategory>('confirmation')
   const [strategyOptions, setStrategyOptions] = useState<string[]>(defaultStrategyOptions)
   const [selectedStrategy, setSelectedStrategy] = useState(defaultStrategyOptions[0])
@@ -1133,7 +1132,6 @@ export default function Home() {
   )
   const [topOffset, setTopOffset] = useState(0)
   const liveScoreRef = useRef<HTMLDivElement | null>(null)
-  const importanceSelectRef = useRef<HTMLSelectElement | null>(null)
   const previousSnapshotRef = useRef<SetupSnapshot | null>(null)
 
   useEffect(() => {
@@ -1603,7 +1601,6 @@ export default function Home() {
     setRules(createRulesFromPack({ id: 'starter', name: 'Starter', minScore, rules: starterRules, defaultCheckedIndexes: [] }, 'General'))
     setShowSavedRulesPicker(false)
     setShowLoadStrategyPicker(false)
-    setImportanceNeedsAttention(false)
     setNewRuleError('')
   }
 
@@ -1612,8 +1609,7 @@ export default function Home() {
     setShowSavedRulesPicker(false)
     setShowLoadStrategyPicker(false)
     setNewRule('')
-    setNewRuleImportance('')
-    setImportanceNeedsAttention(false)
+    setNewRuleImportance('important')
     setNewRuleCategory('confirmation')
     setNewRuleError('')
   }
@@ -1626,23 +1622,6 @@ export default function Home() {
   const addRule = () => {
     const trimmed = newRule.trim()
     if (!trimmed) return
-
-    if (!newRuleImportance) {
-      setNewRuleError('Choose this rule importance level before adding the rule.')
-      setImportanceNeedsAttention(true)
-      importanceSelectRef.current?.animate(
-        [
-          { transform: 'translateX(0px)' },
-          { transform: 'translateX(-5px)' },
-          { transform: 'translateX(5px)' },
-          { transform: 'translateX(-4px)' },
-          { transform: 'translateX(4px)' },
-          { transform: 'translateX(0px)' },
-        ],
-        { duration: 280, easing: 'ease-out' }
-      )
-      return
-    }
 
     const normalizedNewRule = normalizeRuleText(trimmed)
     const alreadyExistsOnChecklist = rules.some(
@@ -1666,7 +1645,7 @@ export default function Home() {
     setRuleLibrary((prev) => [...prev, { ...rule, checked: false }])
     setShowSavedRulesPicker(false)
     setNewRule('')
-    setNewRuleImportance('')
+    setNewRuleImportance('important')
     setNewRuleCategory('confirmation')
     setNewRuleError('')
   }
@@ -2475,8 +2454,10 @@ ${emotionWarning}`
                     />
                   </div>
 
-                  <div className={`mt-1.5 text-[10px] font-semibold md:text-[11px] ${ui.subtle}`}>
-                    {checkedCount}/{totalCount} rules
+                  <div className={`mt-1.5 flex flex-wrap items-center gap-1.5 text-[10px] font-semibold md:text-[11px] ${ui.subtle}`}>
+                    <span>{checkedCount}/{totalCount} rules</span>
+                    <span>•</span>
+                    <span>Strategy: {selectedStrategy}</span>
                   </div>
                 </div>
 
@@ -3011,7 +2992,6 @@ ${emotionWarning}`
                       setShowSavedRulesPicker(false)
                       setShowLoadStrategyPicker(false)
                       setShowEditStrategyRuleSet(false)
-                      setImportanceNeedsAttention(false)
                       setNewRuleError('')
                     }}
                     onDelete={deleteStrategyOption}
@@ -3027,26 +3007,10 @@ ${emotionWarning}`
                   <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
                     <div className="relative">
                       <select
-                        ref={importanceSelectRef}
                         value={newRuleImportance}
-                        onChange={(e) => {
-                          setNewRuleImportance(e.target.value as Importance | '')
-                          setImportanceNeedsAttention(false)
-                          if (newRuleError === 'Choose this rule importance level before adding the rule.') {
-                            setNewRuleError('')
-                          }
-                        }}
-                        className={`h-10 w-full appearance-none rounded-2xl px-3 pr-10 text-sm outline-none transition ${ui.select} ${
-                          importanceNeedsAttention
-                            ? theme === 'light'
-                              ? 'border-red-400 bg-red-50 ring-2 ring-red-200'
-                              : 'border-red-400/60 bg-red-500/10 ring-2 ring-red-500/20'
-                            : ''
-                        }`}
+                        onChange={(e) => setNewRuleImportance(e.target.value as Importance)}
+                        className={`h-10 w-full appearance-none rounded-2xl px-3 pr-10 text-sm outline-none transition ${ui.select}`}
                       >
-                        <option value="" disabled>
-                          Choose this rule importance level
-                        </option>
                         {importanceOptions.map((option) => (
                           <option key={option.value} value={option.value}>
                             {option.label}
