@@ -1086,6 +1086,7 @@ export default function Home() {
   const [selectedStrategy, setSelectedStrategy] = useState(defaultStrategyOptions[0])
   const [ruleLibrary, setRuleLibrary] = useState<Rule[]>([])
   const [showSavedRulesPicker, setShowSavedRulesPicker] = useState(false)
+  const [showLoadStrategyPicker, setShowLoadStrategyPicker] = useState(false)
   const [newRuleError, setNewRuleError] = useState('')
   const [showInstructions, setShowInstructions] = useState(false)
   const [showAdvancedPerformance, setShowAdvancedPerformance] = useState(false)
@@ -1598,12 +1599,14 @@ export default function Home() {
     setSelectedStrategy('General')
     setRules(createRulesFromPack({ id: 'starter', name: 'Starter', minScore, rules: starterRules, defaultCheckedIndexes: [] }, 'General'))
     setShowSavedRulesPicker(false)
+    setShowLoadStrategyPicker(false)
     setNewRuleError('')
   }
 
   const clearAllRules = () => {
     setRules([])
     setShowSavedRulesPicker(false)
+    setShowLoadStrategyPicker(false)
     setNewRule('')
     setNewRuleImportance('important')
     setNewRuleCategory('confirmation')
@@ -1611,6 +1614,7 @@ export default function Home() {
   }
 
   const resetChecks = () => {
+    setShowLoadStrategyPicker(false)
     setRules((prev) => prev.map((rule) => ({ ...rule, checked: false })))
   }
 
@@ -1827,15 +1831,22 @@ export default function Home() {
     setRules((prev) => prev.filter((rule) => rule.strategy !== value))
   }
 
-  const loadSelectedStrategy = () => {
-    const strategyRules = ruleLibrary.filter((rule) => rule.strategy === selectedStrategy)
+  const availableStrategyRuleOptions = strategyOptions.filter((strategy) =>
+    ruleLibrary.some((rule) => rule.strategy.toLowerCase() === strategy.toLowerCase())
+  )
+
+  const loadSelectedStrategy = (strategyName?: string) => {
+    const targetStrategy = strategyName ?? selectedStrategy
+    const strategyRules = ruleLibrary.filter((rule) => rule.strategy === targetStrategy)
 
     if (strategyRules.length === 0) {
       setRules([])
-      setNewRuleError(`No saved rules found yet for ${selectedStrategy}.`)
+      setShowLoadStrategyPicker(false)
+      setNewRuleError(`No saved rules found yet for ${targetStrategy}.`)
       return
     }
 
+    setSelectedStrategy(targetStrategy)
     setRules(
       strategyRules.map((rule) => ({
         ...normalizeRule(rule),
@@ -1844,6 +1855,7 @@ export default function Home() {
       }))
     )
     setShowSavedRulesPicker(false)
+    setShowLoadStrategyPicker(false)
     setNewRuleError('')
   }
 
@@ -2964,7 +2976,15 @@ ${emotionWarning}`
               </button>
 
               <button
-                onClick={loadSelectedStrategy}
+                onClick={() => {
+                  if (availableStrategyRuleOptions.length <= 1) {
+                    const fallbackStrategy = availableStrategyRuleOptions[0] ?? selectedStrategy
+                    loadSelectedStrategy(fallbackStrategy)
+                    return
+                  }
+                  setShowSavedRulesPicker(false)
+                  setShowLoadStrategyPicker((prev) => !prev)
+                }}
                 className={`rounded-2xl px-3 py-2 text-[11px] font-semibold transition sm:text-xs ${ui.secondaryBtn}`}
               >
                 Load Strategy Rules
@@ -2984,6 +3004,34 @@ ${emotionWarning}`
                 Delete Rules
               </button>
             </div>
+
+            {showLoadStrategyPicker && (
+              <div className={`mb-3 rounded-[22px] border p-3 ${ui.innerCard}`}>
+                <div className={`mb-2 text-sm font-semibold ${ui.secondaryStrong}`}>Choose strategy rules</div>
+                <p className={`mb-3 text-xs ${ui.muted}`}>
+                  Select which saved strategy you want to load into the checklist.
+                </p>
+
+                {availableStrategyRuleOptions.length === 0 ? (
+                  <div className={`rounded-2xl px-3 py-3 text-sm ${ui.empty}`}>
+                    No saved strategy rules available yet.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-2">
+                    {availableStrategyRuleOptions.map((strategy) => (
+                      <button
+                        key={strategy}
+                        type="button"
+                        onClick={() => loadSelectedStrategy(strategy)}
+                        className={`rounded-2xl px-3 py-2 text-[11px] font-semibold transition sm:text-xs ${ui.secondaryBtn}`}
+                      >
+                        {strategy}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
             {rules.length === 0 ? (
               <div className={`rounded-[24px] p-8 text-center ${ui.empty}`}>
@@ -3033,7 +3081,7 @@ ${emotionWarning}`
                         </div>
                       </button>
 
-                      <div className="grid shrink-0 grid-cols-2 gap-1 justify-items-end md:flex md:items-center md:gap-2">
+                      <div className="grid shrink-0 grid-cols-2 gap-x-1 gap-y-1 justify-items-end md:flex md:items-center md:gap-2">
 
                         <div
                           className={`rounded-lg border px-2 py-1 text-[10px] font-medium leading-none md:rounded-xl md:px-2.5 md:py-2 md:text-xs ${importanceBadge.className}`}
@@ -3049,7 +3097,7 @@ ${emotionWarning}`
 
                         <button
                           onClick={() => deleteRule(rule.id)}
-                          className={`col-span-2 flex h-7 w-7 items-center justify-center justify-self-end rounded-lg text-sm transition md:col-auto md:h-10 md:w-10 md:rounded-xl md:text-lg ${ui.deleteRule}`}
+                          className={`col-span-2 flex h-7 min-w-[44px] items-center justify-center justify-self-end rounded-lg px-2 text-sm transition md:col-auto md:h-10 md:min-w-[52px] md:rounded-xl md:text-lg ${ui.deleteRule}`}
                           aria-label="Delete rule"
                         >
                           -
