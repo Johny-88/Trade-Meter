@@ -70,6 +70,7 @@ type JournalEntry = {
   session: SessionType
   instrument: string
   setupType: string
+  strategy: string
   emotion: string
   direction: TradeDirection
   pnl: number
