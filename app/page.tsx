@@ -2869,10 +2869,6 @@ ${emotionWarning}`
                   Create a strategy first, then add rules under that strategy so you can reload the full checklist in one tap later.
                 </p>
 
-                <div className={`mt-2 rounded-2xl px-3 py-2 text-[11px] leading-5 md:text-xs ${ui.statBox}`}>
-                  New rules added below will be saved under <span className="font-semibold">{selectedStrategy}</span>.
-                </div>
-
                 <div className="mt-3 flex flex-col gap-2">
                   <input
                     value={newRule}
@@ -2887,25 +2883,25 @@ ${emotionWarning}`
                     className={`w-full rounded-2xl px-3 py-2.5 text-sm outline-none transition ${ui.input}`}
                   />
 
-                  <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] items-center gap-2">
-                    <ManagedOptionDropdown
-                      label="Strategy"
-                      value={selectedStrategy}
-                      options={strategyOptions}
-                      onSelect={(value) => {
-                        setSelectedStrategy(value)
-                        setNewRuleError('')
-                      }}
-                      onDelete={deleteStrategyOption}
-                      onAdd={addStrategyOption}
-                      theme={theme}
-                      triggerClassName={ui.select}
-                      inputClassName={ui.input}
-                      mutedClassName={ui.muted}
-                      addButtonClassName={styles.button}
-                      secondaryButtonClassName={ui.secondaryBtn}
-                    />
+                  <ManagedOptionDropdown
+                    label="Strategy"
+                    value={selectedStrategy}
+                    options={strategyOptions}
+                    onSelect={(value) => {
+                      setSelectedStrategy(value)
+                      setNewRuleError('')
+                    }}
+                    onDelete={deleteStrategyOption}
+                    onAdd={addStrategyOption}
+                    theme={theme}
+                    triggerClassName={ui.select}
+                    inputClassName={ui.input}
+                    mutedClassName={ui.muted}
+                    addButtonClassName={styles.button}
+                    secondaryButtonClassName={ui.secondaryBtn}
+                  />
 
+                  <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
                     <div className="relative">
                       <select
                         value={newRuleImportance}
@@ -2928,6 +2924,10 @@ ${emotionWarning}`
                     >
                       +
                     </button>
+                  </div>
+
+                  <div className={`rounded-2xl px-3 py-2 text-[11px] leading-5 md:text-xs ${ui.statBox}`}>
+                    New rules added below will be saved under <span className="font-semibold">{selectedStrategy}</span>.
                   </div>
                 </div>
 
