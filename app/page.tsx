@@ -1859,11 +1859,7 @@ export default function Home() {
     setRules((prev) => prev.filter((rule) => rule.strategy !== value))
   }
 
-  const visibleStrategyOptions = strategyOptions.filter(
-    (strategy) => strategy.toLowerCase() !== 'general'
-  )
-
-  const availableStrategyRuleOptions = visibleStrategyOptions.filter((strategy) =>
+  const availableStrategyRuleOptions = strategyOptions.filter((strategy) =>
     ruleLibrary.some((rule) => rule.strategy.toLowerCase() === strategy.toLowerCase())
   )
 
@@ -2927,12 +2923,69 @@ ${emotionWarning}`
                     className={`w-full rounded-2xl px-3 py-2.5 text-sm outline-none transition ${ui.input}`}
                   />
 
+                  <button
+                    type="button"
+                    onClick={() => setShowEditStrategyRuleSet((prev) => !prev)}
+                    className={`rounded-2xl px-3 py-2 text-left text-[11px] font-semibold transition sm:text-xs ${ui.secondaryBtn}`}
+                  >
+                    Edit your strategy ruleset
+                  </button>
+
+                  {showEditStrategyRuleSet && (
+                    <div className={`rounded-[22px] border p-3 ${ui.innerCard}`}>
+                      <div className={`text-sm font-semibold ${ui.secondaryStrong}`}>{selectedStrategy} ruleset</div>
+                      <p className={`mt-1 text-xs leading-5 ${ui.muted}`}>
+                        Remove rules from this selected strategy whenever you want to refine or clean up the set.
+                      </p>
+
+                      <div className="mt-3 space-y-2">
+                        {ruleLibrary.filter((rule) => rule.strategy.toLowerCase() === selectedStrategy.toLowerCase()).length === 0 ? (
+                          <div className={`rounded-2xl px-3 py-3 text-sm ${ui.empty}`}>
+                            No saved rules yet inside {selectedStrategy}.
+                          </div>
+                        ) : (
+                          ruleLibrary
+                            .filter((rule) => rule.strategy.toLowerCase() === selectedStrategy.toLowerCase())
+                            .map((rule) => {
+                              const importanceBadge = getImportanceBadge(rule.importance, theme)
+                              return (
+                                <div key={rule.id} className={`flex items-center gap-2 rounded-[18px] border p-3 ${ui.statBox}`}>
+                                  <div className="min-w-0 flex-1">
+                                    <div className="text-sm font-semibold">{rule.text}</div>
+                                    <div className="mt-1 flex flex-wrap gap-1">
+                                      <div className={`rounded-full border px-2 py-1 text-[10px] font-semibold ${importanceBadge.className}`}>
+                                        {importanceBadge.label}
+                                      </div>
+                                      <div className={`rounded-full border px-2 py-1 text-[10px] font-semibold ${theme === 'light' ? 'border-slate-300 bg-slate-100 text-slate-700' : 'border-white/10 bg-white/5 text-slate-300'}`}>
+                                        {rule.strategy}
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => removeRuleFromStrategySet(rule)}
+                                    className={`flex h-8 min-w-[42px] items-center justify-center rounded-full px-2 text-sm font-semibold transition ${ui.deleteRule}`}
+                                  >
+                                    -
+                                  </button>
+                                </div>
+                              )
+                            })
+                        )}
+                      </div>
+                    </div>
+                  )}
+
                   <ManagedOptionDropdown
                     label="Strategy"
                     value={selectedStrategy}
-                    options={visibleStrategyOptions}
+                    options={strategyOptions}
                     onSelect={(value) => {
                       setSelectedStrategy(value)
+                      setShowSavedRulesPicker(false)
+                      setShowLoadStrategyPicker(false)
+                      setShowEditStrategyRuleSet(false)
                       setNewRuleError('')
                     }}
                     onDelete={deleteStrategyOption}
@@ -3131,7 +3184,7 @@ ${emotionWarning}`
 
                         <button
                           onClick={() => deleteRule(rule.id)}
-                          className={`flex h-6 min-w-[40px] items-center justify-center rounded-full px-2 text-sm transition md:h-10 md:min-w-[52px] md:rounded-full md:text-lg ${ui.deleteRule}`}
+                          className={`flex h-6 min-w-[40px] items-center justify-center rounded-lg px-2 text-sm transition md:h-10 md:min-w-[52px] md:rounded-xl md:text-lg ${ui.deleteRule}`}
                           aria-label="Delete rule"
                         >
                           -
@@ -3144,6 +3197,15 @@ ${emotionWarning}`
             )}
 
             <div className="mt-4 flex flex-col items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setShowSavedRulesPicker((prev) => !prev)}
+                className={`flex h-10 w-10 items-center justify-center rounded-full text-xl font-bold transition ${styles.button}`}
+                aria-label="Add saved rule"
+              >
+                +
+              </button>
+
               {showSavedRulesPicker && (
                 <div className={`w-full rounded-[22px] border p-3 ${ui.innerCard}`}>
                   <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
