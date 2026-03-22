@@ -52,6 +52,7 @@ type SavedTemplate = {
   session: SessionType
   instrument: string
   setupType: string
+  strategy: string
   emotion: string
 }
 
@@ -516,12 +517,12 @@ function ManagedOptionDropdown({
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className={`flex h-10 w-full items-center justify-between rounded-2xl px-3 text-left text-sm outline-none transition ${triggerClassName}`}
+        className={`relative flex h-10 w-full items-center rounded-2xl px-3 pr-10 text-left text-sm outline-none transition ${triggerClassName}`}
       >
         <span className="truncate">
           {label}: {value}
         </span>
-        <span className={`ml-3 shrink-0 text-xs ${mutedClassName}`}>{open ? '▲' : '▼'}</span>
+        <span className={`pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[11px] leading-none transition ${mutedClassName} ${open ? 'rotate-180' : ''}`}>▼</span>
       </button>
 
       {open && (
@@ -693,6 +694,7 @@ function normalizeJournalEntry(entry: Partial<JournalEntry>): JournalEntry {
         : 'London',
     instrument: typeof entry.instrument === 'string' ? entry.instrument : 'ES',
     setupType: typeof entry.setupType === 'string' ? entry.setupType : 'Breakout',
+    strategy: typeof entry.strategy === 'string' && entry.strategy.trim().length > 0 ? entry.strategy : 'General',
     emotion: typeof entry.emotion === 'string' ? entry.emotion : 'Calm',
     direction: entry.direction === 'short' ? 'short' : 'long',
     pnl: typeof entry.pnl === 'number' ? entry.pnl : 0,
@@ -1042,8 +1044,9 @@ function getCombinationSummary(entries: JournalEntry[]) {
   const topInstrument = getTopStat(entries.map((entry) => entry.instrument))
   const topDirection = getTopStat(entries.map((entry) => entry.direction))
   const topSession = getTopStat(entries.map((entry) => entry.session))
+  const topStrategy = getTopStat(entries.map((entry) => entry.strategy))
 
-  if (!topEmotion || !topSetup || !topInstrument || !topDirection || !topSession) return null
+  if (!topEmotion || !topSetup || !topInstrument || !topDirection || !topSession || !topStrategy) return null
 
   const exactComboCount = entries.filter(
     (entry) =>
@@ -1051,7 +1054,8 @@ function getCombinationSummary(entries: JournalEntry[]) {
       entry.setupType === topSetup.value &&
       entry.instrument === topInstrument.value &&
       entry.direction === topDirection.value &&
-      entry.session === topSession.value
+      entry.session === topSession.value &&
+      entry.strategy === topStrategy.value
   ).length
 
   return {
@@ -1060,6 +1064,7 @@ function getCombinationSummary(entries: JournalEntry[]) {
     instrument: topInstrument.value,
     direction: topDirection.value,
     session: topSession.value,
+    strategy: topStrategy.value,
     exactComboCount,
     sourceCount: entries.length,
   }
@@ -1460,6 +1465,12 @@ export default function Home() {
       return acc
     }, {})
   ).sort((a, b) => b[1] - a[1])[0]
+  const strategyBreakdown = Object.entries(
+    journal.reduce<Record<string, number>>((acc, entry) => {
+      acc[entry.strategy] = (acc[entry.strategy] ?? 0) + 1
+      return acc
+    }, {})
+  ).sort((a, b) => b[1] - a[1])[0]
   const emotionBreakdown = Object.entries(
     journal.reduce<Record<string, number>>((acc, entry) => {
       acc[entry.emotion] = (acc[entry.emotion] ?? 0) + 1
@@ -1472,6 +1483,8 @@ export default function Home() {
   const topLosingSetup = getTopStat(losingTrades.map((entry) => entry.setupType))
   const topWinningInstrument = getTopStat(winningTrades.map((entry) => entry.instrument))
   const topLosingInstrument = getTopStat(losingTrades.map((entry) => entry.instrument))
+  const topWinningStrategy = getTopStat(winningTrades.map((entry) => entry.strategy))
+  const topLosingStrategy = getTopStat(losingTrades.map((entry) => entry.strategy))
   const topWinningDirection = getTopStat(winningTrades.map((entry) => entry.direction))
   const topLosingDirection = getTopStat(losingTrades.map((entry) => entry.direction))
   const topWinningSession = getTopStat(winningTrades.map((entry) => entry.session))
@@ -1480,6 +1493,7 @@ export default function Home() {
   const topOverallSession = getTopStat(journal.map((entry) => entry.session))
   const topOverallInstrument = getTopStat(journal.map((entry) => entry.instrument))
   const topOverallSetup = getTopStat(journal.map((entry) => entry.setupType))
+  const topOverallStrategy = getTopStat(journal.map((entry) => entry.strategy))
   const topOverallEmotion = getTopStat(journal.map((entry) => entry.emotion))
   const perfectWinningCombination = getCombinationSummary(winningTrades)
   const worstLosingCombination = getCombinationSummary(losingTrades)
@@ -1675,6 +1689,7 @@ export default function Home() {
       session: proSession,
       instrument: journalInstrument,
       setupType: journalSetup,
+      strategy: selectedStrategy,
       emotion: journalEmotion,
     }
 
@@ -1995,6 +2010,8 @@ ${emotionWarning}`
                 ['Loss setup', topLosingSetup ? `${topLosingSetup.value}` : 'No losing trades yet.'],
                 ['Win instrument', topWinningInstrument ? `${topWinningInstrument.value}` : 'No winning trades yet.'],
                 ['Loss instrument', topLosingInstrument ? `${topLosingInstrument.value}` : 'No losing trades yet.'],
+                ['Win strategy', topWinningStrategy ? `${topWinningStrategy.value}` : 'No winning trades yet.'],
+                ['Loss strategy', topLosingStrategy ? `${topLosingStrategy.value}` : 'No losing trades yet.'],
                 ['Win direction', topWinningDirection ? `${topWinningDirection.value}` : 'No winning trades yet.'],
                 ['Loss direction', topLosingDirection ? `${topLosingDirection.value}` : 'No losing trades yet.'],
                 ['Win session', topWinningSession ? `${topWinningSession.value}` : 'No winning trades yet.'],
@@ -2003,6 +2020,7 @@ ${emotionWarning}`
                 ['Top session', topOverallSession ? `${topOverallSession.value}` : 'No data yet.'],
                 ['Top instrument', topOverallInstrument ? `${topOverallInstrument.value}` : 'No data yet.'],
                 ['Top setup', topOverallSetup ? `${topOverallSetup.value}` : 'No data yet.'],
+                ['Top strategy', topOverallStrategy ? `${topOverallStrategy.value}` : 'No data yet.'],
                 ['Top emotion', topOverallEmotion ? `${topOverallEmotion.value}` : 'No data yet.'],
                 ['Best avg R', bestSetupByAverageR ? `${bestSetupByAverageR.setup} • ${bestSetupByAverageR.avgR.toFixed(2)}R` : 'Not enough closed trades yet.'],
                 ['Worst avg R', worstSetupByAverageR ? `${worstSetupByAverageR.setup} • ${worstSetupByAverageR.avgR.toFixed(2)}R` : 'Not enough closed trades yet.'],
@@ -2034,6 +2052,7 @@ ${emotionWarning}`
                         `Emotion: ${perfectWinningCombination.emotion}`,
                         `Setup: ${perfectWinningCombination.setup}`,
                         `Instrument: ${perfectWinningCombination.instrument}`,
+                        `Strategy: ${perfectWinningCombination.strategy}`,
                         `Direction: ${perfectWinningCombination.direction}`,
                         `Session: ${perfectWinningCombination.session}`,
                       ].map((item) => (
@@ -2071,6 +2090,7 @@ ${emotionWarning}`
                         `Emotion: ${worstLosingCombination.emotion}`,
                         `Setup: ${worstLosingCombination.setup}`,
                         `Instrument: ${worstLosingCombination.instrument}`,
+                        `Strategy: ${worstLosingCombination.strategy}`,
                         `Direction: ${worstLosingCombination.direction}`,
                         `Session: ${worstLosingCombination.session}`,
                       ].map((item) => (
@@ -2111,7 +2131,7 @@ ${emotionWarning}`
 
             <div className="pr-10">
               <h2 className="text-center text-xl font-bold md:text-2xl">Journal entry</h2>
-              <p className={`mt-2 text-center text-sm ${ui.subtle}`}>{formatDate(selectedJournalEntry.createdAt)} • {selectedJournalEntry.instrument} • {selectedJournalEntry.setupType}</p>
+              <p className={`mt-2 text-center text-sm ${ui.subtle}`}>{formatDate(selectedJournalEntry.createdAt)} • {selectedJournalEntry.instrument} • {selectedJournalEntry.setupType} • {selectedJournalEntry.strategy}</p>
             </div>
 
             <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
@@ -2121,6 +2141,7 @@ ${emotionWarning}`
                 ['Quality', selectedJournalEntry.quality],
                 ['Score / threshold', `${selectedJournalEntry.score}% / ${selectedJournalEntry.threshold}%`],
                 ['Session', selectedJournalEntry.session],
+                ['Strategy', selectedJournalEntry.strategy],
                 ['Emotion', selectedJournalEntry.emotion],
                 ['Direction', selectedJournalEntry.direction],
                 ['P&L', `${selectedJournalEntry.pnl >= 0 ? '+' : ''}${selectedJournalEntry.pnl.toFixed(2)}`],
@@ -2507,7 +2528,7 @@ ${emotionWarning}`
             <>
               <div className={`mt-4 rounded-[24px] p-3 md:p-4 ${ui.card}`}>
                 <div className="grid gap-3 xl:grid-cols-[1.05fr_0.95fr]">
-                  <div className={`rounded-[22px] p-3 ${ui.innerCard}`}>
+                  <div className={`order-2 rounded-[22px] p-3 xl:order-1 ${ui.innerCard}`}>
                     <div className={`mb-2 text-sm font-semibold ${ui.secondaryStrong}`}>Journal entry</div>
                     <p className={`mb-3 text-xs ${ui.muted}`}>Log the trade, the emotion, and the result. Keep it honest and fast.</p>
 
@@ -2527,11 +2548,18 @@ ${emotionWarning}`
                         secondaryButtonClassName={ui.secondaryBtn}
                       />
 
-                      <select value={proSession} onChange={(e) => setProSession(e.target.value as SessionType)} className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}>
-                        {sessionOptions.map((item) => (
-                          <option key={item} value={item}>Session: {item}</option>
-                        ))}
-                      </select>
+                      <div className="relative">
+                        <select
+                          value={proSession}
+                          onChange={(e) => setProSession(e.target.value as SessionType)}
+                          className={`h-10 w-full appearance-none rounded-2xl px-3 pr-10 text-sm outline-none transition ${ui.select}`}
+                        >
+                          {sessionOptions.map((item) => (
+                            <option key={item} value={item}>Session: {item}</option>
+                          ))}
+                        </select>
+                        <span className={`pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[11px] leading-none ${ui.muted}`}>▼</span>
+                      </div>
 
                       <ManagedOptionDropdown
                         label="Setup"
@@ -2627,7 +2655,7 @@ ${emotionWarning}`
                     )}
                   </div>
 
-                  <div className={`rounded-[22px] p-3 ${ui.innerCard}`}>
+                  <div className={`order-1 rounded-[22px] p-3 xl:order-2 ${ui.innerCard}`}>
                     <div className={`mb-2 text-sm font-semibold ${ui.secondaryStrong}`}>Performance snapshot</div>
                     <p className={`mb-3 text-xs ${ui.muted}`}>The stats that matter most when reviewing discipline and execution.</p>
 
@@ -2636,7 +2664,7 @@ ${emotionWarning}`
                         ['Win rate', `${winRate}%`],
                         ['Loss rate', `${lossRate}%`],
                         ['Wins / losses', `${winCount}/${lossCount}`],
-                        ['Breakeven', `${breakevenCount}`],
+                        ['Top strategy', strategyBreakdown ? `${strategyBreakdown[0]}` : 'No journal entries yet.'],
                         ['Long W/L', `${longWins}/${longLosses}`],
                         ['Short W/L', `${shortWins}/${shortLosses}`],
                         ['Largest win', largestWin !== null ? `${largestWin >= 0 ? '+' : ''}${largestWin.toFixed(2)}` : 'No winning trades yet.'],
@@ -2652,6 +2680,11 @@ ${emotionWarning}`
                     <div className={`mt-3 rounded-2xl border px-4 py-3 text-sm ${ui.statBox}`}>
                       <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Top setup</div>
                       <div className="mt-1 font-semibold">{setupBreakdown ? `${setupBreakdown[0]} • ${setupBreakdown[1]} entries` : 'No journal entries yet.'}</div>
+                    </div>
+
+                    <div className={`mt-3 rounded-2xl border px-4 py-3 text-sm ${ui.statBox}`}>
+                      <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Top strategy</div>
+                      <div className="mt-1 font-semibold">{strategyBreakdown ? `${strategyBreakdown[0]} • ${strategyBreakdown[1]} entries` : 'No journal entries yet.'}</div>
                     </div>
 
                     <div className={`mt-3 rounded-2xl border px-4 py-3 text-sm ${ui.statBox}`}>
@@ -2701,6 +2734,9 @@ ${emotionWarning}`
                           <div className="min-w-0">
                             <div className="flex flex-wrap items-center gap-2">
                               <div className="text-sm font-semibold">{entry.instrument} • {entry.setupType}</div>
+                              <div className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold ${theme === 'light' ? 'border-slate-300 bg-slate-100 text-slate-700' : 'border-white/10 bg-white/5 text-slate-300'}`}>
+                                {entry.strategy}
+                              </div>
                               <div className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold ${entry.outcome === 'win' ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-200' : entry.outcome === 'loss' ? 'border-red-500/20 bg-red-500/10 text-red-200' : entry.outcome === 'breakeven' ? 'border-amber-500/20 bg-amber-500/10 text-amber-200' : qualificationStyles.badge}`}>
                                 {entry.outcome}
                               </div>
@@ -2710,7 +2746,7 @@ ${emotionWarning}`
                             </div>
 
                             <div className={`mt-1 text-xs ${ui.muted}`}>
-                              {formatDate(entry.createdAt)} • {entry.session} • {entry.emotion} • score {entry.score}% • {entry.verdict}
+                              {formatDate(entry.createdAt)} • {entry.session} • {entry.strategy} • {entry.emotion} • score {entry.score}% • {entry.verdict}
                             </div>
 
                             <div className={`mt-2 flex flex-wrap gap-2 text-xs ${ui.muted}`}>
@@ -2826,24 +2862,6 @@ ${emotionWarning}`
                   Create a strategy first, then add rules under that strategy so you can reload the full checklist in one tap later.
                 </p>
 
-                <ManagedOptionDropdown
-                  label="Strategy"
-                  value={selectedStrategy}
-                  options={strategyOptions}
-                  onSelect={(value) => {
-                    setSelectedStrategy(value)
-                    setNewRuleError('')
-                  }}
-                  onDelete={deleteStrategyOption}
-                  onAdd={addStrategyOption}
-                  theme={theme}
-                  triggerClassName={ui.select}
-                  inputClassName={ui.input}
-                  mutedClassName={ui.muted}
-                  addButtonClassName={styles.button}
-                  secondaryButtonClassName={ui.secondaryBtn}
-                />
-
                 <div className={`mt-2 rounded-2xl px-3 py-2 text-[11px] leading-5 md:text-xs ${ui.statBox}`}>
                   New rules added below will be saved under <span className="font-semibold">{selectedStrategy}</span>.
                 </div>
@@ -2862,18 +2880,39 @@ ${emotionWarning}`
                     className={`w-full rounded-2xl px-3 py-2.5 text-sm outline-none transition ${ui.input}`}
                   />
 
-                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                    <select
-                      value={newRuleImportance}
-                      onChange={(e) => setNewRuleImportance(e.target.value as Importance)}
-                      className={`h-10 rounded-2xl px-3 text-sm outline-none transition ${ui.select}`}
+                  <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] items-center gap-2">
+                    <ManagedOptionDropdown
+                      label="Strategy"
+                      value={selectedStrategy}
+                      options={strategyOptions}
+                      onSelect={(value) => {
+                        setSelectedStrategy(value)
+                        setNewRuleError('')
+                      }}
+                      onDelete={deleteStrategyOption}
+                      onAdd={addStrategyOption}
+                      theme={theme}
+                      triggerClassName={ui.select}
+                      inputClassName={ui.input}
+                      mutedClassName={ui.muted}
+                      addButtonClassName={styles.button}
+                      secondaryButtonClassName={ui.secondaryBtn}
                     >
-                      {importanceOptions.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
+                    </ManagedOptionDropdown>
+                    <div className="relative">
+                      <select
+                        value={newRuleImportance}
+                        onChange={(e) => setNewRuleImportance(e.target.value as Importance)}
+                        className={`h-10 w-full appearance-none rounded-2xl px-3 pr-10 text-sm outline-none transition ${ui.select}`}
+                      >
+                        {importanceOptions.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                      <span className={`pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[11px] leading-none ${ui.muted}`}>▼</span>
+                    </div>
 
                     <button
                       onClick={addRule}
@@ -2891,35 +2930,6 @@ ${emotionWarning}`
                   </div>
                 )}
 
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <button
-                    onClick={loadStarterRules}
-                    className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${ui.secondaryBtn}`}
-                  >
-                    Load Starter Set
-                  </button>
-
-                  <button
-                    onClick={loadSelectedStrategy}
-                    className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${ui.secondaryBtn}`}
-                  >
-                    Load Strategy Rules
-                  </button>
-
-                  <button
-                    onClick={resetChecks}
-                    className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${ui.secondaryBtn}`}
-                  >
-                    Reset
-                  </button>
-
-                  <button
-                    onClick={clearAllRules}
-                    className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${ui.dangerBtn}`}
-                  >
-                    Delete rules
-                  </button>
-                </div>
               </div>
             </div>
           </div>
@@ -2939,6 +2949,36 @@ ${emotionWarning}`
               </div>
             </div>
 
+            <div className="mb-3 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+              <button
+                onClick={loadStarterRules}
+                className={`rounded-2xl px-3 py-2 text-[11px] font-semibold transition sm:text-xs ${ui.secondaryBtn}`}
+              >
+                Load Starter Set
+              </button>
+
+              <button
+                onClick={loadSelectedStrategy}
+                className={`rounded-2xl px-3 py-2 text-[11px] font-semibold transition sm:text-xs ${ui.secondaryBtn}`}
+              >
+                Load Strategy Rules
+              </button>
+
+              <button
+                onClick={resetChecks}
+                className={`rounded-2xl px-3 py-2 text-[11px] font-semibold transition sm:text-xs ${ui.secondaryBtn}`}
+              >
+                Reset
+              </button>
+
+              <button
+                onClick={clearAllRules}
+                className={`rounded-2xl px-3 py-2 text-[11px] font-semibold transition sm:text-xs ${ui.dangerBtn}`}
+              >
+                Delete Rules
+              </button>
+            </div>
+
             {rules.length === 0 ? (
               <div className={`rounded-[24px] p-8 text-center ${ui.empty}`}>
                 No rules yet. Add rules using the + button above.
@@ -2956,7 +2996,7 @@ ${emotionWarning}`
                   return (
                     <div
                       key={rule.id}
-                      className={`group flex items-center gap-2.5 rounded-[20px] border p-3 transition md:gap-3 md:p-3.5 ${
+                      className={`group flex items-start gap-2.5 rounded-[20px] border p-3 transition md:items-center md:gap-3 md:p-3.5 ${
                         rule.checked
                           ? ui.ruleChecked
                           : ui.ruleUnchecked
@@ -2987,23 +3027,23 @@ ${emotionWarning}`
                         </div>
                       </button>
 
-                      <div className="flex items-center gap-2">
+                      <div className="flex shrink-0 flex-col items-end gap-1 md:flex-row md:items-center md:gap-2">
 
                         <div
-                          className={`rounded-xl border px-2.5 py-2 text-[11px] font-medium md:text-xs ${importanceBadge.className}`}
+                          className={`rounded-lg border px-2 py-1 text-[10px] font-medium leading-none md:rounded-xl md:px-2.5 md:py-2 md:text-xs ${importanceBadge.className}`}
                         >
                           {importanceBadge.label}
                         </div>
 
                         <div
-                          className={`rounded-xl border px-2.5 py-2 text-[11px] font-medium md:text-xs ${strategyBadgeClassName}`}
+                          className={`rounded-lg border px-2 py-1 text-[10px] font-medium leading-none md:rounded-xl md:px-2.5 md:py-2 md:text-xs ${strategyBadgeClassName}`}
                         >
                           {rule.strategy}
                         </div>
 
                         <button
                           onClick={() => deleteRule(rule.id)}
-                          className={`flex h-9 w-9 items-center justify-center rounded-xl text-lg transition md:h-10 md:w-10 ${ui.deleteRule}`}
+                          className={`flex h-8 w-8 items-center justify-center rounded-lg text-base transition md:h-10 md:w-10 md:rounded-xl md:text-lg ${ui.deleteRule}`}
                           aria-label="Delete rule"
                         >
                           -
@@ -3044,43 +3084,4 @@ ${emotionWarning}`
                     <div className="space-y-2">
                       {ruleLibrary
                         .filter((rule) => rule.strategy === selectedStrategy)
-                        .filter((rule) => !rules.some((currentRule) => normalizeRuleText(currentRule.text) === normalizeRuleText(rule.text) && currentRule.strategy.toLowerCase() === rule.strategy.toLowerCase()))
-                        .map((rule) => {
-                          const importanceBadge = getImportanceBadge(rule.importance, theme)
-                          return (
-                            <div key={rule.id} className={`flex items-center gap-2 rounded-[18px] border p-3 ${ui.statBox}`}>
-                              <div className="min-w-0 flex-1">
-                                <div className="text-sm font-semibold">{rule.text}</div>
-                                <div className="mt-1 flex flex-wrap gap-2">
-                                  <div className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold ${importanceBadge.className}`}>
-                                    {importanceBadge.label}
-                                  </div>
-                                  <div className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold ${theme === 'light' ? 'border-slate-300 bg-slate-100 text-slate-700' : 'border-white/10 bg-white/5 text-slate-300'}`}>
-                                    {rule.strategy}
-                                  </div>
-                                </div>
-                              </div>
-                              <button
-                                type="button"
-                                onClick={() => addSavedRuleToChecklist(rule)}
-                                className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${ui.secondaryBtn}`}
-                              >
-                                Add
-                              </button>
-                            </div>
-                          )
-                        })}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-
-            </>
-          )}
-        </div>
-      </div>
-    </main>
-  )
-}
+                        .filter((rule) => !rules.some((currentRule) => normalizeRuleText(currentRule.text) === normalizeRuleText(rule.text) && currentRule.strategy.toLowerC
