@@ -1859,7 +1859,11 @@ export default function Home() {
     setRules((prev) => prev.filter((rule) => rule.strategy !== value))
   }
 
-  const availableStrategyRuleOptions = strategyOptions.filter((strategy) =>
+  const visibleStrategyOptions = strategyOptions.filter(
+    (strategy) => strategy.toLowerCase() !== 'general'
+  )
+
+  const availableStrategyRuleOptions = visibleStrategyOptions.filter((strategy) =>
     ruleLibrary.some((rule) => rule.strategy.toLowerCase() === strategy.toLowerCase())
   )
 
@@ -2980,7 +2984,7 @@ ${emotionWarning}`
                   <ManagedOptionDropdown
                     label="Strategy"
                     value={selectedStrategy}
-                    options={strategyOptions}
+                    options={visibleStrategyOptions}
                     onSelect={(value) => {
                       setSelectedStrategy(value)
                       setShowSavedRulesPicker(false)
@@ -3068,6 +3072,7 @@ ${emotionWarning}`
                     return
                   }
                   setShowSavedRulesPicker(false)
+                  setShowEditStrategyRuleSet(false)
                   setShowLoadStrategyPicker((prev) => !prev)
                 }}
                 className={`rounded-2xl px-3 py-2 text-[11px] font-semibold transition sm:text-xs ${ui.secondaryBtn}`}
@@ -3184,7 +3189,7 @@ ${emotionWarning}`
 
                         <button
                           onClick={() => deleteRule(rule.id)}
-                          className={`flex h-6 min-w-[40px] items-center justify-center rounded-lg px-2 text-sm transition md:h-10 md:min-w-[52px] md:rounded-xl md:text-lg ${ui.deleteRule}`}
+                          className={`flex h-6 min-w-[40px] items-center justify-center rounded-full px-2 text-sm transition md:h-10 md:min-w-[52px] md:rounded-full md:text-lg ${ui.deleteRule}`}
                           aria-label="Delete rule"
                         >
                           -
@@ -3197,15 +3202,6 @@ ${emotionWarning}`
             )}
 
             <div className="mt-4 flex flex-col items-center gap-3">
-              <button
-                type="button"
-                onClick={() => setShowSavedRulesPicker((prev) => !prev)}
-                className={`flex h-10 w-10 items-center justify-center rounded-full text-xl font-bold transition ${styles.button}`}
-                aria-label="Add saved rule"
-              >
-                +
-              </button>
-
               {showSavedRulesPicker && (
                 <div className={`w-full rounded-[22px] border p-3 ${ui.innerCard}`}>
                   <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
