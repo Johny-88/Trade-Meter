@@ -1879,6 +1879,7 @@ export default function Home() {
       session: proSession,
       instrument: journalInstrument,
       setupType: journalSetup,
+      strategy: selectedStrategy,
       emotion: journalEmotion,
       direction: journalDirection,
       pnl: journalPnl,
