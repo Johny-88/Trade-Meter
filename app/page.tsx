@@ -72,6 +72,7 @@ type JournalEntry = {
   instrument: string
   setupType: string
   strategy: string
+  marketCondition: string
   emotion: string
   direction: TradeDirection
   pnl: number
@@ -1988,7 +1989,8 @@ export default function Home() {
       session: proSession,
       instrument: journalInstrument,
       setupType: journalSetup,
-      strategy: selectedStrategy,
+      strategy: journalStrategy,
+      marketCondition: journalMarketCondition,
       emotion: journalEmotion,
       direction: journalDirection,
       pnl: journalPnl,
