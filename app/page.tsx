@@ -2370,18 +2370,7 @@ ${emotionWarning}`
         <div className={`absolute bottom-0 left-1/3 h-72 w-72 rounded-full ${ui.glowThree} blur-3xl`} />
       </div>
 
-      <div
-        ref={liveScoreRef}
-        className={mode === 'stats' ? 'relative z-30 px-3 pt-2 md:px-4' : 'fixed inset-x-0 top-0 z-50 px-3 pt-2 md:px-4'}
-      >
-        <div
-          className={`pointer-events-none absolute inset-x-0 top-0 h-full rounded-b-[28px] ${
-            theme === 'light'
-              ? 'bg-slate-100/72 backdrop-blur-xl'
-              : 'bg-slate-950/48 backdrop-blur-xl'
-          }`}
-        />
-
+      <div className="relative z-30 px-3 pt-2 md:px-4">
         <div className="relative z-10 mx-auto mb-2 flex max-w-7xl items-center justify-between gap-3">
          <div className="flex items-center gap-0.4">
   <div className="relative h-5 w-6 shrink-0">
@@ -2496,8 +2485,14 @@ ${emotionWarning}`
           </div>
         </div>
 
-        <div className={`relative z-10 mx-auto max-w-7xl overflow-hidden rounded-[22px] ${ui.liveOuter}`}>
-          <div className={`bg-gradient-to-r ${styles.soft} p-2.5 md:p-3`}>
+        <div
+          ref={liveScoreRef}
+          className={mode === 'standard' ? 'sticky top-0 z-40 mx-auto max-w-7xl' : 'relative z-10 mx-auto max-w-7xl'}
+        >
+          <div
+            className={`overflow-hidden rounded-[22px] ${ui.liveOuter} ${mode === 'standard' ? (theme === 'light' ? 'bg-slate-100/92' : 'bg-slate-950/90') : ''}`}
+          >
+            <div className={`bg-gradient-to-r ${styles.soft} p-2.5 md:p-3`}>
             {mode === 'standard' ? (
               <div className="grid gap-2 md:grid-cols-[260px_minmax(0,1fr)] lg:grid-cols-[280px_minmax(0,1fr)] md:items-center">
                 <div className={`rounded-[18px] p-2.5 ${ui.scorePanel}`}>
@@ -2528,7 +2523,7 @@ ${emotionWarning}`
                     />
                   </div>
 
-                  <div className={`mt-1.5 text-[10px] font-semibold md:text-[11px] ${ui.subtle}`}>
+                  <div className={`mt-1 text-[10px] font-semibold md:text-[11px] ${ui.subtle}`}>
                     {checkedCount}/{totalCount} rules
                   </div>
                 </div>
@@ -2590,16 +2585,16 @@ ${emotionWarning}`
                   </div>
                 </div>
 
-                <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="grid grid-cols-2 gap-2 xl:grid-cols-4">
                   {[
                     ['Net P&L', `${totalNetPnl >= 0 ? '+' : ''}${totalNetPnl.toFixed(2)}`],
                     ['Avg R', `${averageR >= 0 ? '+' : ''}${averageR.toFixed(2)}R`],
                     ['Long W/L', `${longWins}/${longLosses}`],
                     ['Short W/L', `${shortWins}/${shortLosses}`],
                   ].map((item) => (
-                    <div key={item[0]} className={`rounded-[16px] border px-2.5 py-2 text-center ${ui.statBox}`}>
-                      <div className={`text-[8px] uppercase tracking-[0.14em] ${ui.muted}`}>{item[0]}</div>
-                      <div className="mt-1 text-[13px] font-bold leading-5 md:text-sm">{item[1]}</div>
+                    <div key={item[0]} className={`rounded-[14px] border px-2 py-2 text-center ${ui.statBox}`}>
+                      <div className={`text-[8px] uppercase tracking-[0.12em] ${ui.muted}`}>{item[0]}</div>
+                      <div className="mt-1 text-xs font-bold leading-4 md:text-sm">{item[1]}</div>
                     </div>
                   ))}
                 </div>
@@ -2611,7 +2606,7 @@ ${emotionWarning}`
 
       <div
         className="relative mx-auto max-w-7xl px-4 pb-6 md:px-6 lg:px-8 lg:pb-8"
-        style={{ paddingTop: mode === 'stats' ? 0 : topOffset }}
+        style={{ paddingTop: 0 }}
       >
         {mode === 'standard' && (
         <div className={`mb-6 rounded-[28px] p-5 md:p-6 ${ui.card}`}>
@@ -2822,32 +2817,16 @@ ${emotionWarning}`
                         ['Short W/L', `${shortWins}/${shortLosses}`],
                         ['Largest win', largestWin !== null ? `${largestWin >= 0 ? '+' : ''}${largestWin.toFixed(2)}` : 'No winning trades yet.'],
                         ['Largest loss', largestLoss !== null ? `${largestLoss.toFixed(2)}` : 'No losing trades yet.'],
+                        ['Top setup', setupBreakdown ? `${setupBreakdown[0]} • ${setupBreakdown[1]} entries` : 'No journal entries yet.'],
+                        ['Top strategy', strategyBreakdown ? `${strategyBreakdown[0]} • ${strategyBreakdown[1]} entries` : 'No journal entries yet.'],
+                        ['Most common emotion', emotionBreakdown ? `${emotionBreakdown[0]} • ${emotionBreakdown[1]} entries` : 'No journal entries yet.'],
+                        ['Most missed rule', mostMissedRule ? mostMissedRule[0] : 'No missed-rule data yet.'],
                       ].map((item) => (
-                        <div key={item[0]} className={`rounded-2xl border px-3 py-3 ${ui.statBox}`}>
-                          <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>{item[0]}</div>
-                          <div className="mt-1 text-lg font-bold">{item[1]}</div>
+                        <div key={item[0]} className={`rounded-[16px] border px-2.5 py-2.5 ${ui.statBox}`}>
+                          <div className={`text-[8px] uppercase tracking-[0.12em] ${ui.muted}`}>{item[0]}</div>
+                          <div className="mt-1 text-[13px] font-semibold leading-5 md:text-base md:font-bold">{item[1]}</div>
                         </div>
                       ))}
-                    </div>
-
-                    <div className={`mt-3 rounded-2xl border px-4 py-3 text-sm ${ui.statBox}`}>
-                      <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Top setup</div>
-                      <div className="mt-1 font-semibold">{setupBreakdown ? `${setupBreakdown[0]} • ${setupBreakdown[1]} entries` : 'No journal entries yet.'}</div>
-                    </div>
-
-                    <div className={`mt-3 rounded-2xl border px-4 py-3 text-sm ${ui.statBox}`}>
-                      <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Top strategy</div>
-                      <div className="mt-1 font-semibold">{strategyBreakdown ? `${strategyBreakdown[0]} • ${strategyBreakdown[1]} entries` : 'No journal entries yet.'}</div>
-                    </div>
-
-                    <div className={`mt-3 rounded-2xl border px-4 py-3 text-sm ${ui.statBox}`}>
-                      <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Most common emotion</div>
-                      <div className="mt-1 font-semibold">{emotionBreakdown ? `${emotionBreakdown[0]} • ${emotionBreakdown[1]} entries` : 'No journal entries yet.'}</div>
-                    </div>
-
-                    <div className={`mt-3 rounded-2xl border px-4 py-3 text-sm ${ui.statBox}`}>
-                      <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Most missed rule</div>
-                      <div className="mt-1 font-semibold">{mostMissedRule ? mostMissedRule[0] : 'No missed-rule data yet.'}</div>
                     </div>
 
                     <div className="mt-3 flex justify-center">
