@@ -1084,7 +1084,8 @@ export default function Home() {
   const [theme, setTheme] = useState<AppTheme>('light')
   const [mode, setMode] = useState<AppMode>('standard')
   const [newRule, setNewRule] = useState('')
-  const [newRuleImportance, setNewRuleImportance] = useState<Importance>('important')
+  const [newRuleImportance, setNewRuleImportance] = useState<Importance | ''>('')
+  const [importanceNeedsAttention, setImportanceNeedsAttention] = useState(false)
   const [newRuleCategory, setNewRuleCategory] = useState<RuleCategory>('confirmation')
   const [strategyOptions, setStrategyOptions] = useState<string[]>(defaultStrategyOptions)
   const [selectedStrategy, setSelectedStrategy] = useState(defaultStrategyOptions[0])
@@ -1139,6 +1140,7 @@ export default function Home() {
   )
   const [topOffset, setTopOffset] = useState(0)
   const liveScoreRef = useRef<HTMLDivElement | null>(null)
+  const importanceSelectRef = useRef<HTMLSelectElement | null>(null)
   const previousSnapshotRef = useRef<SetupSnapshot | null>(null)
 
   useEffect(() => {
@@ -1625,6 +1627,7 @@ export default function Home() {
     setRules(createRulesFromPack({ id: 'starter', name: 'Starter', minScore, rules: starterRules, defaultCheckedIndexes: [] }, 'General'))
     setShowSavedRulesPicker(false)
     setShowLoadStrategyPicker(false)
+    setImportanceNeedsAttention(false)
     setNewRuleError('')
   }
 
@@ -1633,7 +1636,8 @@ export default function Home() {
     setShowSavedRulesPicker(false)
     setShowLoadStrategyPicker(false)
     setNewRule('')
-    setNewRuleImportance('important')
+    setNewRuleImportance('')
+    setImportanceNeedsAttention(false)
     setNewRuleCategory('confirmation')
     setNewRuleError('')
   }
@@ -1646,6 +1650,23 @@ export default function Home() {
   const addRule = () => {
     const trimmed = newRule.trim()
     if (!trimmed) return
+
+    if (!newRuleImportance) {
+      setNewRuleError('Choose this rule importance level before adding the rule.')
+      setImportanceNeedsAttention(true)
+      importanceSelectRef.current?.animate(
+        [
+          { transform: 'translateX(0px)' },
+          { transform: 'translateX(-5px)' },
+          { transform: 'translateX(5px)' },
+          { transform: 'translateX(-4px)' },
+          { transform: 'translateX(4px)' },
+          { transform: 'translateX(0px)' },
+        ],
+        { duration: 280, easing: 'ease-out' }
+      )
+      return
+    }
 
     const normalizedNewRule = normalizeRuleText(trimmed)
     const alreadyExistsOnChecklist = rules.some(
@@ -1669,7 +1690,7 @@ export default function Home() {
     setRuleLibrary((prev) => [...prev, { ...rule, checked: false }])
     setShowSavedRulesPicker(false)
     setNewRule('')
-    setNewRuleImportance('important')
+    setNewRuleImportance('')
     setNewRuleCategory('confirmation')
     setNewRuleError('')
   }
@@ -1903,7 +1924,9 @@ export default function Home() {
     setRules((prev) => prev.filter((rule) => rule.strategy !== value))
   }
 
-  const visibleStrategyOptions = strategyOptions.filter((strategy) => strategy.toLowerCase() !== 'general')
+  const visibleStrategyOptions = strategyOptions.filter(
+    (strategy) => strategy.toLowerCase() !== 'general'
+  )
   const journalStrategyOptions = visibleStrategyOptions.length > 0 ? visibleStrategyOptions : ['General']
 
   const availableStrategyRuleOptions = visibleStrategyOptions.filter((strategy) =>
@@ -2348,8 +2371,7 @@ ${emotionWarning}`
       </div>
 
       <div
-        ref={liveScoreRef}
-        className={mode === 'stats' ? 'relative z-30 px-3 pt-2 md:px-4' : 'fixed inset-x-0 top-0 z-50 px-3 pt-2 md:px-4'}
+        className="relative z-30 px-3 pt-2 md:px-4"
       >
         <div
           className={`pointer-events-none absolute inset-x-0 top-0 h-full rounded-b-[28px] ${
@@ -2473,7 +2495,7 @@ ${emotionWarning}`
           </div>
         </div>
 
-        <div className={`relative z-10 mx-auto max-w-7xl overflow-hidden rounded-[22px] ${ui.liveOuter}`}>
+        <div ref={liveScoreRef} className={`sticky top-2 z-20 mx-auto max-w-7xl overflow-hidden rounded-[22px] ${ui.liveOuter}`}>
           <div className={`bg-gradient-to-r ${styles.soft} p-2.5 md:p-3`}>
             {mode === 'standard' ? (
               <div className="grid gap-2 md:grid-cols-[260px_minmax(0,1fr)] lg:grid-cols-[280px_minmax(0,1fr)] md:items-center">
@@ -2588,7 +2610,7 @@ ${emotionWarning}`
 
       <div
         className="relative mx-auto max-w-7xl px-4 pb-6 md:px-6 lg:px-8 lg:pb-8"
-        style={{ paddingTop: mode === 'stats' ? 0 : topOffset }}
+        style={{ paddingTop: 0 }}
       >
         {mode === 'standard' && (
         <div className={`mb-6 rounded-[28px] p-5 md:p-6 ${ui.card}`}>
@@ -2785,7 +2807,7 @@ ${emotionWarning}`
                     )}
                   </div>
 
-                  <div className={`order-1 rounded-[22px] p-3 xl:order-2 ${ui.innerCard}`}>
+                  <div className={`order-1 rounded-[22px] p-2.5 xl:order-2 md:p-3 ${ui.innerCard}`}>
                     <div className={`mb-2 text-sm font-semibold ${ui.secondaryStrong}`}>Performance snapshot</div>
                     <p className={`mb-3 text-xs ${ui.muted}`}>The stats that matter most when reviewing discipline and execution.</p>
 
@@ -2799,32 +2821,16 @@ ${emotionWarning}`
                         ['Short W/L', `${shortWins}/${shortLosses}`],
                         ['Largest win', largestWin !== null ? `${largestWin >= 0 ? '+' : ''}${largestWin.toFixed(2)}` : 'No winning trades yet.'],
                         ['Largest loss', largestLoss !== null ? `${largestLoss.toFixed(2)}` : 'No losing trades yet.'],
+                        ['Top setup', setupBreakdown ? `${setupBreakdown[0]} • ${setupBreakdown[1]} entries` : 'No journal entries yet.'],
+                        ['Top strategy', strategyBreakdown ? `${strategyBreakdown[0]} • ${strategyBreakdown[1]} entries` : 'No journal entries yet.'],
+                        ['Most common emotion', emotionBreakdown ? `${emotionBreakdown[0]} • ${emotionBreakdown[1]} entries` : 'No journal entries yet.'],
+                        ['Most missed rule', mostMissedRule ? mostMissedRule[0] : 'No missed-rule data yet.'],
                       ].map((item) => (
-                        <div key={item[0]} className={`rounded-2xl border px-3 py-3 ${ui.statBox}`}>
-                          <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>{item[0]}</div>
-                          <div className="mt-1 text-lg font-bold">{item[1]}</div>
+                        <div key={item[0]} className={`min-h-[86px] rounded-[18px] border px-2.5 py-2.5 ${ui.statBox}`}>
+                          <div className={`text-[9px] uppercase tracking-[0.14em] leading-4 ${ui.muted}`}>{item[0]}</div>
+                          <div className="mt-1 text-[13px] font-semibold leading-5 md:text-sm">{item[1]}</div>
                         </div>
                       ))}
-                    </div>
-
-                    <div className={`mt-3 rounded-2xl border px-4 py-3 text-sm ${ui.statBox}`}>
-                      <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Top setup</div>
-                      <div className="mt-1 font-semibold">{setupBreakdown ? `${setupBreakdown[0]} • ${setupBreakdown[1]} entries` : 'No journal entries yet.'}</div>
-                    </div>
-
-                    <div className={`mt-3 rounded-2xl border px-4 py-3 text-sm ${ui.statBox}`}>
-                      <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Top strategy</div>
-                      <div className="mt-1 font-semibold">{strategyBreakdown ? `${strategyBreakdown[0]} • ${strategyBreakdown[1]} entries` : 'No journal entries yet.'}</div>
-                    </div>
-
-                    <div className={`mt-3 rounded-2xl border px-4 py-3 text-sm ${ui.statBox}`}>
-                      <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Most common emotion</div>
-                      <div className="mt-1 font-semibold">{emotionBreakdown ? `${emotionBreakdown[0]} • ${emotionBreakdown[1]} entries` : 'No journal entries yet.'}</div>
-                    </div>
-
-                    <div className={`mt-3 rounded-2xl border px-4 py-3 text-sm ${ui.statBox}`}>
-                      <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Most missed rule</div>
-                      <div className="mt-1 font-semibold">{mostMissedRule ? mostMissedRule[0] : 'No missed-rule data yet.'}</div>
                     </div>
 
                     <div className="mt-3 flex justify-center">
@@ -3006,12 +3012,70 @@ ${emotionWarning}`
                     className={`w-full rounded-2xl px-3 py-2.5 text-sm outline-none transition ${ui.input}`}
                   />
 
+                  <button
+                    type="button"
+                    onClick={() => setShowEditStrategyRuleSet((prev) => !prev)}
+                    className={`rounded-2xl px-3 py-2 text-left text-[11px] font-semibold transition sm:text-xs ${ui.secondaryBtn}`}
+                  >
+                    Edit your strategy ruleset
+                  </button>
+
+                  {showEditStrategyRuleSet && (
+                    <div className={`rounded-[22px] border p-3 ${ui.innerCard}`}>
+                      <div className={`text-sm font-semibold ${ui.secondaryStrong}`}>{selectedStrategy} ruleset</div>
+                      <p className={`mt-1 text-xs leading-5 ${ui.muted}`}>
+                        Remove rules from this selected strategy whenever you want to refine or clean up the set.
+                      </p>
+
+                      <div className="mt-3 space-y-2">
+                        {ruleLibrary.filter((rule) => rule.strategy.toLowerCase() === selectedStrategy.toLowerCase()).length === 0 ? (
+                          <div className={`rounded-2xl px-3 py-3 text-sm ${ui.empty}`}>
+                            No saved rules yet inside {selectedStrategy}.
+                          </div>
+                        ) : (
+                          ruleLibrary
+                            .filter((rule) => rule.strategy.toLowerCase() === selectedStrategy.toLowerCase())
+                            .map((rule) => {
+                              const importanceBadge = getImportanceBadge(rule.importance, theme)
+                              return (
+                                <div key={rule.id} className={`flex items-center gap-2 rounded-[18px] border p-3 ${ui.statBox}`}>
+                                  <div className="min-w-0 flex-1">
+                                    <div className="text-sm font-semibold">{rule.text}</div>
+                                    <div className="mt-1 flex flex-wrap gap-1">
+                                      <div className={`rounded-full border px-2 py-1 text-[10px] font-semibold ${importanceBadge.className}`}>
+                                        {importanceBadge.label}
+                                      </div>
+                                      <div className={`rounded-full border px-2 py-1 text-[10px] font-semibold ${theme === 'light' ? 'border-slate-300 bg-slate-100 text-slate-700' : 'border-white/10 bg-white/5 text-slate-300'}`}>
+                                        {rule.strategy}
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => removeRuleFromStrategySet(rule)}
+                                    className={`flex h-8 min-w-[42px] items-center justify-center rounded-full px-2 text-sm font-semibold transition ${ui.deleteRule}`}
+                                  >
+                                    -
+                                  </button>
+                                </div>
+                              )
+                            })
+                        )}
+                      </div>
+                    </div>
+                  )}
+
                   <ManagedOptionDropdown
                     label="Strategy"
                     value={selectedStrategy}
-                    options={strategyOptions}
+                    options={visibleStrategyOptions}
                     onSelect={(value) => {
                       setSelectedStrategy(value)
+                      setShowSavedRulesPicker(false)
+                      setShowLoadStrategyPicker(false)
+                      setShowEditStrategyRuleSet(false)
+                      setImportanceNeedsAttention(false)
                       setNewRuleError('')
                     }}
                     onDelete={deleteStrategyOption}
@@ -3027,10 +3091,26 @@ ${emotionWarning}`
                   <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
                     <div className="relative">
                       <select
+                        ref={importanceSelectRef}
                         value={newRuleImportance}
-                        onChange={(e) => setNewRuleImportance(e.target.value as Importance)}
-                        className={`h-10 w-full appearance-none rounded-2xl px-3 pr-10 text-sm outline-none transition ${ui.select}`}
+                        onChange={(e) => {
+                          setNewRuleImportance(e.target.value as Importance | '')
+                          setImportanceNeedsAttention(false)
+                          if (newRuleError === 'Choose this rule importance level before adding the rule.') {
+                            setNewRuleError('')
+                          }
+                        }}
+                        className={`h-10 w-full appearance-none rounded-2xl px-3 pr-10 text-sm outline-none transition ${ui.select} ${
+                          importanceNeedsAttention
+                            ? theme === 'light'
+                              ? 'border-red-400 bg-red-50 ring-2 ring-red-200'
+                              : 'border-red-400/60 bg-red-500/10 ring-2 ring-red-500/20'
+                            : ''
+                        }`}
                       >
+                        <option value="" disabled>
+                          Choose this rule importance level
+                        </option>
                         {importanceOptions.map((option) => (
                           <option key={option.value} value={option.value}>
                             {option.label}
@@ -3094,6 +3174,7 @@ ${emotionWarning}`
                     return
                   }
                   setShowSavedRulesPicker(false)
+                  setShowEditStrategyRuleSet(false)
                   setShowLoadStrategyPicker((prev) => !prev)
                 }}
                 className={`rounded-2xl px-3 py-2 text-[11px] font-semibold transition sm:text-xs ${ui.secondaryBtn}`}
@@ -3210,7 +3291,7 @@ ${emotionWarning}`
 
                         <button
                           onClick={() => deleteRule(rule.id)}
-                          className={`flex h-6 min-w-[40px] items-center justify-center rounded-lg px-2 text-sm transition md:h-10 md:min-w-[52px] md:rounded-xl md:text-lg ${ui.deleteRule}`}
+                          className={`flex h-6 min-w-[40px] items-center justify-center rounded-full px-2 text-sm transition md:h-10 md:min-w-[52px] md:rounded-full md:text-lg ${ui.deleteRule}`}
                           aria-label="Delete rule"
                         >
                           -
@@ -3223,15 +3304,6 @@ ${emotionWarning}`
             )}
 
             <div className="mt-4 flex flex-col items-center gap-3">
-              <button
-                type="button"
-                onClick={() => setShowSavedRulesPicker((prev) => !prev)}
-                className={`flex h-10 w-10 items-center justify-center rounded-full text-xl font-bold transition ${styles.button}`}
-                aria-label="Add saved rule"
-              >
-                +
-              </button>
-
               {showSavedRulesPicker && (
                 <div className={`w-full rounded-[22px] border p-3 ${ui.innerCard}`}>
                   <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
