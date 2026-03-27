@@ -2370,7 +2370,10 @@ ${emotionWarning}`
         <div className={`absolute bottom-0 left-1/3 h-72 w-72 rounded-full ${ui.glowThree} blur-3xl`} />
       </div>
 
-      <div className="relative z-30 px-3 pt-2 md:px-4">
+      <div
+        ref={liveScoreRef}
+        className={mode === 'stats' ? 'relative z-30 px-3 pt-2 md:px-4' : 'fixed inset-x-0 top-0 z-50 px-3 pt-2 md:px-4'}
+      >
         <div
           className={`pointer-events-none absolute inset-x-0 top-0 h-full rounded-b-[28px] ${
             theme === 'light'
@@ -2492,16 +2495,6 @@ ${emotionWarning}`
             </div>
           </div>
         </div>
-      </div>
-
-      <div ref={liveScoreRef} className="sticky top-0 z-40 px-3 md:px-4">
-        <div
-          className={`pointer-events-none absolute inset-x-0 top-0 h-full rounded-b-[28px] ${
-            theme === 'light'
-              ? 'bg-slate-100/72 backdrop-blur-xl'
-              : 'bg-slate-950/48 backdrop-blur-xl'
-          }`}
-        />
 
         <div className={`relative z-10 mx-auto max-w-7xl overflow-hidden rounded-[22px] ${ui.liveOuter}`}>
           <div className={`bg-gradient-to-r ${styles.soft} p-2.5 md:p-3`}>
@@ -2616,10 +2609,9 @@ ${emotionWarning}`
         </div>
       </div>
 
-
       <div
         className="relative mx-auto max-w-7xl px-4 pb-6 md:px-6 lg:px-8 lg:pb-8"
-        style={{ paddingTop: 0 }}
+        style={{ paddingTop: mode === 'stats' ? 0 : topOffset }}
       >
         {mode === 'standard' && (
         <div className={`mb-6 rounded-[28px] p-5 md:p-6 ${ui.card}`}>
