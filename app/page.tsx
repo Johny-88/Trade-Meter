@@ -2370,9 +2370,7 @@ ${emotionWarning}`
         <div className={`absolute bottom-0 left-1/3 h-72 w-72 rounded-full ${ui.glowThree} blur-3xl`} />
       </div>
 
-      <div
-        className="relative z-30 px-3 pt-2 md:px-4"
-      >
+      <div className="relative z-30 px-3 pt-2 md:px-4">
         <div
           className={`pointer-events-none absolute inset-x-0 top-0 h-full rounded-b-[28px] ${
             theme === 'light'
@@ -2494,8 +2492,18 @@ ${emotionWarning}`
             </div>
           </div>
         </div>
+      </div>
 
-        <div ref={liveScoreRef} className={`sticky top-0 z-20 mx-auto max-w-7xl overflow-hidden rounded-[22px] ${ui.liveOuter}`}>
+      <div ref={liveScoreRef} className="sticky top-0 z-40 px-3 md:px-4">
+        <div
+          className={`pointer-events-none absolute inset-x-0 top-0 h-full rounded-b-[28px] ${
+            theme === 'light'
+              ? 'bg-slate-100/72 backdrop-blur-xl'
+              : 'bg-slate-950/48 backdrop-blur-xl'
+          }`}
+        />
+
+        <div className={`relative z-10 mx-auto max-w-7xl overflow-hidden rounded-[22px] ${ui.liveOuter}`}>
           <div className={`bg-gradient-to-r ${styles.soft} p-2.5 md:p-3`}>
             {mode === 'standard' ? (
               <div className="grid gap-2 md:grid-cols-[260px_minmax(0,1fr)] lg:grid-cols-[280px_minmax(0,1fr)] md:items-center">
