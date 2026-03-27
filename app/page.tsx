@@ -2495,7 +2495,7 @@ ${emotionWarning}`
           </div>
         </div>
 
-        <div ref={liveScoreRef} className={`sticky top-2 z-20 mx-auto max-w-7xl overflow-hidden rounded-[22px] ${ui.liveOuter}`}>
+        <div ref={liveScoreRef} className={`sticky top-0 z-20 mx-auto max-w-7xl overflow-hidden rounded-[22px] ${ui.liveOuter}`}>
           <div className={`bg-gradient-to-r ${styles.soft} p-2.5 md:p-3`}>
             {mode === 'standard' ? (
               <div className="grid gap-2 md:grid-cols-[260px_minmax(0,1fr)] lg:grid-cols-[280px_minmax(0,1fr)] md:items-center">
@@ -2807,7 +2807,7 @@ ${emotionWarning}`
                     )}
                   </div>
 
-                  <div className={`order-1 rounded-[22px] p-2.5 xl:order-2 md:p-3 ${ui.innerCard}`}>
+                  <div className={`order-1 rounded-[22px] p-3 xl:order-2 ${ui.innerCard}`}>
                     <div className={`mb-2 text-sm font-semibold ${ui.secondaryStrong}`}>Performance snapshot</div>
                     <p className={`mb-3 text-xs ${ui.muted}`}>The stats that matter most when reviewing discipline and execution.</p>
 
@@ -2821,16 +2821,32 @@ ${emotionWarning}`
                         ['Short W/L', `${shortWins}/${shortLosses}`],
                         ['Largest win', largestWin !== null ? `${largestWin >= 0 ? '+' : ''}${largestWin.toFixed(2)}` : 'No winning trades yet.'],
                         ['Largest loss', largestLoss !== null ? `${largestLoss.toFixed(2)}` : 'No losing trades yet.'],
-                        ['Top setup', setupBreakdown ? `${setupBreakdown[0]} • ${setupBreakdown[1]} entries` : 'No journal entries yet.'],
-                        ['Top strategy', strategyBreakdown ? `${strategyBreakdown[0]} • ${strategyBreakdown[1]} entries` : 'No journal entries yet.'],
-                        ['Most common emotion', emotionBreakdown ? `${emotionBreakdown[0]} • ${emotionBreakdown[1]} entries` : 'No journal entries yet.'],
-                        ['Most missed rule', mostMissedRule ? mostMissedRule[0] : 'No missed-rule data yet.'],
                       ].map((item) => (
-                        <div key={item[0]} className={`min-h-[86px] rounded-[18px] border px-2.5 py-2.5 ${ui.statBox}`}>
-                          <div className={`text-[9px] uppercase tracking-[0.14em] leading-4 ${ui.muted}`}>{item[0]}</div>
-                          <div className="mt-1 text-[13px] font-semibold leading-5 md:text-sm">{item[1]}</div>
+                        <div key={item[0]} className={`rounded-2xl border px-3 py-3 ${ui.statBox}`}>
+                          <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>{item[0]}</div>
+                          <div className="mt-1 text-lg font-bold">{item[1]}</div>
                         </div>
                       ))}
+                    </div>
+
+                    <div className={`mt-3 rounded-2xl border px-4 py-3 text-sm ${ui.statBox}`}>
+                      <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Top setup</div>
+                      <div className="mt-1 font-semibold">{setupBreakdown ? `${setupBreakdown[0]} • ${setupBreakdown[1]} entries` : 'No journal entries yet.'}</div>
+                    </div>
+
+                    <div className={`mt-3 rounded-2xl border px-4 py-3 text-sm ${ui.statBox}`}>
+                      <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Top strategy</div>
+                      <div className="mt-1 font-semibold">{strategyBreakdown ? `${strategyBreakdown[0]} • ${strategyBreakdown[1]} entries` : 'No journal entries yet.'}</div>
+                    </div>
+
+                    <div className={`mt-3 rounded-2xl border px-4 py-3 text-sm ${ui.statBox}`}>
+                      <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Most common emotion</div>
+                      <div className="mt-1 font-semibold">{emotionBreakdown ? `${emotionBreakdown[0]} • ${emotionBreakdown[1]} entries` : 'No journal entries yet.'}</div>
+                    </div>
+
+                    <div className={`mt-3 rounded-2xl border px-4 py-3 text-sm ${ui.statBox}`}>
+                      <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Most missed rule</div>
+                      <div className="mt-1 font-semibold">{mostMissedRule ? mostMissedRule[0] : 'No missed-rule data yet.'}</div>
                     </div>
 
                     <div className="mt-3 flex justify-center">
