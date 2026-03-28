@@ -32,40 +32,22 @@ function BarChart3({ className }: IconProps) {
       aria-hidden="true"
       fill="none"
     >
-      <defs>
-        <linearGradient id="edgeConfirmStatsGrad" x1="4" y1="19" x2="20" y2="5" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#06b6d4" />
-          <stop offset="55%" stopColor="#3b82f6" />
-          <stop offset="100%" stopColor="#8b5cf6" />
-        </linearGradient>
-      </defs>
-
       <path
-        d="M4 19.25H20"
+        d="M4.25 19.25H20"
         stroke="currentColor"
         strokeWidth="1.9"
         strokeLinecap="round"
-        opacity="0.88"
-      />
-
-      <rect x="5.1" y="12.2" width="2.9" height="5.4" rx="1.05" fill="url(#edgeConfirmStatsGrad)" />
-      <rect x="10.55" y="9.4" width="2.9" height="8.2" rx="1.05" fill="url(#edgeConfirmStatsGrad)" />
-      <rect x="16" y="6.6" width="2.9" height="11" rx="1.05" fill="url(#edgeConfirmStatsGrad)" />
-
-      <path
-        d="M6.55 8.9L11.95 6.7L15.15 8.4L18.95 4.95"
-        stroke="currentColor"
-        strokeWidth="1.95"
-        strokeLinecap="round"
-        strokeLinejoin="round"
       />
       <path
-        d="M17.35 4.9H18.95V6.5"
+        d="M5 19.25V5"
         stroke="currentColor"
-        strokeWidth="1.95"
+        strokeWidth="1.9"
         strokeLinecap="round"
-        strokeLinejoin="round"
       />
+
+      <rect x="7.1" y="9.1" width="3.2" height="8.6" rx="0.55" fill="#2ec4b6" />
+      <rect x="11.05" y="6.2" width="3.2" height="11.5" rx="0.55" fill="#f08a24" />
+      <rect x="15" y="12.6" width="3.2" height="5.1" rx="0.55" fill="#2ec4b6" />
     </svg>
   )
 }
@@ -634,7 +616,7 @@ function ManagedOptionDropdown({
                   return (
                     <div
                       key={item}
-                      className={`flex min-h-[74px] items-center gap-4 px-5 py-4 ${
+                      className={`flex min-h-[74px] items-center gap-4 px-3 py-4 ${
                         index === options.length - 1 ? '' : `border-b ${dividerClassName}`
                       }`}
                     >
@@ -689,7 +671,7 @@ function ManagedOptionDropdown({
                       }
                     }}
                     placeholder={`Add ${label.toLowerCase()}`}
-                    className={`w-full rounded-2xl px-4 py-3 text-sm outline-none transition ${inputClassName}`}
+                    className={`w-full rounded-2xl px-3 py-3 text-sm outline-none transition ${inputClassName}`}
                   />
                   <button
                     type="button"
@@ -700,7 +682,7 @@ function ManagedOptionDropdown({
                       setDraft('')
                       setOpen(false)
                     }}
-                    className={`rounded-2xl px-4 py-3 text-sm font-semibold transition ${addButtonClassName}`}
+                    className={`rounded-2xl px-3 py-3 text-sm font-semibold transition ${addButtonClassName}`}
                   >
                     Add
                   </button>
@@ -806,7 +788,7 @@ function FixedOptionDropdown({
                         onSelect(item)
                         setOpen(false)
                       }}
-                      className={`flex min-h-[74px] w-full items-center justify-between gap-4 px-5 py-4 text-left ${
+                      className={`flex min-h-[74px] w-full items-center justify-between gap-4 px-3 py-4 text-left ${
                         index === options.length - 1 ? '' : `border-b ${dividerClassName}`
                       }`}
                     >
@@ -2346,7 +2328,7 @@ ${emotionWarning}`
   return (
     <main className={`min-h-screen overflow-x-hidden ${ui.main}`}>
       {showInstructions && (
-        <div className="fixed inset-0 z-[80] flex items-start justify-center overflow-y-auto bg-slate-950/55 px-4 py-4 backdrop-blur-sm sm:items-center">
+        <div className="fixed inset-0 z-[80] flex items-start justify-center overflow-y-auto bg-slate-950/55 px-3 py-4 backdrop-blur-sm sm:items-center">
           <div
             className={`relative w-full max-w-xl max-h-[calc(100vh-2rem)] overflow-y-auto rounded-[28px] border p-5 shadow-2xl md:p-6 ${
               theme === 'light'
@@ -2382,7 +2364,7 @@ ${emotionWarning}`
               ].map((item) => (
                 <div
                   key={item[0]}
-                  className={`rounded-2xl border px-4 py-3 ${
+                  className={`rounded-2xl border px-3 py-3 ${
                     theme === 'light'
                       ? 'border-slate-200 bg-slate-50'
                       : 'border-white/10 bg-white/5'
@@ -2395,7 +2377,7 @@ ${emotionWarning}`
             </div>
 
             <div
-              className={`mt-5 rounded-2xl border px-4 py-3 text-center text-sm leading-6 ${
+              className={`mt-5 rounded-2xl border px-3 py-3 text-center text-sm leading-6 ${
                 theme === 'light'
                   ? 'border-amber-300 bg-amber-50 text-amber-800'
                   : 'border-amber-500/20 bg-amber-500/10 text-amber-200'
@@ -2408,7 +2390,7 @@ ${emotionWarning}`
       )}
 
       {showAdvancedPerformance && (
-        <div className="fixed inset-0 z-[82] flex items-start justify-center overflow-y-auto bg-slate-950/65 px-4 py-4 backdrop-blur-sm sm:items-center">
+        <div className="fixed inset-0 z-[82] flex items-start justify-center overflow-y-auto bg-slate-950/65 px-3 py-4 backdrop-blur-sm sm:items-center">
           <div className={`relative w-full max-w-4xl rounded-[28px] border p-5 shadow-2xl md:p-6 ${ui.card}`}>
             <button
               type="button"
@@ -2457,7 +2439,7 @@ ${emotionWarning}`
             </div>
 
             <div className="mt-5 grid gap-4 md:grid-cols-2">
-              <div className={`rounded-[24px] border px-4 py-4 shadow-sm ${ui.statBox}`}>
+              <div className={`rounded-[24px] border px-3 py-4 shadow-sm ${ui.statBox}`}>
                 <div className="flex items-center justify-between gap-3">
                   <div className="text-sm font-bold">Perfect winning combination</div>
                   <div className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-semibold text-slate-950 shadow-sm">
@@ -2495,7 +2477,7 @@ ${emotionWarning}`
                 )}
               </div>
 
-              <div className={`rounded-[24px] border px-4 py-4 shadow-sm ${ui.statBox}`}>
+              <div className={`rounded-[24px] border px-3 py-4 shadow-sm ${ui.statBox}`}>
                 <div className="flex items-center justify-between gap-3">
                   <div className="text-sm font-bold">Worst losing combination</div>
                   <div className="rounded-full border border-red-500/20 bg-red-500/10 px-2.5 py-0.5 text-[10px] font-semibold text-slate-950 shadow-sm">
@@ -2534,7 +2516,7 @@ ${emotionWarning}`
               </div>
             </div>
 
-            <div className={`mt-4 rounded-[20px] border px-4 py-3 text-center text-sm leading-6 ${ui.statBox}`}>
+            <div className={`mt-4 rounded-[20px] border px-3 py-3 text-center text-sm leading-6 ${ui.statBox}`}>
               <span className="font-semibold">Important note:</span> the more consistently you journal your trades, the more accurate and reliable these advanced performance patterns become over time.
             </div>
           </div>
@@ -2542,7 +2524,7 @@ ${emotionWarning}`
       )}
 
       {selectedJournalEntry && (
-        <div className="fixed inset-0 z-[82] flex items-start justify-center overflow-y-auto bg-slate-950/65 px-4 py-4 backdrop-blur-sm sm:items-center">
+        <div className="fixed inset-0 z-[82] flex items-start justify-center overflow-y-auto bg-slate-950/65 px-3 py-4 backdrop-blur-sm sm:items-center">
           <div className={`relative w-full max-w-3xl rounded-[28px] border p-5 shadow-2xl md:p-6 ${ui.card}`}>
             <button
               type="button"
@@ -2573,7 +2555,7 @@ ${emotionWarning}`
                 ['R multiple', `${selectedJournalEntry.rMultiple >= 0 ? '+' : ''}${selectedJournalEntry.rMultiple.toFixed(2)}R`],
                 ['Followed verdict', selectedJournalEntry.followedVerdict === 'yes' ? 'Yes' : selectedJournalEntry.followedVerdict === 'partially' ? 'Partially' : 'No'],
               ].map((item) => (
-                <div key={item[0]} className={`rounded-[20px] border px-4 py-3 ${ui.statBox}`}>
+                <div key={item[0]} className={`rounded-[20px] border px-3 py-3 ${ui.statBox}`}>
                   <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>{item[0]}</div>
                   <div className="mt-1 text-sm font-semibold">{item[1]}</div>
                 </div>
@@ -2581,13 +2563,13 @@ ${emotionWarning}`
             </div>
 
             {selectedJournalEntry.note && (
-              <div className={`mt-4 rounded-[20px] border px-4 py-3 ${ui.statBox}`}>
+              <div className={`mt-4 rounded-[20px] border px-3 py-3 ${ui.statBox}`}>
                 <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Journal note</div>
                 <p className="mt-2 text-sm leading-6">{selectedJournalEntry.note}</p>
               </div>
             )}
 
-            <div className={`mt-4 rounded-[20px] border px-4 py-3 ${ui.statBox}`}>
+            <div className={`mt-4 rounded-[20px] border px-3 py-3 ${ui.statBox}`}>
               <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Missing rules at save time</div>
               <div className="mt-2 text-sm font-semibold">
                 {selectedJournalEntry.missingRuleTexts.length > 0 ? selectedJournalEntry.missingRuleTexts.join(', ') : 'No missing rules recorded.'}
@@ -2614,7 +2596,7 @@ ${emotionWarning}`
       )}
 
       {showFocusMode && (
-        <div className="fixed inset-0 z-[85] flex items-center justify-center bg-slate-950/65 px-4 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[85] flex items-center justify-center bg-slate-950/65 px-3 backdrop-blur-sm">
           <div className={`w-full max-w-lg rounded-[28px] border p-5 shadow-2xl md:p-6 ${ui.card}`}>
             <div className="mb-4 flex items-center justify-between gap-3">
               <div>
@@ -2650,20 +2632,20 @@ ${emotionWarning}`
                 />
               </div>
 
-              <div className={`mt-3 rounded-2xl border px-4 py-3 text-sm ${decisionStyles.badge}`}>
+              <div className={`mt-3 rounded-2xl border px-3 py-3 text-sm ${decisionStyles.badge}`}>
                 {mainBlockerText}
               </div>
 
-              <div className={`mt-3 rounded-2xl border px-4 py-3 text-sm ${qualificationStyles.badge}`}>
+              <div className={`mt-3 rounded-2xl border px-3 py-3 text-sm ${qualificationStyles.badge}`}>
                 {emotionWarning}
               </div>
 
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                <div className={`rounded-2xl border px-4 py-3 ${ui.statBox}`}>
+                <div className={`rounded-2xl border px-3 py-3 ${ui.statBox}`}>
                   <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Rules confirmed</div>
                   <div className="mt-1 text-lg font-bold">{checkedCount}/{totalCount}</div>
                 </div>
-                <div className={`rounded-2xl border px-4 py-3 ${ui.statBox}`}>
+                <div className={`rounded-2xl border px-3 py-3 ${ui.statBox}`}>
                   <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Pause timer</div>
                   <div className="mt-1 text-lg font-bold">{proTimerActive ? `${proTimerLeft}s` : `${proTimerSeconds}s ready`}</div>
                 </div>
@@ -2681,7 +2663,7 @@ ${emotionWarning}`
 
       <div
         ref={liveScoreRef}
-        className={mode === 'stats' ? 'relative z-30 px-3 pt-2 md:px-4' : 'fixed inset-x-0 top-0 z-50 px-3 pt-2 md:px-4'}
+        className={mode === 'stats' ? 'relative z-30 px-3 pt-2 md:px-3' : 'fixed inset-x-0 top-0 z-50 px-3 pt-2 md:px-3'}
       >
         <div
           className={`pointer-events-none absolute inset-x-0 top-0 h-full rounded-b-[28px] ${
@@ -2748,8 +2730,8 @@ ${emotionWarning}`
                   : 'border border-white/10 bg-slate-950/88 shadow-xl'
               }`}
             >
-              <span className="flex h-5 w-5 items-center justify-center" aria-hidden="true">
-                <BarChart3 className={theme === 'light' ? 'h-[15px] w-[15px] text-slate-900' : 'h-[15px] w-[15px] text-white'} strokeWidth={2.2} />
+              <span className="flex h-6 w-6 items-center justify-center shrink-0" aria-hidden="true">
+                <BarChart3 className={theme === 'light' ? 'h-[20px] w-[20px] text-slate-800' : 'h-[20px] w-[20px] text-white'} strokeWidth={2.2} />
               </span>
               <button
                 type="button"
@@ -2916,7 +2898,7 @@ ${emotionWarning}`
       </div>
 
       <div
-        className="relative mx-auto max-w-7xl px-4 pb-6 md:px-6 lg:px-8 lg:pb-8"
+        className="relative mx-auto max-w-7xl px-3 pb-6 md:px-6 lg:px-8 lg:pb-8"
         style={{ paddingTop: mode === 'stats' ? 0 : topOffset }}
       >
         {mode === 'standard' && (
@@ -3184,7 +3166,7 @@ ${emotionWarning}`
                       <button
                         type="button"
                         onClick={() => setShowAdvancedPerformance(true)}
-                        className={`rounded-2xl px-4 py-2 text-xs font-semibold transition ${ui.secondaryBtn}`}
+                        className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${ui.secondaryBtn}`}
                       >
                         Advanced performance
                       </button>
@@ -3200,7 +3182,7 @@ ${emotionWarning}`
                     <p className={`mt-1 text-xs ${ui.muted}`}>Your latest trades, screenshots, and review notes.</p>
                   </div>
 
-                  <div className={`rounded-full border px-4 py-2 text-sm font-medium ${qualificationStyles.badge}`}>
+                  <div className={`rounded-full border px-3 py-2 text-sm font-medium ${qualificationStyles.badge}`}>
                     {journal.length} entries
                   </div>
                 </div>
@@ -3305,7 +3287,7 @@ ${emotionWarning}`
                       className="absolute inset-y-0 left-0 rounded-full bg-emerald-500 transition-all duration-200"
                       style={{ width: `${minScore}%` }}
                     />
-                    <div className={`relative px-3 py-2.5 text-center text-[13px] font-semibold md:px-4 md:text-sm ${
+                    <div className={`relative px-3 py-2.5 text-center text-[13px] font-semibold md:px-3 md:text-sm ${
                       theme === 'light' ? 'text-slate-800' : 'text-white'
                     }`}>
                       Threshold: {minScore}%
@@ -3535,7 +3517,7 @@ ${emotionWarning}`
                 </p>
               </div>
 
-              <div className={`rounded-full border px-4 py-2 text-sm font-medium ${styles.pill}`}>
+              <div className={`rounded-full border px-3 py-2 text-sm font-medium ${styles.pill}`}>
                 {checkedPoints} / {totalPoints} pts • {checkedCount} / {totalCount} rules
               </div>
             </div>
