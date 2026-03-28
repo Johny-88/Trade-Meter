@@ -2694,8 +2694,8 @@ ${emotionWarning}`
                   : 'border border-white/10 bg-slate-950/88 shadow-xl'
               }`}
             >
-              <span className={`text-[11px] font-semibold uppercase tracking-[0.16em] ${theme === 'light' ? 'text-slate-900' : 'text-white'}`}>
-                Stats
+              <span className={`flex h-5 w-5 items-center justify-center text-[13px] ${theme === 'light' ? 'text-slate-900' : 'text-white'}`} aria-hidden="true">
+                📊
               </span>
               <button
                 type="button"
@@ -2719,15 +2719,12 @@ ${emotionWarning}`
             </div>
 
             <div
-              className={`inline-flex items-center gap-2 rounded-full px-2.5 py-1 ${
+              className={`inline-flex items-center justify-end rounded-full px-2.5 py-1 ${
                 theme === 'light'
                   ? 'border border-slate-200 bg-white/90 shadow-md'
                   : 'border border-white/10 bg-slate-950/88 shadow-xl'
               }`}
             >
-              <span className={`text-[11px] font-semibold uppercase tracking-[0.14em] ${theme === 'light' ? 'text-slate-900' : 'text-white'}`}>
-                {theme === 'dark' ? 'Dark' : 'Light'}
-              </span>
               <button
                 type="button"
                 onClick={() => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))}
