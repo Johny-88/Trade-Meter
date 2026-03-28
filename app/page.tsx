@@ -2848,9 +2848,9 @@ ${emotionWarning}`
                     ['Long W/L', `${longWins}/${longLosses}`],
                     ['Short W/L', `${shortWins}/${shortLosses}`],
                   ].map((item) => (
-                    <div key={item[0]} className={`h-[78px] rounded-[16px] border px-2 py-2 text-center ${ui.statBox}`}>
+                    <div key={item[0]} className={`h-[64px] rounded-[16px] border px-2 py-1.5 text-center ${ui.statBox}`}>
                       <div className={`text-[8px] uppercase tracking-[0.13em] ${ui.muted}`}>{item[0]}</div>
-                      <div className="mt-1 text-[12px] font-bold leading-5 md:text-sm">{item[1]}</div>
+                      <div className="mt-0.5 text-[12px] font-bold leading-4 md:text-sm">{item[1]}</div>
                     </div>
                   ))}
                 </div>
@@ -3092,9 +3092,9 @@ ${emotionWarning}`
                         ['Most common emotion', emotionBreakdown ? `${emotionBreakdown[0]} • ${emotionBreakdown[1]} entries` : 'No journal entries yet.'],
                         ['Most missed rule', mostMissedRule ? mostMissedRule[0] : 'No missed-rule data yet.'],
                       ].map((item) => (
-                        <div key={item[0]} className={`h-[82px] rounded-[14px] border px-2 py-2 ${ui.statBox}`}>
+                        <div key={item[0]} className={`h-[68px] rounded-[14px] border px-2 py-1.5 ${ui.statBox}`}>
                           <div className={`text-[8px] uppercase tracking-[0.12em] leading-4 ${ui.muted}`}>{item[0]}</div>
-                          <div className="mt-1 text-[11px] font-semibold leading-4 md:text-sm">{item[1]}</div>
+                          <div className="mt-0.5 text-[11px] font-semibold leading-[1.1rem] md:text-sm">{item[1]}</div>
                         </div>
                       ))}
                     </div>
