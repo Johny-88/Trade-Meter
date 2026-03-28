@@ -3136,7 +3136,7 @@ ${emotionWarning}`
 
                   <div className={`order-1 rounded-[22px] p-2 xl:order-2 md:p-3 ${ui.innerCard}`}>
                     <div className={`mb-2 text-sm font-semibold ${ui.secondaryStrong}`}>Performance snapshot</div>
-                    <p className={`mb-3 text-xs ${ui.muted}`}>The stats that matter most when reviewing discipline and execution.</p>
+                    <p className={`mb-3 text-xs ${ui.muted}`}>The stats that matter most when reviewing discipline and execution. They update from the trades you log in the journal below, so complete entries give you more accurate feedback.</p>
 
                     <div className="grid grid-cols-2 gap-2">
                       {[
@@ -3179,7 +3179,7 @@ ${emotionWarning}`
                 <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                   <div>
                     <div className={`text-sm font-semibold ${ui.secondaryStrong}`}>Recent journal entries</div>
-                    <p className={`mt-1 text-xs ${ui.muted}`}>Your latest trades, screenshots, and review notes.</p>
+                    <p className={`mt-1 text-xs ${ui.muted}`}>Log every trade here with your screenshots and notes. This is what powers your stats, and consistent journaling makes your performance data more accurate and more useful.</p>
                   </div>
 
                   <div className={`rounded-full border px-3 py-2 text-sm font-medium ${qualificationStyles.badge}`}>
@@ -3189,7 +3189,7 @@ ${emotionWarning}`
 
                 {journal.length === 0 ? (
                   <div className={`mt-3 rounded-[22px] border border-dashed p-6 text-center text-sm ${ui.statBox}`}>
-                    No journal entries yet. Save your first trade in Stats mode.
+                    No journal entries yet. Log your first trade in Stats mode to start building accurate performance stats.
                   </div>
                 ) : (
                   <div className="mt-3 space-y-3">
