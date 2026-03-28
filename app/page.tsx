@@ -513,28 +513,26 @@ function ManagedOptionDropdown({
 
   const panelClassName =
     theme === 'light'
-      ? 'border border-slate-200 bg-slate-950/75'
-      : 'border border-white/10 bg-slate-950/85'
+      ? 'border border-slate-300/50 bg-[#2c2f38] text-white shadow-2xl'
+      : 'border border-white/10 bg-[#20232c] text-white shadow-2xl'
 
-  const rowClassName =
-    theme === 'light'
-      ? 'border-b border-white/10 text-white'
-      : 'border-b border-white/10 text-white'
+  const dividerClassName =
+    theme === 'light' ? 'border-white/10' : 'border-white/10'
 
   const selectedCircleClassName =
     theme === 'light'
-      ? 'border-indigo-200 ring-2 ring-indigo-200/25'
-      : 'border-indigo-200 ring-2 ring-indigo-200/25'
+      ? 'border-[3px] border-indigo-200 ring-2 ring-indigo-200/20'
+      : 'border-[3px] border-indigo-200 ring-2 ring-indigo-200/20'
 
   const unselectedCircleClassName =
     theme === 'light'
-      ? 'border-slate-300 bg-transparent'
-      : 'border-slate-300 bg-transparent'
+      ? 'border-[3px] border-slate-300 bg-transparent'
+      : 'border-[3px] border-slate-300 bg-transparent'
 
   const removeButtonClassName =
     theme === 'light'
-      ? 'border border-slate-300/70 bg-white/5 text-slate-300 hover:bg-white/10'
-      : 'border border-white/10 bg-white/5 text-slate-300 hover:bg-white/10'
+      ? 'border border-slate-300/80 bg-transparent text-slate-200 hover:bg-white/5'
+      : 'border border-white/20 bg-transparent text-slate-200 hover:bg-white/5'
 
   return (
     <div className="relative">
@@ -564,84 +562,85 @@ function ManagedOptionDropdown({
             className="fixed inset-0 z-[85] bg-slate-950/28 backdrop-blur-[1px]"
           />
 
-          <div className="fixed inset-0 z-[90] flex items-center justify-center p-4">
-            <div
-              className={`w-full max-w-[640px] overflow-hidden rounded-[30px] shadow-2xl ${panelClassName}`}
-            >
-              <div className="max-h-[56vh] overflow-y-auto">
-                {options.map((item, index) => {
-                  const isSelected = item === value
-                  return (
-                    <div
-                      key={item}
-                      className={`flex items-center gap-3 px-5 py-5 ${
-                        index === options.length - 1 ? '' : rowClassName
-                      }`}
-                    >
-                      <button
-                        type="button"
-                        onClick={() => {
-                          onSelect(item)
-                          setOpen(false)
-                        }}
-                        className="flex min-w-0 flex-1 items-center justify-between gap-3 text-left"
-                      >
-                        <span className="truncate text-[16px]">{label}: {item}</span>
-                        <span
-                          className={`relative h-8 w-8 flex-none rounded-full border transition ${
-                            isSelected ? selectedCircleClassName : unselectedCircleClassName
-                          }`}
-                        >
-                          {isSelected && (
-                            <span className="absolute inset-[4px] rounded-full bg-indigo-200" />
-                          )}
-                        </span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => onDelete(item)}
-                        className={`flex h-10 w-10 flex-none items-center justify-center rounded-full text-xl font-bold transition ${removeButtonClassName}`}
-                        aria-label={`Remove ${item}`}
-                      >
-                        −
-                      </button>
-                    </div>
-                  )
-                })}
-              </div>
-
-              <div className="border-t border-white/10 p-3">
-                <div className="flex gap-2">
-                  <input
-                    value={draft}
-                    onChange={(e) => setDraft(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        const trimmed = draft.trim()
-                        if (!trimmed) return
-                        onAdd(trimmed)
-                        setDraft('')
+          <div
+            className={`fixed left-1/2 top-1/2 z-[90] w-[calc(100vw-32px)] max-w-[680px] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-[30px] ${panelClassName}`}
+          >
+            <div className="max-h-[54vh] overflow-y-auto">
+              {options.map((item, index) => {
+                const isSelected = item === value
+                return (
+                  <div
+                    key={item}
+                    className={`flex min-h-[80px] items-center gap-4 px-5 py-4 ${
+                      index === options.length - 1 ? '' : `border-b ${dividerClassName}`
+                    }`}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onSelect(item)
                         setOpen(false)
-                      }
-                    }}
-                    placeholder={`Add ${label.toLowerCase()}`}
-                    className={`w-full rounded-2xl px-3 py-2.5 text-sm outline-none transition ${inputClassName}`}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
+                      }}
+                      className="flex min-w-0 flex-1 items-center justify-between gap-4 text-left"
+                    >
+                      <span className="truncate text-[17px] font-medium leading-6">
+                        {label}: {item}
+                      </span>
+
+                      <span
+                        className={`relative h-8 w-8 flex-none rounded-full transition ${
+                          isSelected ? selectedCircleClassName : unselectedCircleClassName
+                        }`}
+                      >
+                        {isSelected && (
+                          <span className="absolute inset-[5px] rounded-full bg-indigo-200" />
+                        )}
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => onDelete(item)}
+                      className={`flex h-8 w-8 flex-none items-center justify-center rounded-full text-[24px] leading-none transition ${removeButtonClassName}`}
+                      aria-label={`Remove ${item}`}
+                    >
+                      −
+                    </button>
+                  </div>
+                )
+              })}
+            </div>
+
+            <div className={`border-t ${dividerClassName} p-4`}>
+              <div className="flex items-center gap-3">
+                <input
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
                       const trimmed = draft.trim()
                       if (!trimmed) return
                       onAdd(trimmed)
                       setDraft('')
                       setOpen(false)
-                    }}
-                    className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${addButtonClassName}`}
-                  >
-                    Add
-                  </button>
-                </div>
+                    }
+                  }}
+                  placeholder={`Add ${label.toLowerCase()}`}
+                  className={`w-full rounded-2xl px-4 py-3 text-sm outline-none transition ${inputClassName}`}
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    const trimmed = draft.trim()
+                    if (!trimmed) return
+                    onAdd(trimmed)
+                    setDraft('')
+                    setOpen(false)
+                  }}
+                  className={`rounded-2xl px-4 py-3 text-sm font-semibold transition ${addButtonClassName}`}
+                >
+                  Add
+                </button>
               </div>
             </div>
           </div>
