@@ -511,23 +511,35 @@ function ManagedOptionDropdown({
   const [open, setOpen] = useState(false)
   const [draft, setDraft] = useState('')
 
+  useEffect(() => {
+    if (!open) return
+
+    const previousOverflow = document.body.style.overflow
+    const previousTouchAction = document.body.style.touchAction
+    const activeElement = document.activeElement
+
+    document.body.style.overflow = 'hidden'
+    document.body.style.touchAction = 'none'
+
+    if (activeElement instanceof HTMLElement) {
+      activeElement.blur()
+    }
+
+    return () => {
+      document.body.style.overflow = previousOverflow
+      document.body.style.touchAction = previousTouchAction
+    }
+  }, [open])
+
   const panelClassName =
     theme === 'light'
       ? 'border border-slate-300/50 bg-[#2c2f38] text-white shadow-2xl'
       : 'border border-white/10 bg-[#20232c] text-white shadow-2xl'
 
-  const dividerClassName =
-    theme === 'light' ? 'border-white/10' : 'border-white/10'
+  const dividerClassName = 'border-white/10'
 
-  const selectedCircleClassName =
-    theme === 'light'
-      ? 'border-[3px] border-indigo-200 ring-2 ring-indigo-200/20'
-      : 'border-[3px] border-indigo-200 ring-2 ring-indigo-200/20'
-
-  const unselectedCircleClassName =
-    theme === 'light'
-      ? 'border-[3px] border-slate-300 bg-transparent'
-      : 'border-[3px] border-slate-300 bg-transparent'
+  const selectedCircleClassName = 'border-[3px] border-indigo-200 ring-2 ring-indigo-200/20'
+  const unselectedCircleClassName = 'border-[3px] border-slate-300 bg-transparent'
 
   const removeButtonClassName =
     theme === 'light'
@@ -564,85 +576,85 @@ function ManagedOptionDropdown({
 
           <div className="fixed inset-0 z-[90] flex items-center justify-center p-4">
             <div
-              className={`w-[calc(100vw-32px)] max-w-[680px] overflow-hidden rounded-[30px] ${panelClassName}`}
+              className={`flex w-[calc(100vw-32px)] max-w-[640px] max-h-[62dvh] flex-col overflow-hidden rounded-[30px] ${panelClassName}`}
             >
-              <div className="max-h-[54vh] overflow-y-auto">
-              {options.map((item, index) => {
-                const isSelected = item === value
-                return (
-                  <div
-                    key={item}
-                    className={`flex min-h-[80px] items-center gap-4 px-5 py-4 ${
-                      index === options.length - 1 ? '' : `border-b ${dividerClassName}`
-                    }`}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => {
-                        onSelect(item)
-                        setOpen(false)
-                      }}
-                      className="flex min-w-0 flex-1 items-center justify-between gap-4 text-left"
+              <div className="max-h-[42dvh] overflow-y-auto overscroll-contain">
+                {options.map((item, index) => {
+                  const isSelected = item === value
+                  return (
+                    <div
+                      key={item}
+                      className={`flex min-h-[74px] items-center gap-4 px-5 py-4 ${
+                        index === options.length - 1 ? '' : `border-b ${dividerClassName}`
+                      }`}
                     >
-                      <span className="truncate text-[17px] font-medium leading-6">
-                        {label}: {item}
-                      </span>
-
-                      <span
-                        className={`relative h-8 w-8 flex-none rounded-full transition ${
-                          isSelected ? selectedCircleClassName : unselectedCircleClassName
-                        }`}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onSelect(item)
+                          setOpen(false)
+                        }}
+                        className="flex min-w-0 flex-1 items-center justify-between gap-4 text-left"
                       >
-                        {isSelected && (
-                          <span className="absolute inset-[5px] rounded-full bg-indigo-200" />
-                        )}
-                      </span>
-                    </button>
+                        <span className="truncate text-[16px] font-medium leading-6">
+                          {label}: {item}
+                        </span>
 
-                    <button
-                      type="button"
-                      onClick={() => onDelete(item)}
-                      className={`flex h-8 w-8 flex-none items-center justify-center rounded-full text-[24px] leading-none transition ${removeButtonClassName}`}
-                      aria-label={`Remove ${item}`}
-                    >
-                      −
-                    </button>
-                  </div>
-                )
-              })}
-            </div>
+                        <span
+                          className={`relative h-8 w-8 flex-none rounded-full transition ${
+                            isSelected ? selectedCircleClassName : unselectedCircleClassName
+                          }`}
+                        >
+                          {isSelected && (
+                            <span className="absolute inset-[5px] rounded-full bg-indigo-200" />
+                          )}
+                        </span>
+                      </button>
 
-            <div className={`border-t ${dividerClassName} p-4`}>
-              <div className="flex items-center gap-3">
-                <input
-                  value={draft}
-                  onChange={(e) => setDraft(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
+                      <button
+                        type="button"
+                        onClick={() => onDelete(item)}
+                        className={`flex h-8 w-8 flex-none items-center justify-center rounded-full text-[24px] leading-none transition ${removeButtonClassName}`}
+                        aria-label={`Remove ${item}`}
+                      >
+                        −
+                      </button>
+                    </div>
+                  )
+                })}
+              </div>
+
+              <div className={`border-t ${dividerClassName} p-4`}>
+                <div className="flex items-center gap-3">
+                  <input
+                    value={draft}
+                    onChange={(e) => setDraft(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        const trimmed = draft.trim()
+                        if (!trimmed) return
+                        onAdd(trimmed)
+                        setDraft('')
+                        setOpen(false)
+                      }
+                    }}
+                    placeholder={`Add ${label.toLowerCase()}`}
+                    className={`w-full rounded-2xl px-4 py-3 text-sm outline-none transition ${inputClassName}`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
                       const trimmed = draft.trim()
                       if (!trimmed) return
                       onAdd(trimmed)
                       setDraft('')
                       setOpen(false)
-                    }
-                  }}
-                  placeholder={`Add ${label.toLowerCase()}`}
-                  className={`w-full rounded-2xl px-4 py-3 text-sm outline-none transition ${inputClassName}`}
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    const trimmed = draft.trim()
-                    if (!trimmed) return
-                    onAdd(trimmed)
-                    setDraft('')
-                    setOpen(false)
-                  }}
-                  className={`rounded-2xl px-4 py-3 text-sm font-semibold transition ${addButtonClassName}`}
-                >
-                  Add
-                </button>
-              </div>
+                    }}
+                    className={`rounded-2xl px-4 py-3 text-sm font-semibold transition ${addButtonClassName}`}
+                  >
+                    Add
+                  </button>
+                </div>
               </div>
             </div>
           </div>
