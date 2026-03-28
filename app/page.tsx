@@ -3008,15 +3008,41 @@ ${emotionWarning}`
                         label="Outcome"
                         value={tradeOutcome === 'win' ? 'Win' : tradeOutcome === 'loss' ? 'Loss' : 'Breakeven'}
                         options={['Win', 'Loss', 'Breakeven']}
-                        onSelect={(item) =>
-                          setTradeOutcome(item.toLowerCase() === 'breakeven' ? 'breakeven' : (item.toLowerCase() as JournalOutcome))
-                        }
+                        onSelect={(item) => {
+                          const nextOutcome = item.toLowerCase() === 'breakeven' ? 'breakeven' : (item.toLowerCase() as JournalOutcome)
+                          setTradeOutcome(nextOutcome)
+                          if (nextOutcome === 'loss') {
+                            setJournalPnl((prev) => (prev === 0 ? 0 : -Math.abs(prev)))
+                          } else if (nextOutcome === 'win') {
+                            setJournalPnl((prev) => Math.abs(prev))
+                          } else {
+                            setJournalPnl(0)
+                          }
+                        }}
                         theme={theme}
                         triggerClassName={ui.select}
                         mutedClassName={ui.muted}
                       />
 
-                      <input type="number" value={journalPnl || ''} onChange={(e) => setJournalPnl(Number(e.target.value) || 0)} className={`rounded-2xl px-3 py-2.5 text-sm outline-none transition ${ui.input}`} placeholder="Net P&L" />
+                      <div className="relative">
+                        {tradeOutcome === 'loss' && (
+                          <span className={`pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm font-semibold ${ui.primaryStrong}`}>
+                            −
+                          </span>
+                        )}
+                        <input
+                          type="number"
+                          inputMode="decimal"
+                          min="0"
+                          value={journalPnl === 0 ? '' : Math.abs(journalPnl)}
+                          onChange={(e) => {
+                            const rawValue = Number(e.target.value) || 0
+                            setJournalPnl(tradeOutcome === 'loss' ? -Math.abs(rawValue) : Math.abs(rawValue))
+                          }}
+                          className={`w-full rounded-2xl py-2.5 text-sm outline-none transition ${ui.input} ${tradeOutcome === 'loss' ? 'pl-7 pr-3' : 'px-3'}`}
+                          placeholder="Net P&L"
+                        />
+                      </div>
                       <input type="number" step="0.1" value={journalRMultiple || ''} onChange={(e) => setJournalRMultiple(Number(e.target.value) || 0)} className={`rounded-2xl px-3 py-2.5 text-sm outline-none transition ${ui.input}`} placeholder="Result in R" />
                     </div>
 
