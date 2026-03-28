@@ -495,6 +495,17 @@ type ManagedOptionDropdownProps = {
   secondaryButtonClassName: string
 }
 
+type FixedOptionDropdownProps = {
+  label: string
+  value: string
+  options: string[]
+  onSelect: (value: string) => void
+  theme: AppTheme
+  triggerClassName: string
+  mutedClassName: string
+  showLabelInTrigger?: boolean
+}
+
 function ManagedOptionDropdown({
   label,
   value,
@@ -557,99 +568,92 @@ function ManagedOptionDropdown({
   const popup =
     mounted && open
       ? createPortal(
-          <>
-            <button
-              type="button"
-              aria-label={`Close ${label} options`}
-              onClick={() => setOpen(false)}
-              className="fixed inset-0 z-[9998] bg-slate-950/28 backdrop-blur-[1px]"
-            />
-
-            <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-              <div
-                className={`flex w-[calc(100vw-32px)] max-w-[640px] max-h-[62dvh] flex-col overflow-hidden rounded-[30px] ${panelClassName}`}
-              >
-                <div className="max-h-[42dvh] overflow-y-auto overscroll-contain">
-                  {options.map((item, index) => {
-                    const isSelected = item === value
-                    return (
-                      <div
-                        key={item}
-                        className={`flex min-h-[74px] items-center gap-4 px-5 py-4 ${
-                          index === options.length - 1 ? '' : `border-b ${dividerClassName}`
-                        }`}
-                      >
-                        <button
-                          type="button"
-                          onClick={() => {
-                            onSelect(item)
-                            setOpen(false)
-                          }}
-                          className="flex min-w-0 flex-1 items-center justify-between gap-4 text-left"
-                        >
-                          <span className="truncate text-[16px] font-medium leading-6">
-                            {label}: {item}
-                          </span>
-
-                          <span
-                            className={`relative h-8 w-8 flex-none rounded-full transition ${
-                              isSelected ? selectedCircleClassName : unselectedCircleClassName
-                            }`}
-                          >
-                            {isSelected && (
-                              <span className="absolute inset-[5px] rounded-full bg-indigo-200" />
-                            )}
-                          </span>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => onDelete(item)}
-                          className={`flex h-8 w-8 flex-none items-center justify-center rounded-full text-[24px] leading-none transition ${removeButtonClassName}`}
-                          aria-label={`Remove ${item}`}
-                        >
-                          −
-                        </button>
-                      </div>
-                    )
-                  })}
-                </div>
-
-                <div className={`border-t ${dividerClassName} p-4`}>
-                  <div className="flex items-center gap-3">
-                    <input
-                      value={draft}
-                      onChange={(e) => setDraft(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          const trimmed = draft.trim()
-                          if (!trimmed) return
-                          onAdd(trimmed)
-                          setDraft('')
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" onClick={() => setOpen(false)}>
+            <div className="fixed inset-0 bg-slate-950/28 backdrop-blur-[1px]" />
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className={`relative flex w-[calc(100vw-32px)] max-w-[640px] max-h-[62dvh] flex-col overflow-hidden rounded-[30px] ${panelClassName}`}
+            >
+              <div className="max-h-[42dvh] overflow-y-auto overscroll-contain">
+                {options.map((item, index) => {
+                  const isSelected = item === value
+                  return (
+                    <div
+                      key={item}
+                      className={`flex min-h-[74px] items-center gap-4 px-5 py-4 ${
+                        index === options.length - 1 ? '' : `border-b ${dividerClassName}`
+                      }`}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onSelect(item)
                           setOpen(false)
-                        }
-                      }}
-                      placeholder={`Add ${label.toLowerCase()}`}
-                      className={`w-full rounded-2xl px-4 py-3 text-sm outline-none transition ${inputClassName}`}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
+                        }}
+                        className="flex min-w-0 flex-1 items-center justify-between gap-4 text-left"
+                      >
+                        <span className="truncate text-[16px] font-medium leading-6">
+                          {label}: {item}
+                        </span>
+
+                        <span
+                          className={`relative h-8 w-8 flex-none rounded-full transition ${
+                            isSelected ? selectedCircleClassName : unselectedCircleClassName
+                          }`}
+                        >
+                          {isSelected && (
+                            <span className="absolute inset-[5px] rounded-full bg-indigo-200" />
+                          )}
+                        </span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => onDelete(item)}
+                        className={`flex h-8 w-8 flex-none items-center justify-center rounded-full text-[24px] leading-none transition ${removeButtonClassName}`}
+                        aria-label={`Remove ${item}`}
+                      >
+                        −
+                      </button>
+                    </div>
+                  )
+                })}
+              </div>
+
+              <div className={`border-t ${dividerClassName} p-4`}>
+                <div className="flex items-center gap-3">
+                  <input
+                    value={draft}
+                    onChange={(e) => setDraft(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
                         const trimmed = draft.trim()
                         if (!trimmed) return
                         onAdd(trimmed)
                         setDraft('')
                         setOpen(false)
-                      }}
-                      className={`rounded-2xl px-4 py-3 text-sm font-semibold transition ${addButtonClassName}`}
-                    >
-                      Add
-                    </button>
-                  </div>
+                      }
+                    }}
+                    placeholder={`Add ${label.toLowerCase()}`}
+                    className={`w-full rounded-2xl px-4 py-3 text-sm outline-none transition ${inputClassName}`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const trimmed = draft.trim()
+                      if (!trimmed) return
+                      onAdd(trimmed)
+                      setDraft('')
+                      setOpen(false)
+                    }}
+                    className={`rounded-2xl px-4 py-3 text-sm font-semibold transition ${addButtonClassName}`}
+                  >
+                    Add
+                  </button>
                 </div>
               </div>
             </div>
-          </>,
+          </div>,
           document.body
         )
       : null
@@ -664,6 +668,122 @@ function ManagedOptionDropdown({
         <span className="truncate">
           {label}: {value}
         </span>
+        <span
+          className={`pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[11px] leading-none transition ${mutedClassName} ${
+            open ? 'rotate-180' : ''
+          }`}
+        >
+          ▼
+        </span>
+      </button>
+
+      {popup}
+    </div>
+  )
+}
+
+function FixedOptionDropdown({
+  label,
+  value,
+  options,
+  onSelect,
+  theme,
+  triggerClassName,
+  mutedClassName,
+  showLabelInTrigger = true,
+}: FixedOptionDropdownProps) {
+  const [open, setOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!open) return
+
+    const previousOverflow = document.body.style.overflow
+    const previousTouchAction = document.body.style.touchAction
+    const previousOverscrollBehavior = document.body.style.overscrollBehavior
+    const activeElement = document.activeElement
+
+    document.body.style.overflow = 'hidden'
+    document.body.style.touchAction = 'none'
+    document.body.style.overscrollBehavior = 'none'
+
+    if (activeElement instanceof HTMLElement) {
+      activeElement.blur()
+    }
+
+    return () => {
+      document.body.style.overflow = previousOverflow
+      document.body.style.touchAction = previousTouchAction
+      document.body.style.overscrollBehavior = previousOverscrollBehavior
+    }
+  }, [open])
+
+  const panelClassName =
+    theme === 'light'
+      ? 'border border-slate-300/50 bg-[#2c2f38] text-white shadow-2xl'
+      : 'border border-white/10 bg-[#20232c] text-white shadow-2xl'
+
+  const dividerClassName = 'border-white/10'
+  const selectedCircleClassName = 'border-[3px] border-indigo-200 ring-2 ring-indigo-200/20'
+  const unselectedCircleClassName = 'border-[3px] border-slate-300 bg-transparent'
+  const formatLabel = (item: string) => (showLabelInTrigger ? `${label}: ${item}` : item)
+
+  const popup =
+    mounted && open
+      ? createPortal(
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" onClick={() => setOpen(false)}>
+            <div className="fixed inset-0 bg-slate-950/28 backdrop-blur-[1px]" />
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className={`relative flex w-[calc(100vw-32px)] max-w-[640px] max-h-[62dvh] flex-col overflow-hidden rounded-[30px] ${panelClassName}`}
+            >
+              <div className="max-h-[42dvh] overflow-y-auto overscroll-contain">
+                {options.map((item, index) => {
+                  const isSelected = item === value
+                  return (
+                    <button
+                      key={item}
+                      type="button"
+                      onClick={() => {
+                        onSelect(item)
+                        setOpen(false)
+                      }}
+                      className={`flex min-h-[74px] w-full items-center justify-between gap-4 px-5 py-4 text-left ${
+                        index === options.length - 1 ? '' : `border-b ${dividerClassName}`
+                      }`}
+                    >
+                      <span className="truncate text-[16px] font-medium leading-6">{formatLabel(item)}</span>
+                      <span
+                        className={`relative h-8 w-8 flex-none rounded-full transition ${
+                          isSelected ? selectedCircleClassName : unselectedCircleClassName
+                        }`}
+                      >
+                        {isSelected && (
+                          <span className="absolute inset-[5px] rounded-full bg-indigo-200" />
+                        )}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          </div>,
+          document.body
+        )
+      : null
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((prev) => !prev)}
+        className={`relative flex h-10 w-full items-center rounded-2xl px-3 pr-10 text-left text-sm outline-none transition ${triggerClassName}`}
+      >
+        <span className="truncate">{formatLabel(value)}</span>
         <span
           className={`pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[11px] leading-none transition ${mutedClassName} ${
             open ? 'rotate-180' : ''
@@ -2757,18 +2877,15 @@ ${emotionWarning}`
                         secondaryButtonClassName={ui.secondaryBtn}
                       />
 
-                      <div className="relative">
-                        <select
-                          value={proSession}
-                          onChange={(e) => setProSession(e.target.value as SessionType)}
-                          className={`h-10 w-full appearance-none rounded-2xl px-3 pr-10 text-sm outline-none transition ${ui.select}`}
-                        >
-                          {sessionOptions.map((item) => (
-                            <option key={item} value={item}>Session: {item}</option>
-                          ))}
-                        </select>
-                        <span className={`pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[11px] leading-none ${ui.muted}`}>▼</span>
-                      </div>
+                      <FixedOptionDropdown
+                        label="Session"
+                        value={proSession}
+                        options={sessionOptions}
+                        onSelect={(item) => setProSession(item as SessionType)}
+                        theme={theme}
+                        triggerClassName={ui.select}
+                        mutedClassName={ui.muted}
+                      />
 
                       <ManagedOptionDropdown
                         label="Setup"
@@ -2785,18 +2902,15 @@ ${emotionWarning}`
                         secondaryButtonClassName={ui.secondaryBtn}
                       />
 
-                      <div className="relative">
-                        <select
-                          value={journalStrategy}
-                          onChange={(e) => setJournalStrategy(e.target.value)}
-                          className={`h-10 w-full appearance-none rounded-2xl px-3 pr-10 text-sm outline-none transition ${ui.select}`}
-                        >
-                          {journalStrategyOptions.map((item) => (
-                            <option key={item} value={item}>Strategy: {item}</option>
-                          ))}
-                        </select>
-                        <span className={`pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[11px] leading-none ${ui.muted}`}>▼</span>
-                      </div>
+                      <FixedOptionDropdown
+                        label="Strategy"
+                        value={journalStrategy}
+                        options={journalStrategyOptions}
+                        onSelect={setJournalStrategy}
+                        theme={theme}
+                        triggerClassName={ui.select}
+                        mutedClassName={ui.muted}
+                      />
 
                       <ManagedOptionDropdown
                         label="Market condition"
@@ -2828,48 +2942,53 @@ ${emotionWarning}`
                         secondaryButtonClassName={ui.secondaryBtn}
                       />
 
-                      <div className="relative">
-                        <select
-                          value={journalDirection}
-                          onChange={(e) => setJournalDirection(e.target.value as TradeDirection)}
-                          className={`h-10 w-full appearance-none rounded-2xl px-3 pr-10 text-sm outline-none transition ${ui.select}`}
-                        >
-                          <option value="long">Direction: Long</option>
-                          <option value="short">Direction: Short</option>
-                        </select>
-                        <span className={`pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[11px] leading-none ${ui.muted}`}>▼</span>
-                      </div>
+                      <FixedOptionDropdown
+                        label="Direction"
+                        value={journalDirection === 'long' ? 'Long' : 'Short'}
+                        options={['Long', 'Short']}
+                        onSelect={(item) => setJournalDirection(item.toLowerCase() as TradeDirection)}
+                        theme={theme}
+                        triggerClassName={ui.select}
+                        mutedClassName={ui.muted}
+                      />
 
-                      <div className="relative">
-                        <select
-                          value={tradeOutcome}
-                          onChange={(e) => setTradeOutcome(e.target.value as JournalOutcome)}
-                          className={`h-10 w-full appearance-none rounded-2xl px-3 pr-10 text-sm outline-none transition ${ui.select}`}
-                        >
-                          <option value="win">Outcome: Win</option>
-                          <option value="loss">Outcome: Loss</option>
-                          <option value="breakeven">Outcome: Breakeven</option>
-                        </select>
-                        <span className={`pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[11px] leading-none ${ui.muted}`}>▼</span>
-                      </div>
+                      <FixedOptionDropdown
+                        label="Outcome"
+                        value={tradeOutcome === 'win' ? 'Win' : tradeOutcome === 'loss' ? 'Loss' : 'Breakeven'}
+                        options={['Win', 'Loss', 'Breakeven']}
+                        onSelect={(item) =>
+                          setTradeOutcome(item.toLowerCase() === 'breakeven' ? 'breakeven' : (item.toLowerCase() as JournalOutcome))
+                        }
+                        theme={theme}
+                        triggerClassName={ui.select}
+                        mutedClassName={ui.muted}
+                      />
 
                       <input type="number" value={journalPnl || ''} onChange={(e) => setJournalPnl(Number(e.target.value) || 0)} className={`rounded-2xl px-3 py-2.5 text-sm outline-none transition ${ui.input}`} placeholder="Net P&L" />
                       <input type="number" step="0.1" value={journalRMultiple || ''} onChange={(e) => setJournalRMultiple(Number(e.target.value) || 0)} className={`rounded-2xl px-3 py-2.5 text-sm outline-none transition ${ui.input}`} placeholder="Result in R" />
                     </div>
 
                     <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                      <div className="relative">
-                        <select
-                          value={followedVerdict}
-                          onChange={(e) => setFollowedVerdict(e.target.value as FollowedVerdict)}
-                          className={`h-10 w-full appearance-none rounded-2xl px-3 pr-10 text-sm outline-none transition ${ui.select}`}
-                        >
-                          <option value="yes">I followed the verdict</option>
-                          <option value="partially">I partly followed it</option>
-                          <option value="no">I ignored it</option>
-                        </select>
-                        <span className={`pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[11px] leading-none ${ui.muted}`}>▼</span>
-                      </div>
+                      <FixedOptionDropdown
+                        label=""
+                        value={
+                          followedVerdict === 'yes'
+                            ? 'I followed the verdict'
+                            : followedVerdict === 'partially'
+                              ? 'I partly followed it'
+                              : 'I ignored it'
+                        }
+                        options={['I followed the verdict', 'I partly followed it', 'I ignored it']}
+                        onSelect={(item) =>
+                          setFollowedVerdict(
+                            item === 'I followed the verdict' ? 'yes' : item === 'I partly followed it' ? 'partially' : 'no'
+                          )
+                        }
+                        theme={theme}
+                        triggerClassName={ui.select}
+                        mutedClassName={ui.muted}
+                        showLabelInTrigger={false}
+                      />
 
                       <label className={`inline-flex cursor-pointer items-center justify-center rounded-2xl px-3 py-2 text-xs font-semibold transition ${ui.secondaryBtn}`}>
                         Upload screenshot
