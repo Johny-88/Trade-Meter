@@ -562,10 +562,11 @@ function ManagedOptionDropdown({
             className="fixed inset-0 z-[85] bg-slate-950/28 backdrop-blur-[1px]"
           />
 
-          <div
-            className={`fixed left-1/2 top-1/2 z-[90] w-[calc(100vw-32px)] max-w-[680px] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-[30px] ${panelClassName}`}
-          >
-            <div className="max-h-[54vh] overflow-y-auto">
+          <div className="fixed inset-0 z-[90] flex items-center justify-center p-4">
+            <div
+              className={`w-[calc(100vw-32px)] max-w-[680px] overflow-hidden rounded-[30px] ${panelClassName}`}
+            >
+              <div className="max-h-[54vh] overflow-y-auto">
               {options.map((item, index) => {
                 const isSelected = item === value
                 return (
@@ -641,6 +642,7 @@ function ManagedOptionDropdown({
                 >
                   Add
                 </button>
+              </div>
               </div>
             </div>
           </div>
