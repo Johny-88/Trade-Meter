@@ -2136,6 +2136,10 @@ export default function Home() {
   const availableStrategyRuleOptions = visibleStrategyOptions.filter((strategy) =>
     ruleLibrary.some((rule) => rule.strategy.toLowerCase() === strategy.toLowerCase())
   )
+  const hasCustomStrategies = visibleStrategyOptions.length > 0
+  const currentStrategyHasRules = ruleLibrary.some(
+    (rule) => rule.strategy.toLowerCase() === selectedStrategy.toLowerCase()
+  )
 
   const loadSelectedStrategy = (strategyName?: string) => {
     const targetStrategy = strategyName ?? selectedStrategy
@@ -3197,8 +3201,8 @@ ${emotionWarning}`
           <div className={`rounded-[24px] p-3 md:p-4 ${ui.card}`}>
             <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
               <div className={`relative z-20 rounded-[22px] p-3 ${ui.innerCard}`}>
-                <div className="mb-2 flex items-center justify-between gap-2 md:gap-3">
-                  <div className={`min-w-0 text-sm font-semibold ${ui.secondaryStrong}`}>
+                <div className="mb-2 flex items-center justify-center gap-2 md:gap-3">
+                  <div className={`text-center text-sm font-semibold ${ui.secondaryStrong}`}>
                     Set your minimum setup quality threshold
                   </div>
                 </div>
@@ -3507,7 +3511,9 @@ ${emotionWarning}`
 
                 {availableStrategyRuleOptions.length === 0 ? (
                   <div className={`rounded-2xl px-3 py-3 text-sm ${ui.empty}`}>
-                    No saved strategy rules available yet.
+                    {hasCustomStrategies
+                      ? `There are no saved rules for ${selectedStrategy} yet. Please add them above first.`
+                      : 'Add your first strategy above to start building and loading strategy rules.'}
                   </div>
                 ) : (
                   <div className="grid grid-cols-2 gap-2">
@@ -3528,7 +3534,11 @@ ${emotionWarning}`
 
             {rules.length === 0 ? (
               <div className={`rounded-[24px] p-8 text-center ${ui.empty}`}>
-                No rules yet. Add rules using the + button above.
+                {hasCustomStrategies
+                  ? currentStrategyHasRules
+                    ? `No checklist rules are loaded for ${selectedStrategy} yet. Tap "Load Strategy Rules" to bring them in.`
+                    : `There are no rules for ${selectedStrategy} yet. Please add them above first.`
+                  : 'Add your first strategy above to start building your checklist.'}
               </div>
             ) : (
               <div className="space-y-2">
