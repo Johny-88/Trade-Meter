@@ -2694,8 +2694,8 @@ ${emotionWarning}`
                   : 'border border-white/10 bg-slate-950/88 shadow-xl'
               }`}
             >
-              <span className={`flex h-5 w-5 items-center justify-center text-[13px] ${theme === 'light' ? 'text-slate-900' : 'text-white'}`} aria-hidden="true">
-                📊
+              <span className="flex h-5 w-5 items-center justify-center" aria-hidden="true">
+                <BarChart3 className={theme === 'light' ? 'h-[15px] w-[15px] text-slate-900' : 'h-[15px] w-[15px] text-white'} strokeWidth={2.2} />
               </span>
               <button
                 type="button"
