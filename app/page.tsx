@@ -511,13 +511,33 @@ function ManagedOptionDropdown({
   const [open, setOpen] = useState(false)
   const [draft, setDraft] = useState('')
 
-  const panelClassName =
+  const sheetClassName =
     theme === 'light'
       ? 'border border-slate-200 bg-white shadow-2xl'
       : 'border border-white/10 bg-slate-950 shadow-2xl'
 
+  const rowClassName =
+    theme === 'light'
+      ? 'border-b border-slate-200 text-slate-950'
+      : 'border-b border-white/10 text-white'
+
+  const selectedCircleClassName =
+    theme === 'light'
+      ? 'border-slate-400 bg-slate-900 ring-2 ring-slate-300'
+      : 'border-slate-300 bg-slate-200 ring-2 ring-slate-500/30'
+
+  const unselectedCircleClassName =
+    theme === 'light'
+      ? 'border-slate-400 bg-white'
+      : 'border-slate-400 bg-transparent'
+
+  const removeButtonClassName =
+    theme === 'light'
+      ? 'border border-slate-300 bg-white text-slate-600 hover:bg-slate-50'
+      : 'border border-white/10 bg-white/5 text-slate-300 hover:bg-white/10'
+
   return (
-    <div className={open ? "relative z-[80]" : "relative"}>
+    <div className={open ? 'relative z-[80]' : 'relative'}>
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
@@ -526,72 +546,104 @@ function ManagedOptionDropdown({
         <span className="truncate">
           {label}: {value}
         </span>
-        <span className={`pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[11px] leading-none transition ${mutedClassName} ${open ? 'rotate-180' : ''}`}>▼</span>
+        <span
+          className={`pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[11px] leading-none transition ${mutedClassName} ${
+            open ? 'rotate-180' : ''
+          }`}
+        >
+          ▼
+        </span>
       </button>
 
       {open && (
-        <div
-          className={`absolute left-0 right-0 z-[90] rounded-[22px] p-2 ${panelClassName} ${
-            label === 'Strategy' ? 'bottom-[calc(100%+0.5rem)]' : 'top-[calc(100%+0.5rem)]'
-          }`}
-        >
-          <div className="max-h-56 space-y-1 overflow-y-auto">
-            {options.map((item) => (
-              <div key={item} className="flex items-center gap-2">
+        <>
+          <button
+            type="button"
+            aria-label={`Close ${label} options`}
+            onClick={() => setOpen(false)}
+            className="fixed inset-0 z-[85] bg-slate-950/25 backdrop-blur-[1px]"
+          />
+
+          <div
+            className={`fixed inset-x-4 bottom-4 z-[90] rounded-[28px] p-0 overflow-hidden ${sheetClassName} md:absolute md:bottom-auto md:left-0 md:right-0 md:top-[calc(100%+0.5rem)] md:rounded-[22px] md:p-2`}
+          >
+            <div className={`px-5 pb-2 pt-4 text-sm font-semibold md:hidden ${theme === 'light' ? 'text-slate-900' : 'text-white'}`}>
+              {label}
+            </div>
+
+            <div className="max-h-[52vh] overflow-y-auto md:max-h-56 md:space-y-1">
+              {options.map((item, index) => {
+                const isSelected = item === value
+                return (
+                  <div
+                    key={item}
+                    className={`flex items-center gap-3 px-5 py-4 md:rounded-2xl md:px-3 md:py-2 md:${secondaryButtonClassName} ${
+                      index === options.length - 1 ? '' : rowClassName
+                    } md:border md:border-transparent`}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onSelect(item)
+                        setOpen(false)
+                      }}
+                      className="flex min-w-0 flex-1 items-center justify-between gap-3 text-left"
+                    >
+                      <span className="truncate text-[16px] md:text-sm">{item}</span>
+                      <span
+                        className={`h-7 w-7 flex-none rounded-full border transition md:h-5 md:w-5 ${
+                          isSelected ? selectedCircleClassName : unselectedCircleClassName
+                        }`}
+                      />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => onDelete(item)}
+                      className={`flex h-9 w-9 flex-none items-center justify-center rounded-full text-lg font-bold transition md:h-8 md:w-8 md:text-base ${removeButtonClassName}`}
+                      aria-label={`Remove ${item}`}
+                    >
+                      −
+                    </button>
+                  </div>
+                )
+              })}
+            </div>
+
+            <div className="border-t border-slate-200/70 p-3 dark:border-white/10 md:mt-2 md:border-t-0 md:p-0">
+              <div className="flex gap-2">
+                <input
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      const trimmed = draft.trim()
+                      if (!trimmed) return
+                      onAdd(trimmed)
+                      setDraft('')
+                      setOpen(false)
+                    }
+                  }}
+                  placeholder={`Add ${label.toLowerCase()}`}
+                  className={`w-full rounded-2xl px-3 py-2.5 text-sm outline-none transition ${inputClassName}`}
+                />
                 <button
                   type="button"
                   onClick={() => {
-                    onSelect(item)
+                    const trimmed = draft.trim()
+                    if (!trimmed) return
+                    onAdd(trimmed)
+                    setDraft('')
                     setOpen(false)
                   }}
-                  className={`flex-1 rounded-2xl px-3 py-2 text-left text-sm transition ${secondaryButtonClassName}`}
+                  className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${addButtonClassName}`}
                 >
-                  {item}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => onDelete(item)}
-                  className={`flex h-9 w-9 items-center justify-center rounded-full text-base font-bold transition ${secondaryButtonClassName}`}
-                  aria-label={`Remove ${item}`}
-                >
-                  −
+                  Add
                 </button>
               </div>
-            ))}
+            </div>
           </div>
-
-          <div className="mt-2 flex gap-2">
-            <input
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  const trimmed = draft.trim()
-                  if (!trimmed) return
-                  onAdd(trimmed)
-                  setDraft('')
-                  setOpen(false)
-                }
-              }}
-              placeholder={`Add ${label.toLowerCase()}`}
-              className={`w-full rounded-2xl px-3 py-2.5 text-sm outline-none transition ${inputClassName}`}
-            />
-            <button
-              type="button"
-              onClick={() => {
-                const trimmed = draft.trim()
-                if (!trimmed) return
-                onAdd(trimmed)
-                setDraft('')
-                setOpen(false)
-              }}
-              className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${addButtonClassName}`}
-            >
-              Add
-            </button>
-          </div>
-        </div>
+        </>
       )}
     </div>
   )
