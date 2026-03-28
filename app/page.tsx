@@ -3132,7 +3132,6 @@ ${emotionWarning}`
                   <div className={`min-w-0 text-sm font-semibold ${ui.secondaryStrong}`}>
                     Set your minimum setup quality threshold
                   </div>
-                  <div className={`shrink-0 text-sm font-semibold ${ui.primaryStrong}`}>{minScore}%</div>
                 </div>
 
                 <div className="mt-1 flex items-center gap-2 md:gap-3">
