@@ -2193,7 +2193,7 @@ export default function Home() {
   const startEditingJournalEntry = (entry: JournalEntry) => {
     setEditingJournalId(entry.id)
     setTradeNote(entry.note)
-    setTradeOutcome(entry.outcome)
+    setTradeOutcome(entry.outcome === 'unknown' || entry.outcome === 'no-trade' || entry.outcome === 'saved-me' ? 'breakeven' : entry.outcome)
     setFollowedVerdict(entry.followedVerdict)
     setJournalDirection(entry.direction)
     setJournalPnl(entry.pnl)
@@ -2206,12 +2206,9 @@ export default function Home() {
     setJournalMarketCondition(entry.marketCondition)
     setJournalEmotion(entry.emotion)
     setSelectedJournalEntry(null)
-    if (typeof window !== 'undefined') {
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-    }
   }
 
-  const resetJournalForm = () => {
+  const cancelEditingJournalEntry = () => {
     setEditingJournalId(null)
     setTradeNote('')
     setTradeOutcome('breakeven')
@@ -2223,15 +2220,15 @@ export default function Home() {
   }
 
   const saveJournalEntry = () => {
-    const existingEntry = editingJournalId ? journal.find((entry) => entry.id === editingJournalId) ?? null : null
+    const existingEntry = editingJournalId ? journal.find((item) => item.id === editingJournalId) : null
 
     const entry: JournalEntry = {
       id: existingEntry?.id ?? makeId(),
       createdAt: existingEntry?.createdAt ?? new Date().toISOString(),
-      score,
-      threshold: minScore,
-      verdict: rating.decisionLabel,
-      quality: scoreBand.label,
+      score: existingEntry?.score ?? score,
+      threshold: existingEntry?.threshold ?? minScore,
+      verdict: existingEntry?.verdict ?? rating.decisionLabel,
+      quality: existingEntry?.quality ?? scoreBand.label,
       outcome: tradeOutcome,
       followedVerdict,
       note: tradeNote.trim(),
@@ -2245,18 +2242,25 @@ export default function Home() {
       direction: journalDirection,
       pnl: journalPnl,
       rMultiple: journalRMultiple,
-      missingRuleTexts: rules.filter((rule) => !rule.checked).map((rule) => rule.text),
-      missingCategories: rules.filter((rule) => !rule.checked).map((rule) => rule.category),
+      missingRuleTexts: existingEntry?.missingRuleTexts ?? rules.filter((rule) => !rule.checked).map((rule) => rule.text),
+      missingCategories: existingEntry?.missingCategories ?? rules.filter((rule) => !rule.checked).map((rule) => rule.category),
       respectedVerdict: followedVerdict === 'yes',
     }
 
     if (existingEntry) {
-      setJournal((prev) => prev.map((item) => (item.id === existingEntry.id ? entry : item)))
+      setJournal((prev) => prev.map((item) => (item.id === editingJournalId ? entry : item)))
     } else {
       setJournal((prev) => [entry, ...prev])
     }
 
-    resetJournalForm()
+    setEditingJournalId(null)
+    setTradeNote('')
+    setTradeOutcome('breakeven')
+    setFollowedVerdict('yes')
+    setJournalDirection('long')
+    setJournalPnl(0)
+    setJournalRMultiple(0)
+    setScreenshotDataUrl('')
   }
 
   const shareSummary = async () => {
@@ -2496,16 +2500,6 @@ ${emotionWarning}`
               <p className={`mt-2 text-center text-sm ${ui.subtle}`}>{formatDate(selectedJournalEntry.createdAt)} • {selectedJournalEntry.instrument} • {selectedJournalEntry.setupType} • {selectedJournalEntry.strategy}</p>
             </div>
 
-            <div className="mt-4 flex justify-center">
-              <button
-                type="button"
-                onClick={() => startEditingJournalEntry(selectedJournalEntry)}
-                className={`rounded-2xl px-4 py-2 text-xs font-semibold transition ${ui.secondaryBtn}`}
-              >
-                Edit entry
-              </button>
-            </div>
-
             <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
               {[
                 ['Outcome', selectedJournalEntry.outcome],
@@ -2540,6 +2534,16 @@ ${emotionWarning}`
               <div className="mt-2 text-sm font-semibold">
                 {selectedJournalEntry.missingRuleTexts.length > 0 ? selectedJournalEntry.missingRuleTexts.join(', ') : 'No missing rules recorded.'}
               </div>
+            </div>
+
+            <div className="mt-4 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => startEditingJournalEntry(selectedJournalEntry)}
+                className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${ui.secondaryBtn}`}
+              >
+                Edit this entry
+              </button>
             </div>
 
             {selectedJournalEntry.screenshotDataUrl && (
@@ -2837,16 +2841,16 @@ ${emotionWarning}`
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 md:gap-2.5">
+                <div className="grid grid-cols-2 gap-2">
                   {[
                     ['Net P&L', `${totalNetPnl >= 0 ? '+' : ''}${totalNetPnl.toFixed(2)}`],
                     ['Avg R', `${averageR >= 0 ? '+' : ''}${averageR.toFixed(2)}R`],
                     ['Long W/L', `${longWins}/${longLosses}`],
                     ['Short W/L', `${shortWins}/${shortLosses}`],
                   ].map((item) => (
-                    <div key={item[0]} className={`rounded-[14px] border px-2 py-1.5 text-center sm:rounded-[16px] sm:px-2.5 sm:py-2 ${ui.statBox}`}>
-                      <div className={`text-[7px] uppercase tracking-[0.12em] sm:text-[8px] sm:tracking-[0.14em] ${ui.muted}`}>{item[0]}</div>
-                      <div className="mt-0.5 text-[12px] font-bold leading-4 sm:mt-1 sm:text-[13px] sm:leading-5 md:text-sm">{item[1]}</div>
+                    <div key={item[0]} className={`h-[78px] rounded-[16px] border px-2 py-2 text-center ${ui.statBox}`}>
+                      <div className={`text-[8px] uppercase tracking-[0.13em] ${ui.muted}`}>{item[0]}</div>
+                      <div className="mt-1 text-[12px] font-bold leading-5 md:text-sm">{item[1]}</div>
                     </div>
                   ))}
                 </div>
@@ -2905,7 +2909,7 @@ ${emotionWarning}`
                     <div className={`mb-2 text-sm font-semibold ${ui.secondaryStrong}`}>Journal entry</div>
                     <p className={`mb-3 text-xs ${ui.muted}`}>Log the trade, the emotion, and the result. Keep it honest and fast.</p>
 
-                    <div className="grid grid-cols-2 gap-2 md:gap-2.5">
+                    <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
                       <ManagedOptionDropdown
                         label="Instrument"
                         value={journalInstrument}
@@ -3040,18 +3044,22 @@ ${emotionWarning}`
                       </label>
                     </div>
 
+                    <textarea value={tradeNote} onChange={(e) => setTradeNote(e.target.value)} placeholder="What happened? Why did you take it, skip it, or break the verdict?" className={`mt-2 min-h-[108px] w-full rounded-[22px] px-3 py-3 text-sm outline-none transition ${ui.input}`} />
+
                     {editingJournalId && (
                       <div className={`mt-2 rounded-2xl border px-3 py-2 text-xs font-semibold ${qualificationStyles.badge}`}>
-                        Editing existing journal record
+                        Editing journal entry
                       </div>
                     )}
 
-                    <textarea value={tradeNote} onChange={(e) => setTradeNote(e.target.value)} placeholder="What happened? Why did you take it, skip it, or break the verdict?" className={`mt-2 min-h-[108px] w-full rounded-[22px] px-3 py-3 text-sm outline-none transition ${ui.input}`} />
-
                     <div className="mt-2 flex flex-wrap items-center gap-2">
-                      <button type="button" onClick={saveJournalEntry} className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${styles.button}`}>{editingJournalId ? 'Save changes' : 'Save journal entry'}</button>
+                      <button type="button" onClick={saveJournalEntry} className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${styles.button}`}>
+                        {editingJournalId ? 'Update journal entry' : 'Save journal entry'}
+                      </button>
                       {editingJournalId && (
-                        <button type="button" onClick={resetJournalForm} className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${ui.secondaryBtn}`}>Cancel edit</button>
+                        <button type="button" onClick={cancelEditingJournalEntry} className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${ui.secondaryBtn}`}>
+                          Cancel edit
+                        </button>
                       )}
                       <button type="button" onClick={shareSummary} className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${ui.secondaryBtn}`}>{copiedSummary ? 'Copied' : 'Copy summary'}</button>
                     </div>
@@ -3067,7 +3075,7 @@ ${emotionWarning}`
                     <div className={`mb-2 text-sm font-semibold ${ui.secondaryStrong}`}>Performance snapshot</div>
                     <p className={`mb-3 text-xs ${ui.muted}`}>The stats that matter most when reviewing discipline and execution.</p>
 
-                    <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
+                    <div className="grid grid-cols-2 gap-2">
                       {[
                         ['Win rate', `${winRate}%`],
                         ['Loss rate', `${lossRate}%`],
@@ -3084,9 +3092,9 @@ ${emotionWarning}`
                         ['Most common emotion', emotionBreakdown ? `${emotionBreakdown[0]} • ${emotionBreakdown[1]} entries` : 'No journal entries yet.'],
                         ['Most missed rule', mostMissedRule ? mostMissedRule[0] : 'No missed-rule data yet.'],
                       ].map((item) => (
-                        <div key={item[0]} className={`min-h-[64px] rounded-[14px] border px-2 py-1.5 sm:min-h-[78px] sm:rounded-[16px] sm:py-2 ${ui.statBox}`}>
-                          <div className={`text-[7px] uppercase tracking-[0.11em] leading-3.5 sm:text-[8px] sm:tracking-[0.13em] sm:leading-4 ${ui.muted}`}>{item[0]}</div>
-                          <div className="mt-0.5 text-[11px] font-semibold leading-4 sm:mt-1 sm:text-[12px] sm:leading-5 md:text-sm">{item[1]}</div>
+                        <div key={item[0]} className={`h-[82px] rounded-[14px] border px-2 py-2 ${ui.statBox}`}>
+                          <div className={`text-[8px] uppercase tracking-[0.12em] leading-4 ${ui.muted}`}>{item[0]}</div>
+                          <div className="mt-1 text-[11px] font-semibold leading-4 md:text-sm">{item[1]}</div>
                         </div>
                       ))}
                     </div>
