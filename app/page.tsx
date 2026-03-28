@@ -23,35 +23,46 @@ type IconProps = {
   strokeWidth?: number
 }
 
-function BarChart3({ className, strokeWidth = 2 }: IconProps) {
+function BarChart3({ className }: IconProps) {
   return (
     <svg
       viewBox="0 0 24 24"
-      fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
       aria-hidden="true"
+      fill="none"
     >
+      <defs>
+        <linearGradient id="edgeConfirmStatsGrad" x1="4" y1="19" x2="20" y2="5" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#06b6d4" />
+          <stop offset="55%" stopColor="#3b82f6" />
+          <stop offset="100%" stopColor="#8b5cf6" />
+        </linearGradient>
+      </defs>
+
       <path
-        d="M4 20.5H20"
+        d="M4 19.25H20"
         stroke="currentColor"
-        strokeWidth={strokeWidth}
+        strokeWidth="1.9"
         strokeLinecap="round"
+        opacity="0.88"
       />
-      <rect x="5" y="12.5" width="3" height="6" rx="1" fill="currentColor" opacity="0.72" />
-      <rect x="10.5" y="9.5" width="3" height="9" rx="1" fill="currentColor" opacity="0.84" />
-      <rect x="16" y="5.5" width="3" height="13" rx="1" fill="currentColor" />
+
+      <rect x="5.1" y="12.2" width="2.9" height="5.4" rx="1.05" fill="url(#edgeConfirmStatsGrad)" />
+      <rect x="10.55" y="9.4" width="2.9" height="8.2" rx="1.05" fill="url(#edgeConfirmStatsGrad)" />
+      <rect x="16" y="6.6" width="2.9" height="11" rx="1.05" fill="url(#edgeConfirmStatsGrad)" />
+
       <path
-        d="M5.5 10.5L10.2 8.2L13 10L18.5 4.8"
+        d="M6.55 8.9L11.95 6.7L15.15 8.4L18.95 4.95"
         stroke="currentColor"
-        strokeWidth={strokeWidth}
+        strokeWidth="1.95"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
       <path
-        d="M16.4 4.8H18.9V7.3"
+        d="M17.35 4.9H18.95V6.5"
         stroke="currentColor"
-        strokeWidth={strokeWidth}
+        strokeWidth="1.95"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
