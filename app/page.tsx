@@ -32,10 +32,29 @@ function BarChart3({ className, strokeWidth = 2 }: IconProps) {
       className={className}
       aria-hidden="true"
     >
-      <path d="M4 20V10" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" />
-      <path d="M12 20V4" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" />
-      <path d="M20 20v-7" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" />
-      <path d="M3 20h18" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" />
+      <path
+        d="M4 20.5H20"
+        stroke="currentColor"
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+      />
+      <rect x="5" y="12.5" width="3" height="6" rx="1" fill="currentColor" opacity="0.72" />
+      <rect x="10.5" y="9.5" width="3" height="9" rx="1" fill="currentColor" opacity="0.84" />
+      <rect x="16" y="5.5" width="3" height="13" rx="1" fill="currentColor" />
+      <path
+        d="M5.5 10.5L10.2 8.2L13 10L18.5 4.8"
+        stroke="currentColor"
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M16.4 4.8H18.9V7.3"
+        stroke="currentColor"
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   )
 }
