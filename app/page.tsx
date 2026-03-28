@@ -1281,7 +1281,7 @@ function getCombinationSummary(entries: JournalEntry[]) {
 }
 
 export default function Home() {
-  const title = 'Edge Check'
+  const title = 'Edge Confirm'
   const [theme, setTheme] = useState<AppTheme>('light')
   const [mode, setMode] = useState<AppMode>('standard')
   const [newRule, setNewRule] = useState('')
@@ -2822,7 +2822,7 @@ ${emotionWarning}`
             <div className="max-w-3xl">
               <div className="mb-2 flex items-center justify-center">
                 <h1 className="text-center text-xl font-bold md:text-2xl">
-                  Edge Check - Best Trading Discipline App
+                  Edge Confirm - Best Trading Discipline App
                 </h1>
               </div>
 
@@ -3128,45 +3128,45 @@ ${emotionWarning}`
           <div className={`rounded-[24px] p-3 md:p-4 ${ui.card}`}>
             <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
               <div className={`relative z-20 rounded-[22px] p-3 ${ui.innerCard}`}>
-                <div className="mb-2 flex items-center justify-between gap-3">
-                  <div className={`text-sm font-semibold ${ui.secondaryStrong}`}>
+                <div className="mb-2 flex items-center justify-between gap-2 md:gap-3">
+                  <div className={`min-w-0 text-sm font-semibold ${ui.secondaryStrong}`}>
                     Set your minimum setup quality threshold
                   </div>
-                  <div className={`text-sm font-semibold ${ui.primaryStrong}`}>{minScore}%</div>
+                  <div className={`shrink-0 text-sm font-semibold ${ui.primaryStrong}`}>{minScore}%</div>
                 </div>
 
-                <div className="mt-1 flex items-center gap-3">
+                <div className="mt-1 flex items-center gap-2 md:gap-3">
                   <button
                     type="button"
                     onClick={() => setMinScore((prev) => Math.max(0, prev - 5))}
-                    className={`flex h-11 w-11 items-center justify-center rounded-full border text-xl font-semibold transition active:scale-[0.98] ${
-                      theme === 'light'
-                        ? 'border-slate-300 bg-white text-slate-800 hover:bg-slate-50'
-                        : 'border-white/10 bg-white/5 text-white hover:bg-white/10'
-                    }`}
+                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-red-300 bg-red-500 text-xl font-semibold text-white transition hover:bg-red-600 active:scale-[0.98]"
                     aria-label="Decrease threshold"
                   >
                     −
                   </button>
 
                   <div
-                    className={`flex-1 rounded-full border px-4 py-2.5 text-center text-sm font-semibold ${
+                    className={`relative flex-1 overflow-hidden rounded-full border ${
                       theme === 'light'
-                        ? 'border-slate-300 bg-white text-slate-800'
-                        : 'border-white/10 bg-white/5 text-white'
+                        ? 'border-slate-300 bg-white'
+                        : 'border-white/10 bg-white/5'
                     }`}
                   >
-                    Threshold: {minScore}%
+                    <div
+                      className="absolute inset-y-0 left-0 rounded-full bg-emerald-500 transition-all duration-200"
+                      style={{ width: `${minScore}%` }}
+                    />
+                    <div className={`relative px-3 py-2.5 text-center text-[13px] font-semibold md:px-4 md:text-sm ${
+                      theme === 'light' ? 'text-slate-800' : 'text-white'
+                    }`}>
+                      Threshold: {minScore}%
+                    </div>
                   </div>
 
                   <button
                     type="button"
                     onClick={() => setMinScore((prev) => Math.min(100, prev + 5))}
-                    className={`flex h-11 w-11 items-center justify-center rounded-full border text-xl font-semibold transition active:scale-[0.98] ${
-                      theme === 'light'
-                        ? 'border-slate-300 bg-white text-slate-800 hover:bg-slate-50'
-                        : 'border-white/10 bg-white/5 text-white hover:bg-white/10'
-                    }`}
+                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-emerald-300 bg-emerald-500 text-xl font-semibold text-white transition hover:bg-emerald-600 active:scale-[0.98]"
                     aria-label="Increase threshold"
                   >
                     +
