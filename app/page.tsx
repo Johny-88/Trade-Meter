@@ -3135,15 +3135,43 @@ ${emotionWarning}`
                   <div className={`text-sm font-semibold ${ui.primaryStrong}`}>{minScore}%</div>
                 </div>
 
-                <input
-                  type="range"
-                  min={0}
-                  max={100}
-                  step={5}
-                  value={minScore}
-                  onChange={(e) => setMinScore(Number(e.target.value))}
-                  className="w-full accent-emerald-400"
-                />
+                <div className="mt-1 flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setMinScore((prev) => Math.max(0, prev - 5))}
+                    className={`flex h-11 w-11 items-center justify-center rounded-full border text-xl font-semibold transition active:scale-[0.98] ${
+                      theme === 'light'
+                        ? 'border-slate-300 bg-white text-slate-800 hover:bg-slate-50'
+                        : 'border-white/10 bg-white/5 text-white hover:bg-white/10'
+                    }`}
+                    aria-label="Decrease threshold"
+                  >
+                    −
+                  </button>
+
+                  <div
+                    className={`flex-1 rounded-full border px-4 py-2.5 text-center text-sm font-semibold ${
+                      theme === 'light'
+                        ? 'border-slate-300 bg-white text-slate-800'
+                        : 'border-white/10 bg-white/5 text-white'
+                    }`}
+                  >
+                    Threshold: {minScore}%
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setMinScore((prev) => Math.min(100, prev + 5))}
+                    className={`flex h-11 w-11 items-center justify-center rounded-full border text-xl font-semibold transition active:scale-[0.98] ${
+                      theme === 'light'
+                        ? 'border-slate-300 bg-white text-slate-800 hover:bg-slate-50'
+                        : 'border-white/10 bg-white/5 text-white hover:bg-white/10'
+                    }`}
+                    aria-label="Increase threshold"
+                  >
+                    +
+                  </button>
+                </div>
 
 
                 <div className="mt-3 flex flex-wrap gap-2 text-[11px] md:text-xs">
