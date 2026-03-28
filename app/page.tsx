@@ -16,6 +16,30 @@ type TradeDirection = 'long' | 'short'
 type JournalOutcome = 'unknown' | 'win' | 'loss' | 'breakeven' | 'no-trade' | 'saved-me'
 type FollowedVerdict = 'yes' | 'no' | 'partially'
 
+
+
+type IconProps = {
+  className?: string
+  strokeWidth?: number
+}
+
+function BarChart3({ className, strokeWidth = 2 }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M4 20V10" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" />
+      <path d="M12 20V4" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" />
+      <path d="M20 20v-7" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" />
+      <path d="M3 20h18" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" />
+    </svg>
+  )
+}
+
 type Rule = {
   id: string
   text: string
