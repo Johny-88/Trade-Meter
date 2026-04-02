@@ -2330,34 +2330,115 @@ ${emotionWarning}`
               </p>
             </div>
 
-            <div className="mt-5 grid grid-cols-2 gap-2 md:gap-3 xl:grid-cols-3">
-              {[
-                ['Win emotion', topWinningEmotion ? `${topWinningEmotion.value}` : 'No winning trades yet.'],
-                ['Loss emotion', topLosingEmotion ? `${topLosingEmotion.value}` : 'No losing trades yet.'],
-                ['Win setup', topWinningSetup ? `${topWinningSetup.value}` : 'No winning trades yet.'],
-                ['Loss setup', topLosingSetup ? `${topLosingSetup.value}` : 'No losing trades yet.'],
-                ['Win instrument', topWinningInstrument ? `${topWinningInstrument.value}` : 'No winning trades yet.'],
-                ['Loss instrument', topLosingInstrument ? `${topLosingInstrument.value}` : 'No losing trades yet.'],
-                ['Win strategy', topWinningStrategy ? `${topWinningStrategy.value}` : 'No winning trades yet.'],
-                ['Loss strategy', topLosingStrategy ? `${topLosingStrategy.value}` : 'No losing trades yet.'],
-                ['Win direction', topWinningDirection ? `${topWinningDirection.value}` : 'No winning trades yet.'],
-                ['Loss direction', topLosingDirection ? `${topLosingDirection.value}` : 'No losing trades yet.'],
-                ['Win session', topWinningSession ? `${topWinningSession.value}` : 'No winning trades yet.'],
-                ['Loss session', topLosingSession ? `${topLosingSession.value}` : 'No losing trades yet.'],
-                ['Top direction', topOverallDirection ? `${topOverallDirection.value}` : 'No data yet.'],
-                ['Top session', topOverallSession ? `${topOverallSession.value}` : 'No data yet.'],
-                ['Top instrument', topOverallInstrument ? `${topOverallInstrument.value}` : 'No data yet.'],
-                ['Top setup', topOverallSetup ? `${topOverallSetup.value}` : 'No data yet.'],
-                ['Top strategy', topOverallStrategy ? `${topOverallStrategy.value}` : 'No data yet.'],
-                ['Top emotion', topOverallEmotion ? `${topOverallEmotion.value}` : 'No data yet.'],
-                ['Best avg R', bestSetupByAverageR ? `${bestSetupByAverageR.setup} • ${bestSetupByAverageR.avgR.toFixed(2)}R` : 'Not enough closed trades yet.'],
-                ['Worst avg R', worstSetupByAverageR ? `${worstSetupByAverageR.setup} • ${worstSetupByAverageR.avgR.toFixed(2)}R` : 'Not enough closed trades yet.'],
-              ].map((item) => (
-                <div key={item[0]} className={`rounded-[16px] border px-3 py-2.5 text-center shadow-sm ${ui.statBox}`}>
-                  <div className={`text-[8px] uppercase tracking-[0.12em] leading-4 ${ui.muted}`}>{item[0]}</div>
-                  <div className="mt-1.5 text-[13px] font-semibold leading-5 md:text-sm">{item[1]}</div>
+            <div className="mt-5 space-y-4">
+              <div className={`relative overflow-hidden rounded-[24px] border p-4 ${ui.statBox}`}>
+                <div className="pointer-events-none absolute inset-0 overflow-hidden">
+                  <div className={`absolute -left-10 top-0 h-24 w-24 rounded-full blur-3xl ${ui.glowOne}`} />
+                  <div className={`absolute right-0 top-1/2 h-20 w-20 -translate-y-1/2 rounded-full blur-3xl ${ui.glowTwo}`} />
                 </div>
-              ))}
+
+                <div className="relative">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Winning profile</div>
+                      <div className={`mt-1 text-sm font-semibold ${ui.secondaryStrong}`}>What your better trades keep having in common</div>
+                    </div>
+
+                    <div className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-[10px] font-semibold text-emerald-300">
+                      Winning patterns
+                    </div>
+                  </div>
+
+                  <div className="mt-4 grid grid-cols-2 gap-2 xl:grid-cols-3">
+                    {[
+                      ['Emotion', topWinningEmotion ? `${topWinningEmotion.value}` : 'No winning trades yet.'],
+                      ['Setup', topWinningSetup ? `${topWinningSetup.value}` : 'No winning trades yet.'],
+                      ['Instrument', topWinningInstrument ? `${topWinningInstrument.value}` : 'No winning trades yet.'],
+                      ['Strategy', topWinningStrategy ? `${topWinningStrategy.value}` : 'No winning trades yet.'],
+                      ['Direction', topWinningDirection ? `${topWinningDirection.value}` : 'No winning trades yet.'],
+                      ['Session', topWinningSession ? `${topWinningSession.value}` : 'No winning trades yet.'],
+                    ].map((item) => (
+                      <div key={item[0]} className={`rounded-[18px] border px-3 py-2.5 ${theme === 'light' ? 'border-emerald-200 bg-white/90' : 'border-emerald-500/15 bg-slate-950/40'}`}>
+                        <div className={`text-[8px] uppercase tracking-[0.12em] leading-4 ${ui.muted}`}>{item[0]}</div>
+                        <div className="mt-1.5 text-[13px] font-semibold leading-5 md:text-sm">{item[1]}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className={`relative overflow-hidden rounded-[24px] border p-4 ${ui.statBox}`}>
+                <div className="pointer-events-none absolute inset-0 overflow-hidden">
+                  <div className={`absolute -right-10 top-0 h-24 w-24 rounded-full blur-3xl ${ui.glowThree}`} />
+                  <div className={`absolute left-0 bottom-0 h-20 w-20 rounded-full blur-3xl ${ui.glowOne}`} />
+                </div>
+
+                <div className="relative">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Losing profile</div>
+                      <div className={`mt-1 text-sm font-semibold ${ui.secondaryStrong}`}>What shows up most often when trades go wrong</div>
+                    </div>
+
+                    <div className="rounded-full border border-red-500/20 bg-red-500/10 px-3 py-1 text-[10px] font-semibold text-red-300">
+                      Loss patterns
+                    </div>
+                  </div>
+
+                  <div className="mt-4 grid grid-cols-2 gap-2 xl:grid-cols-3">
+                    {[
+                      ['Emotion', topLosingEmotion ? `${topLosingEmotion.value}` : 'No losing trades yet.'],
+                      ['Setup', topLosingSetup ? `${topLosingSetup.value}` : 'No losing trades yet.'],
+                      ['Instrument', topLosingInstrument ? `${topLosingInstrument.value}` : 'No losing trades yet.'],
+                      ['Strategy', topLosingStrategy ? `${topLosingStrategy.value}` : 'No losing trades yet.'],
+                      ['Direction', topLosingDirection ? `${topLosingDirection.value}` : 'No losing trades yet.'],
+                      ['Session', topLosingSession ? `${topLosingSession.value}` : 'No losing trades yet.'],
+                    ].map((item) => (
+                      <div key={item[0]} className={`rounded-[18px] border px-3 py-2.5 ${theme === 'light' ? 'border-red-200 bg-white/90' : 'border-red-500/15 bg-slate-950/40'}`}>
+                        <div className={`text-[8px] uppercase tracking-[0.12em] leading-4 ${ui.muted}`}>{item[0]}</div>
+                        <div className="mt-1.5 text-[13px] font-semibold leading-5 md:text-sm">{item[1]}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className={`relative overflow-hidden rounded-[24px] border p-4 ${ui.statBox}`}>
+                <div className="pointer-events-none absolute inset-0 overflow-hidden">
+                  <div className={`absolute left-1/2 top-0 h-24 w-24 -translate-x-1/2 rounded-full blur-3xl ${ui.glowTwo}`} />
+                </div>
+
+                <div className="relative">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Overall patterns</div>
+                      <div className={`mt-1 text-sm font-semibold ${ui.secondaryStrong}`}>The strongest recurring tendencies across your journal</div>
+                    </div>
+
+                    <div className={`rounded-full border px-3 py-1 text-[10px] font-semibold ${theme === 'light' ? 'border-slate-300 bg-white text-slate-700' : 'border-white/10 bg-white/5 text-slate-300'}`}>
+                      Pattern intelligence
+                    </div>
+                  </div>
+
+                  <div className="mt-4 grid grid-cols-2 gap-2 xl:grid-cols-4">
+                    {[
+                      ['Top direction', topOverallDirection ? `${topOverallDirection.value}` : 'No data yet.'],
+                      ['Top session', topOverallSession ? `${topOverallSession.value}` : 'No data yet.'],
+                      ['Top instrument', topOverallInstrument ? `${topOverallInstrument.value}` : 'No data yet.'],
+                      ['Top setup', topOverallSetup ? `${topOverallSetup.value}` : 'No data yet.'],
+                      ['Top strategy', topOverallStrategy ? `${topOverallStrategy.value}` : 'No data yet.'],
+                      ['Top emotion', topOverallEmotion ? `${topOverallEmotion.value}` : 'No data yet.'],
+                      ['Best avg R', bestSetupByAverageR ? `${bestSetupByAverageR.setup} • ${bestSetupByAverageR.avgR.toFixed(2)}R` : 'Not enough closed trades yet.'],
+                      ['Worst avg R', worstSetupByAverageR ? `${worstSetupByAverageR.setup} • ${worstSetupByAverageR.avgR.toFixed(2)}R` : 'Not enough closed trades yet.'],
+                    ].map((item) => (
+                      <div key={item[0]} className={`rounded-[18px] border px-3 py-2.5 ${ui.innerCard}`}>
+                        <div className={`text-[8px] uppercase tracking-[0.12em] leading-4 ${ui.muted}`}>{item[0]}</div>
+                        <div className="mt-1.5 text-[13px] font-semibold leading-5 md:text-sm">{item[1]}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div className="mt-5 grid gap-4 md:grid-cols-2">
@@ -3010,42 +3091,192 @@ ${emotionWarning}`
                     )}
                   </div>
 
-                  <div className={`order-1 rounded-[22px] p-2.5 xl:order-2 md:p-3 ${ui.innerCard}`}>
-                    <div className={`mb-2 text-sm font-semibold ${ui.secondaryStrong}`}>Performance snapshot</div>
-                    <p className={`mb-3 text-xs ${ui.muted}`}>The stats that matter most when reviewing discipline and execution.</p>
-
-                    <div className="grid grid-cols-2 gap-2">
-                      {[
-                        ['Win rate', `${winRate}%`],
-                        ['Loss rate', `${lossRate}%`],
-                        ['Wins / losses', `${winCount}/${lossCount}`],
-                        ['Breakevens', `${breakevenCount}`],
-                        ['Long W/L', `${longWins}/${longLosses}`],
-                        ['Short W/L', `${shortWins}/${shortLosses}`],
-                        ['Average win', averageWin !== null ? `${averageWin >= 0 ? '+' : ''}${averageWin.toFixed(2)}` : 'No winning trades yet.'],
-                        ['Average loss', averageLoss !== null ? `${averageLoss.toFixed(2)}` : 'No losing trades yet.'],
-                        ['Largest win', largestWin !== null ? `${largestWin >= 0 ? '+' : ''}${largestWin.toFixed(2)}` : 'No winning trades yet.'],
-                        ['Largest loss', largestLoss !== null ? `${largestLoss.toFixed(2)}` : 'No losing trades yet.'],
-                        ['Top setup', setupBreakdown ? `${setupBreakdown[0]} • ${setupBreakdown[1]} entries` : 'No journal entries yet.'],
-                        ['Top strategy', strategyBreakdown ? `${strategyBreakdown[0]} • ${strategyBreakdown[1]} entries` : 'No journal entries yet.'],
-                        ['Most common emotion', emotionBreakdown ? `${emotionBreakdown[0]} • ${emotionBreakdown[1]} entries` : 'No journal entries yet.'],
-                        ['Most missed rule', mostMissedRule ? mostMissedRule[0] : 'No missed-rule data yet.'],
-                      ].map((item) => (
-                        <div key={item[0]} className={`min-h-[78px] rounded-[16px] border px-2 py-2 ${ui.statBox}`}>
-                          <div className={`text-[8px] uppercase tracking-[0.13em] leading-4 ${ui.muted}`}>{item[0]}</div>
-                          <div className="mt-1 text-[12px] font-semibold leading-5 md:text-sm">{item[1]}</div>
-                        </div>
-                      ))}
+                  <div className={`order-1 relative overflow-hidden rounded-[24px] p-3 xl:order-2 md:p-4 ${ui.innerCard}`}>
+                    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+                      <div className={`absolute -left-10 top-0 h-24 w-24 rounded-full blur-3xl ${ui.glowTwo}`} />
+                      <div className={`absolute -right-8 bottom-0 h-24 w-24 rounded-full blur-3xl ${ui.glowThree}`} />
                     </div>
 
-                    <div className="mt-3 flex justify-center">
-                      <button
-                        type="button"
-                        onClick={() => setShowAdvancedPerformance(true)}
-                        className={`rounded-2xl px-4 py-2 text-xs font-semibold transition ${ui.secondaryBtn}`}
-                      >
-                        Advanced performance
-                      </button>
+                    <div className="relative">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div>
+                          <div className={`text-sm font-semibold ${ui.secondaryStrong}`}>Performance snapshot</div>
+                          <p className={`mt-1 max-w-2xl text-xs leading-5 ${ui.muted}`}>
+                            Your edge gets clearer as you journal more trades. These numbers are powered by the entries below, so the more honest the logging, the sharper the dashboard becomes.
+                          </p>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => setShowAdvancedPerformance(true)}
+                          className={`rounded-2xl px-4 py-2 text-xs font-semibold transition ${ui.secondaryBtn}`}
+                        >
+                          Advanced performance
+                        </button>
+                      </div>
+
+                      <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+                        {[
+                          ['Win rate', `${winRate}%`, 'emerald'],
+                          ['Net P&L', `${totalNetPnl >= 0 ? '+' : ''}${totalNetPnl.toFixed(2)}`, totalNetPnl >= 0 ? 'emerald' : 'red'],
+                          ['Average R', `${averageR >= 0 ? '+' : ''}${averageR.toFixed(2)}R`, averageR >= 0 ? 'sky' : 'amber'],
+                          ['Respect rate', `${journal.length > 0 ? Math.round((respectedVerdictCount / journal.length) * 100) : 0}%`, 'violet'],
+                        ].map((item) => (
+                          <div
+                            key={item[0]}
+                            className={`relative overflow-hidden rounded-[22px] border px-3 py-3 ${
+                              item[2] === 'emerald'
+                                ? theme === 'light'
+                                  ? 'border-emerald-300 bg-emerald-50/90'
+                                  : 'border-emerald-500/20 bg-emerald-500/10'
+                                : item[2] === 'red'
+                                  ? theme === 'light'
+                                    ? 'border-red-300 bg-red-50/90'
+                                    : 'border-red-500/20 bg-red-500/10'
+                                  : item[2] === 'sky'
+                                    ? theme === 'light'
+                                      ? 'border-sky-300 bg-sky-50/90'
+                                      : 'border-sky-500/20 bg-sky-500/10'
+                                    : theme === 'light'
+                                      ? 'border-violet-300 bg-violet-50/90'
+                                      : 'border-violet-500/20 bg-violet-500/10'
+                            }`}
+                          >
+                            <div className={`text-[9px] uppercase tracking-[0.18em] ${ui.muted}`}>{item[0]}</div>
+                            <div className="mt-2 text-[24px] font-bold leading-none md:text-[28px]">{item[1]}</div>
+                            <div className={`mt-2 text-[11px] ${ui.muted}`}>
+                              {item[0] === 'Win rate'
+                                ? 'Clean execution over closed trades'
+                                : item[0] === 'Net P&L'
+                                  ? 'Your combined journal result'
+                                  : item[0] === 'Average R'
+                                    ? 'Average reward-to-risk outcome'
+                                    : 'How often you respected your own verdict'}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className={`mt-3 overflow-hidden rounded-[22px] border px-3 py-3 ${ui.statBox}`}>
+                        <div className="flex items-center justify-between gap-3">
+                          <div>
+                            <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Win / loss flow</div>
+                            <div className={`mt-1 text-sm font-semibold ${ui.secondaryStrong}`}>How your journal is leaning right now</div>
+                          </div>
+
+                          <div className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold ${theme === 'light' ? 'border-slate-300 bg-slate-100 text-slate-700' : 'border-white/10 bg-white/5 text-slate-300'}`}>
+                            {closedTrades.length} closed trades
+                          </div>
+                        </div>
+
+                        <div className={`mt-3 h-3 overflow-hidden rounded-full ${ui.barTrack}`}>
+                          <div className="flex h-full w-full">
+                            <div
+                              className="h-full bg-emerald-400 transition-all duration-500"
+                              style={{ width: `${winRate}%` }}
+                            />
+                            <div
+                              className="h-full bg-red-400/80 transition-all duration-500"
+                              style={{ width: `${Math.max(0, 100 - winRate)}%` }}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                          {[
+                            ['Loss rate', `${lossRate}%`],
+                            ['Wins / losses', `${winCount}/${lossCount}`],
+                            ['Breakevens', `${breakevenCount}`],
+                          ].map((item) => (
+                            <div key={item[0]} className={`rounded-[18px] border px-3 py-2 ${ui.innerCard}`}>
+                              <div className={`text-[8px] uppercase tracking-[0.13em] leading-4 ${ui.muted}`}>{item[0]}</div>
+                              <div className="mt-1 text-sm font-semibold">{item[1]}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="mt-3 grid gap-3 xl:grid-cols-3">
+                        <div className={`rounded-[22px] border p-3 ${ui.statBox}`}>
+                          <div className="flex items-center justify-between gap-2">
+                            <div>
+                              <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Execution</div>
+                              <div className={`mt-1 text-sm font-semibold ${ui.secondaryStrong}`}>How the trades are finishing</div>
+                            </div>
+
+                            <div className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-semibold text-emerald-300">
+                              Precision
+                            </div>
+                          </div>
+
+                          <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-1">
+                            {[
+                              ['Long W/L', `${longWins}/${longLosses}`],
+                              ['Short W/L', `${shortWins}/${shortLosses}`],
+                              ['Breakevens', `${breakevenCount}`],
+                            ].map((item) => (
+                              <div key={item[0]} className={`rounded-[18px] border px-3 py-2.5 ${ui.innerCard}`}>
+                                <div className={`text-[8px] uppercase tracking-[0.12em] leading-4 ${ui.muted}`}>{item[0]}</div>
+                                <div className="mt-1.5 text-[13px] font-semibold leading-5 md:text-sm">{item[1]}</div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className={`rounded-[22px] border p-3 ${ui.statBox}`}>
+                          <div className="flex items-center justify-between gap-2">
+                            <div>
+                              <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Profit profile</div>
+                              <div className={`mt-1 text-sm font-semibold ${ui.secondaryStrong}`}>How the money side is behaving</div>
+                            </div>
+
+                            <div className="rounded-full border border-sky-500/20 bg-sky-500/10 px-2.5 py-1 text-[10px] font-semibold text-sky-300">
+                              Returns
+                            </div>
+                          </div>
+
+                          <div className="mt-3 grid gap-2">
+                            {[
+                              ['Average win', averageWin !== null ? `${averageWin >= 0 ? '+' : ''}${averageWin.toFixed(2)}` : 'No winning trades yet.'],
+                              ['Average loss', averageLoss !== null ? `${averageLoss.toFixed(2)}` : 'No losing trades yet.'],
+                              ['Largest win', largestWin !== null ? `${largestWin >= 0 ? '+' : ''}${largestWin.toFixed(2)}` : 'No winning trades yet.'],
+                              ['Largest loss', largestLoss !== null ? `${largestLoss.toFixed(2)}` : 'No losing trades yet.'],
+                            ].map((item) => (
+                              <div key={item[0]} className={`rounded-[18px] border px-3 py-2.5 ${ui.innerCard}`}>
+                                <div className={`text-[8px] uppercase tracking-[0.12em] leading-4 ${ui.muted}`}>{item[0]}</div>
+                                <div className="mt-1.5 text-[13px] font-semibold leading-5 md:text-sm">{item[1]}</div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className={`rounded-[22px] border p-3 ${ui.statBox}`}>
+                          <div className="flex items-center justify-between gap-2">
+                            <div>
+                              <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Behavioural read</div>
+                              <div className={`mt-1 text-sm font-semibold ${ui.secondaryStrong}`}>Patterns behind your edge and mistakes</div>
+                            </div>
+
+                            <div className="rounded-full border border-violet-500/20 bg-violet-500/10 px-2.5 py-1 text-[10px] font-semibold text-violet-300">
+                              Behaviour
+                            </div>
+                          </div>
+
+                          <div className="mt-3 grid gap-2">
+                            {[
+                              ['Top setup', setupBreakdown ? `${setupBreakdown[0]} • ${setupBreakdown[1]} entries` : 'No journal entries yet.'],
+                              ['Top strategy', strategyBreakdown ? `${strategyBreakdown[0]} • ${strategyBreakdown[1]} entries` : 'No journal entries yet.'],
+                              ['Most common emotion', emotionBreakdown ? `${emotionBreakdown[0]} • ${emotionBreakdown[1]} entries` : 'No journal entries yet.'],
+                              ['Most missed rule', mostMissedRule ? mostMissedRule[0] : 'No missed-rule data yet.'],
+                            ].map((item) => (
+                              <div key={item[0]} className={`rounded-[18px] border px-3 py-2.5 ${ui.innerCard}`}>
+                                <div className={`text-[8px] uppercase tracking-[0.12em] leading-4 ${ui.muted}`}>{item[0]}</div>
+                                <div className="mt-1.5 text-[13px] font-semibold leading-5 md:text-sm">{item[1]}</div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -3055,7 +3286,9 @@ ${emotionWarning}`
                 <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                   <div>
                     <div className={`text-sm font-semibold ${ui.secondaryStrong}`}>Recent journal entries</div>
-                    <p className={`mt-1 text-xs ${ui.muted}`}>Your latest trades, screenshots, and review notes.</p>
+                    <p className={`mt-1 max-w-2xl text-xs leading-5 ${ui.muted}`}>
+                      Every trade you log sharpens the stats above. Consistent journaling turns the dashboard into a real mirror of your habits, strengths, and leaks.
+                    </p>
                   </div>
 
                   <div className={`rounded-full border px-4 py-2 text-sm font-medium ${qualificationStyles.badge}`}>
@@ -3064,43 +3297,96 @@ ${emotionWarning}`
                 </div>
 
                 {journal.length === 0 ? (
-                  <div className={`mt-3 rounded-[22px] border border-dashed p-6 text-center text-sm ${ui.statBox}`}>
-                    No journal entries yet. Save your first trade in Stats mode.
+                  <div className={`mt-3 rounded-[24px] border border-dashed p-6 text-center text-sm ${ui.statBox}`}>
+                    No journal entries yet. Log your first trade in Stats mode to start building your dashboard.
                   </div>
                 ) : (
-                  <div className="mt-3 space-y-3">
+                  <div className="mt-4 space-y-3">
                     {journal.slice(0, 10).map((entry) => (
-                      <div key={entry.id} className={`rounded-[22px] border p-3 ${ui.statBox}`}>
-                        <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                          <div className="min-w-0">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <div className="text-sm font-semibold">{entry.instrument} • {entry.setupType}</div>
-                              <div className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold ${theme === 'light' ? 'border-slate-300 bg-slate-100 text-slate-700' : 'border-white/10 bg-white/5 text-slate-300'}`}>
-                                {entry.strategy}
+                      <div key={entry.id} className={`relative overflow-hidden rounded-[24px] border ${ui.statBox}`}>
+                        <div
+                          className={`absolute inset-y-0 left-0 w-1.5 ${
+                            entry.outcome === 'win'
+                              ? 'bg-emerald-400'
+                              : entry.outcome === 'loss'
+                                ? 'bg-red-400'
+                                : entry.outcome === 'breakeven'
+                                  ? 'bg-amber-400'
+                                  : theme === 'light'
+                                    ? 'bg-slate-300'
+                                    : 'bg-white/20'
+                          }`}
+                        />
+
+                        <div className="p-3 pl-5 sm:p-4 sm:pl-6">
+                          <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
+                            <div className="min-w-0">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <div className={`rounded-full border px-3 py-1 text-[10px] font-semibold ${theme === 'light' ? 'border-slate-300 bg-white text-slate-700' : 'border-white/10 bg-white/5 text-slate-200'}`}>
+                                  {entry.instrument}
+                                </div>
+                                <div className="text-base font-semibold leading-tight">{entry.setupType}</div>
+                                <div className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold ${theme === 'light' ? 'border-slate-300 bg-slate-100 text-slate-700' : 'border-white/10 bg-white/5 text-slate-300'}`}>
+                                  {entry.strategy}
+                                </div>
+                                <div className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold ${
+                                  entry.outcome === 'win'
+                                    ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300'
+                                    : entry.outcome === 'loss'
+                                      ? 'border-red-500/20 bg-red-500/10 text-red-300'
+                                      : entry.outcome === 'breakeven'
+                                        ? 'border-amber-500/20 bg-amber-500/10 text-amber-300'
+                                        : qualificationStyles.badge
+                                }`}>
+                                  {entry.outcome}
+                                </div>
+                                <div className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold ${entry.direction === 'long' ? 'border-sky-500/20 bg-sky-500/10 text-sky-300' : 'border-violet-500/20 bg-violet-500/10 text-violet-300'}`}>
+                                  {entry.direction}
+                                </div>
+                                <div className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold ${theme === 'light' ? 'border-slate-300 bg-white text-slate-700' : 'border-white/10 bg-slate-950/40 text-slate-200'}`}>
+                                  Score {entry.score}%
+                                </div>
                               </div>
-                              <div className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold ${entry.outcome === 'win' ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-200' : entry.outcome === 'loss' ? 'border-red-500/20 bg-red-500/10 text-red-200' : entry.outcome === 'breakeven' ? 'border-amber-500/20 bg-amber-500/10 text-amber-200' : qualificationStyles.badge}`}>
-                                {entry.outcome}
+
+                              <div className={`mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs ${ui.muted}`}>
+                                <span>{formatDate(entry.createdAt)}</span>
+                                <span>{entry.session}</span>
+                                <span>{entry.marketCondition}</span>
+                                <span>{entry.emotion}</span>
+                                <span>{entry.verdict}</span>
                               </div>
-                              <div className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold ${entry.direction === 'long' ? 'border-sky-500/20 bg-sky-500/10 text-sky-200' : 'border-violet-500/20 bg-violet-500/10 text-violet-200'}`}>
-                                {entry.direction}
+
+                              <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                                <div className={`rounded-[18px] border px-3 py-2 ${ui.innerCard}`}>
+                                  <div className={`text-[8px] uppercase tracking-[0.13em] leading-4 ${ui.muted}`}>Net P&L</div>
+                                  <div className="mt-1 text-sm font-semibold">
+                                    {entry.pnl >= 0 ? '+' : ''}{entry.pnl.toFixed(2)}
+                                  </div>
+                                </div>
+
+                                <div className={`rounded-[18px] border px-3 py-2 ${ui.innerCard}`}>
+                                  <div className={`text-[8px] uppercase tracking-[0.13em] leading-4 ${ui.muted}`}>R multiple</div>
+                                  <div className="mt-1 text-sm font-semibold">
+                                    {entry.rMultiple >= 0 ? '+' : ''}{entry.rMultiple.toFixed(2)}R
+                                  </div>
+                                </div>
+
+                                <div className={`rounded-[18px] border px-3 py-2 ${ui.innerCard}`}>
+                                  <div className={`text-[8px] uppercase tracking-[0.13em] leading-4 ${ui.muted}`}>Verdict follow-through</div>
+                                  <div className="mt-1 text-sm font-semibold">
+                                    {entry.followedVerdict === 'yes' ? 'Followed verdict' : entry.followedVerdict === 'partially' ? 'Partly followed verdict' : 'Ignored verdict'}
+                                  </div>
+                                </div>
                               </div>
+
+                              {entry.note && (
+                                <p className={`mt-3 rounded-[18px] border px-3 py-2 text-sm leading-6 ${theme === 'light' ? 'border-slate-200 bg-white/80 text-slate-800' : 'border-white/10 bg-slate-950/40 text-slate-100'}`}>
+                                  {entry.note}
+                                </p>
+                              )}
                             </div>
 
-                            <div className={`mt-1 text-xs ${ui.muted}`}>
-                              {formatDate(entry.createdAt)} • {entry.session} • {entry.strategy} • {entry.marketCondition} • {entry.emotion} • score {entry.score}% • {entry.verdict}
-                            </div>
-
-                            <div className={`mt-2 flex flex-wrap gap-2 text-xs ${ui.muted}`}>
-                              <span>P&L: {entry.pnl >= 0 ? '+' : ''}{entry.pnl.toFixed(2)}</span>
-                              <span>R: {entry.rMultiple >= 0 ? '+' : ''}{entry.rMultiple.toFixed(2)}R</span>
-                              <span>{entry.followedVerdict === 'yes' ? 'Followed verdict' : entry.followedVerdict === 'partially' ? 'Partly followed verdict' : 'Ignored verdict'}</span>
-                            </div>
-
-                            {entry.note && <p className="mt-2 text-sm">{entry.note}</p>}
-                          </div>
-
-                          <div className="flex gap-3 lg:flex-col lg:items-end">
-                            <div className="flex gap-2">
+                            <div className="flex shrink-0 items-center gap-2 xl:flex-col xl:items-end">
                               <button
                                 type="button"
                                 onClick={() => setSelectedJournalEntry(entry)}
@@ -3109,7 +3395,11 @@ ${emotionWarning}`
                                 Show
                               </button>
 
-                              <button type="button" onClick={() => setJournal((prev) => prev.filter((item) => item.id !== entry.id))} className={`rounded-xl px-3 py-2 text-xs font-semibold transition ${ui.deleteRule}`}>
+                              <button
+                                type="button"
+                                onClick={() => setJournal((prev) => prev.filter((item) => item.id !== entry.id))}
+                                className={`rounded-xl px-3 py-2 text-xs font-semibold transition ${ui.deleteRule}`}
+                              >
                                 Delete
                               </button>
                             </div>
