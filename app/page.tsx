@@ -1758,40 +1758,6 @@ export default function Home() {
   )
     .map(([setup, stats]) => ({ setup, avgR: stats.count > 0 ? stats.total / stats.count : 0 }))
     .sort((a, b) => a.avgR - b.avgR)[0]
-  const respectRate = journal.length > 0 ? Math.round((respectedVerdictCount / journal.length) * 100) : 0
-  const betterDirectionSummary = (() => {
-    const longClosed = longWins + longLosses
-    const shortClosed = shortWins + shortLosses
-
-    if (longClosed === 0 && shortClosed === 0) return 'No directional read yet.'
-
-    const longRate = longClosed > 0 ? Math.round((longWins / longClosed) * 100) : 0
-    const shortRate = shortClosed > 0 ? Math.round((shortWins / shortClosed) * 100) : 0
-
-    if (longClosed === 0) return `Shorts are carrying the better edge so far (${shortRate}% win rate).`
-    if (shortClosed === 0) return `Longs are carrying the better edge so far (${longRate}% win rate).`
-    if (longRate === shortRate) return `Longs and shorts are currently balanced (${longRate}% vs ${shortRate}%).`
-
-    return longRate > shortRate
-      ? `Longs are carrying the better edge so far (${longRate}% vs ${shortRate}%).`
-      : `Shorts are carrying the better edge so far (${shortRate}% vs ${longRate}%).`
-  })()
-  const bestEdgeSummary = bestSetupByAverageR
-    ? `${bestSetupByAverageR.setup} is your strongest setup by average R (${bestSetupByAverageR.avgR >= 0 ? '+' : ''}${bestSetupByAverageR.avgR.toFixed(2)}R).`
-    : 'Log more closed trades to reveal your strongest setup.'
-  const mainLeakSummary = mostMissedRule
-    ? `Most missed rule: ${mostMissedRule[0]}.`
-    : worstSetupByAverageR
-    ? `${worstSetupByAverageR.setup} is currently your weakest setup by average R (${worstSetupByAverageR.avgR.toFixed(2)}R).`
-    : 'No clear leak is showing yet. More journal data will make the main leak obvious.'
-  const disciplineSummary =
-    journal.length === 0
-      ? 'No discipline read yet. Your journal will build it.'
-      : respectRate >= 80
-      ? `Strong discipline read: you respected your verdict on ${respectRate}% of entries.`
-      : respectRate >= 60
-      ? `Discipline is decent, but there is still leakage: ${respectRate}% respect rate.`
-      : `Main behavioural leak: only ${respectRate}% of entries respected the verdict.`
   const scoreCarryMessage =
     checkedPoints === 0
       ? 'No rules are confirmed yet.'
@@ -2360,7 +2326,7 @@ ${emotionWarning}`
             <div className="px-8 sm:px-10">
               <h2 className="text-center text-xl font-bold md:text-2xl">Advanced performance snapshot</h2>
               <p className={`mt-2 text-center text-sm leading-6 ${ui.subtle}`}>
-                This is the deep-pattern view. Use it to study repeated winning and losing combinations while the main dashboard stays focused on money, execution, and discipline.
+Use this once you have enough journal entries. It separates what keeps repeating in your better trades and your weaker ones.
               </p>
             </div>
 
@@ -3149,135 +3115,65 @@ ${emotionWarning}`
                         </button>
                       </div>
 
-                      <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-12">
-                        <div
-                          className={`relative overflow-hidden rounded-[24px] border px-4 py-4 md:col-span-2 xl:col-span-4 ${
-                            totalNetPnl >= 0
-                              ? theme === 'light'
-                                ? 'border-emerald-300 bg-emerald-50/95'
-                                : 'border-emerald-500/20 bg-emerald-500/10'
-                              : theme === 'light'
-                                ? 'border-red-300 bg-red-50/95'
-                                : 'border-red-500/20 bg-red-500/10'
-                          }`}
-                        >
-                          <div className="pointer-events-none absolute inset-0 overflow-hidden">
-                            <div className={`absolute -right-10 -top-6 h-24 w-24 rounded-full blur-3xl ${totalNetPnl >= 0 ? ui.glowOne : ui.glowThree}`} />
-                          </div>
-                          <div className="relative">
-                            <div className={`text-[9px] uppercase tracking-[0.18em] ${ui.muted}`}>Net P&amp;L</div>
-                            <div className="mt-3 text-[30px] font-bold leading-none md:text-[36px]">
-                              {totalNetPnl >= 0 ? '+' : ''}{totalNetPnl.toFixed(2)}
-                            </div>
-                            <div className={`mt-3 text-xs leading-5 ${ui.muted}`}>
-                              Combined result across all journaled trades. This is the cleanest money read on the whole dashboard.
-                            </div>
-                          </div>
-                        </div>
+                      <div className={`mt-3 rounded-[20px] border px-3 py-3 ${theme === 'light' ? 'border-slate-200 bg-white/85' : 'border-white/10 bg-slate-950/35'}`}>
+                        <div className={`text-[10px] font-semibold uppercase tracking-[0.18em] ${ui.muted}`}>How to read this</div>
+                        <p className={`mt-1 text-xs leading-5 ${ui.subtle}`}>
+                          Read it in this order: results first, then money, then repeated behaviour. That makes it easy to see whether your edge is real and what is driving it.
+                        </p>
+                      </div>
 
-                        <div
-                          className={`relative overflow-hidden rounded-[24px] border px-4 py-4 xl:col-span-3 ${
-                            theme === 'light' ? 'border-sky-300 bg-sky-50/95' : 'border-sky-500/20 bg-sky-500/10'
-                          }`}
-                        >
-                          <div className="pointer-events-none absolute inset-0 overflow-hidden">
-                            <div className={`absolute -left-8 bottom-0 h-20 w-20 rounded-full blur-3xl ${ui.glowTwo}`} />
-                          </div>
-                          <div className="relative">
-                            <div className={`text-[9px] uppercase tracking-[0.18em] ${ui.muted}`}>Win rate</div>
-                            <div className="mt-3 text-[26px] font-bold leading-none md:text-[30px]">{winRate}%</div>
-                            <div className={`mt-3 text-xs leading-5 ${ui.muted}`}>
-                              Closed trades only. This tells you whether your execution is finishing cleanly, not just how often you trade.
-                            </div>
-                          </div>
-                        </div>
-
-                        <div
-                          className={`relative overflow-hidden rounded-[24px] border px-4 py-4 xl:col-span-2 ${
-                            averageR >= 0
-                              ? theme === 'light'
-                                ? 'border-violet-300 bg-violet-50/95'
-                                : 'border-violet-500/20 bg-violet-500/10'
-                              : theme === 'light'
-                                ? 'border-amber-300 bg-amber-50/95'
-                                : 'border-amber-500/20 bg-amber-500/10'
-                          }`}
-                        >
-                          <div className="relative">
-                            <div className={`text-[9px] uppercase tracking-[0.18em] ${ui.muted}`}>Average R</div>
-                            <div className="mt-3 text-[26px] font-bold leading-none md:text-[30px]">{averageR >= 0 ? '+' : ''}{averageR.toFixed(2)}R</div>
-                            <div className={`mt-3 text-xs leading-5 ${ui.muted}`}>
-                              Your average reward-to-risk outcome across closed trades.
-                            </div>
-                          </div>
-                        </div>
-
-                        <div
-                          className={`relative overflow-hidden rounded-[24px] border px-4 py-4 xl:col-span-3 ${
-                            respectRate >= 80
-                              ? theme === 'light'
-                                ? 'border-emerald-300 bg-white'
-                                : 'border-white/10 bg-white/5'
-                              : respectRate >= 60
+                      <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+                        {[
+                          ['Net P&L', `${totalNetPnl >= 0 ? '+' : ''}${totalNetPnl.toFixed(2)}`, totalNetPnl >= 0 ? 'emerald' : 'red'],
+                          ['Average R', `${averageR >= 0 ? '+' : ''}${averageR.toFixed(2)}R`, averageR >= 0 ? 'sky' : 'amber'],
+                          ['Win rate', `${winRate}%`, 'emerald'],
+                          ['Respect rate', `${journal.length > 0 ? Math.round((respectedVerdictCount / journal.length) * 100) : 0}%`, 'violet'],
+                        ].map((item) => (
+                          <div
+                            key={item[0]}
+                            className={`relative overflow-hidden rounded-[22px] border px-3 py-3 ${
+                              item[2] === 'emerald'
                                 ? theme === 'light'
-                                  ? 'border-amber-300 bg-white'
-                                  : 'border-white/10 bg-white/5'
-                                : theme === 'light'
-                                  ? 'border-red-300 bg-white'
-                                  : 'border-white/10 bg-white/5'
-                          }`}
-                        >
-                          <div className="relative">
-                            <div className={`text-[9px] uppercase tracking-[0.18em] ${ui.muted}`}>Respect rate</div>
-                            <div className="mt-3 text-[26px] font-bold leading-none md:text-[30px]">{respectRate}%</div>
-                            <div className={`mt-3 text-xs leading-5 ${ui.muted}`}>
-                              How often you respected your own verdict. This is the clearest discipline stat on the board.
+                                  ? 'border-emerald-300 bg-emerald-50/90'
+                                  : 'border-emerald-500/20 bg-emerald-500/10'
+                                : item[2] === 'red'
+                                  ? theme === 'light'
+                                    ? 'border-red-300 bg-red-50/90'
+                                    : 'border-red-500/20 bg-red-500/10'
+                                  : item[2] === 'sky'
+                                    ? theme === 'light'
+                                      ? 'border-sky-300 bg-sky-50/90'
+                                      : 'border-sky-500/20 bg-sky-500/10'
+                                    : item[2] === 'amber'
+                                      ? theme === 'light'
+                                        ? 'border-amber-300 bg-amber-50/90'
+                                        : 'border-amber-500/20 bg-amber-500/10'
+                                      : theme === 'light'
+                                        ? 'border-violet-300 bg-violet-50/90'
+                                        : 'border-violet-500/20 bg-violet-500/10'
+                            }`}
+                          >
+                            <div className={`text-[9px] uppercase tracking-[0.18em] ${ui.muted}`}>{item[0]}</div>
+                            <div className="mt-2 text-[24px] font-bold leading-none md:text-[28px]">{item[1]}</div>
+                            <div className={`mt-2 text-[11px] leading-5 ${ui.muted}`}>
+                              {item[0] === 'Net P&L'
+                                ? 'Your combined journal result so far.'
+                                : item[0] === 'Average R'
+                                  ? 'Average reward-to-risk outcome per closed trade.'
+                                  : item[0] === 'Win rate'
+                                    ? 'How often closed trades finish as winners.'
+                                    : 'How often you followed your own verdict.'}
                             </div>
                           </div>
-                        </div>
+                        ))}
                       </div>
 
-                      <div className="mt-3 grid gap-3 xl:grid-cols-3">
-                        <div className={`relative overflow-hidden rounded-[22px] border p-3 ${theme === 'light' ? 'border-emerald-300 bg-white' : 'border-emerald-500/20 bg-emerald-500/10'}`}>
-                          <div className="pointer-events-none absolute inset-0 overflow-hidden">
-                            <div className={`absolute -right-10 top-0 h-20 w-20 rounded-full blur-3xl ${ui.glowOne}`} />
-                          </div>
-                          <div className="relative">
-                            <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Strongest edge</div>
-                            <div className={`mt-1 text-sm font-semibold ${ui.secondaryStrong}`}>Where your best performance is showing</div>
-                            <p className={`mt-3 text-sm leading-6 ${ui.subtle}`}>{bestEdgeSummary}</p>
-                          </div>
-                        </div>
-
-                        <div className={`relative overflow-hidden rounded-[22px] border p-3 ${theme === 'light' ? 'border-amber-300 bg-white' : 'border-amber-500/20 bg-amber-500/10'}`}>
-                          <div className="pointer-events-none absolute inset-0 overflow-hidden">
-                            <div className={`absolute -left-10 bottom-0 h-20 w-20 rounded-full blur-3xl ${ui.glowTwo}`} />
-                          </div>
-                          <div className="relative">
-                            <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Main leak</div>
-                            <div className={`mt-1 text-sm font-semibold ${ui.secondaryStrong}`}>The weak spot hurting the stats most</div>
-                            <p className={`mt-3 text-sm leading-6 ${ui.subtle}`}>{mainLeakSummary}</p>
-                          </div>
-                        </div>
-
-                        <div className={`relative overflow-hidden rounded-[22px] border p-3 ${theme === 'light' ? 'border-violet-300 bg-white' : 'border-violet-500/20 bg-violet-500/10'}`}>
-                          <div className="pointer-events-none absolute inset-0 overflow-hidden">
-                            <div className={`absolute right-0 top-0 h-20 w-20 rounded-full blur-3xl ${ui.glowThree}`} />
-                          </div>
-                          <div className="relative">
-                            <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Discipline read</div>
-                            <div className={`mt-1 text-sm font-semibold ${ui.secondaryStrong}`}>How well you are obeying your own process</div>
-                            <p className={`mt-3 text-sm leading-6 ${ui.subtle}`}>{disciplineSummary}</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="mt-3 grid gap-3 xl:grid-cols-3">
-                        <div className={`rounded-[22px] border p-3 xl:col-span-1 ${ui.statBox}`}>
-                          <div className="flex items-center justify-between gap-2">
+                      <div className="mt-3 grid gap-3 xl:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]">
+                        <div className={`rounded-[22px] border p-3 ${ui.statBox}`}>
+                          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                             <div>
-                              <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Execution map</div>
-                              <div className={`mt-1 text-sm font-semibold ${ui.secondaryStrong}`}>Outcome balance and directional read</div>
+                              <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Results & money</div>
+                              <div className={`mt-1 text-sm font-semibold ${ui.secondaryStrong}`}>Do your winners, losers, and payoff profile actually support the edge?</div>
                             </div>
 
                             <div className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold ${theme === 'light' ? 'border-slate-300 bg-slate-100 text-slate-700' : 'border-white/10 bg-white/5 text-slate-300'}`}>
@@ -3287,20 +3183,31 @@ ${emotionWarning}`
 
                           <div className={`mt-3 h-3 overflow-hidden rounded-full ${ui.barTrack}`}>
                             <div className="flex h-full w-full">
-                              <div className="h-full bg-emerald-400 transition-all duration-500" style={{ width: `${winRate}%` }} />
-                              <div className="h-full bg-red-400/80 transition-all duration-500" style={{ width: `${lossRate}%` }} />
-                              <div className="h-full bg-amber-400/80 transition-all duration-500" style={{ width: `${closedTrades.length > 0 ? Math.max(0, 100 - winRate - lossRate) : 0}%` }} />
+                              <div
+                                className="h-full bg-emerald-400 transition-all duration-500"
+                                style={{ width: `${winRate}%` }}
+                              />
+                              <div
+                                className="h-full bg-red-400/80 transition-all duration-500"
+                                style={{ width: `${Math.max(0, 100 - winRate)}%` }}
+                              />
                             </div>
                           </div>
 
-                          <p className={`mt-3 text-xs leading-5 ${ui.muted}`}>{betterDirectionSummary}</p>
+                          <div className={`mt-2 flex flex-wrap items-center gap-2 text-[11px] ${ui.muted}`}>
+                            <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-emerald-400" /> wins</span>
+                            <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-red-400" /> losses</span>
+                            <span>Breakevens are tracked separately below.</span>
+                          </div>
 
-                          <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-2">
+                          <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
                             {[
-                              ['Wins / losses', `${winCount}/${lossCount}`],
-                              ['Long W/L', `${longWins}/${longLosses}`],
-                              ['Short W/L', `${shortWins}/${shortLosses}`],
-                              ['Breakevens', `${breakevenCount}`],
+                              ['Wins / losses', `${winCount} / ${lossCount}`],
+                              ['Breakevens / no trade', `${breakevenCount} / ${noTradeCount}`],
+                              ['Long W/L', `${longWins} / ${longLosses}`],
+                              ['Short W/L', `${shortWins} / ${shortLosses}`],
+                              ['Average win / loss', `${averageWin !== null ? `${averageWin >= 0 ? '+' : ''}${averageWin.toFixed(2)}` : '—'} / ${averageLoss !== null ? averageLoss.toFixed(2) : '—'}`],
+                              ['Largest win / loss', `${largestWin !== null ? `${largestWin >= 0 ? '+' : ''}${largestWin.toFixed(2)}` : '—'} / ${largestLoss !== null ? largestLoss.toFixed(2) : '—'}`],
                             ].map((item) => (
                               <div key={item[0]} className={`rounded-[18px] border px-3 py-2.5 ${ui.innerCard}`}>
                                 <div className={`text-[8px] uppercase tracking-[0.12em] leading-4 ${ui.muted}`}>{item[0]}</div>
@@ -3308,26 +3215,30 @@ ${emotionWarning}`
                               </div>
                             ))}
                           </div>
+
+                          <p className={`mt-3 text-xs leading-5 ${ui.muted}`}>
+                            This block tells you whether the edge is paying. Strong trading usually looks like controlled losses, winners that matter, and a profile that stays positive over time.
+                          </p>
                         </div>
 
-                        <div className={`rounded-[22px] border p-3 xl:col-span-1 ${ui.statBox}`}>
+                        <div className={`rounded-[22px] border p-3 ${ui.statBox}`}>
                           <div className="flex items-center justify-between gap-2">
                             <div>
-                              <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Profit profile</div>
-                              <div className={`mt-1 text-sm font-semibold ${ui.secondaryStrong}`}>How the money side is behaving</div>
+                              <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Patterns worth watching</div>
+                              <div className={`mt-1 text-sm font-semibold ${ui.secondaryStrong}`}>What your journal keeps repeating, even when you do not notice it.</div>
                             </div>
 
-                            <div className="rounded-full border border-sky-500/20 bg-sky-500/10 px-2.5 py-1 text-[10px] font-semibold text-sky-300">
-                              Payoff
+                            <div className="rounded-full border border-violet-500/20 bg-violet-500/10 px-2.5 py-1 text-[10px] font-semibold text-violet-300">
+                              Learnings
                             </div>
                           </div>
 
                           <div className="mt-3 grid gap-2">
                             {[
-                              ['Average win', averageWin !== null ? `${averageWin >= 0 ? '+' : ''}${averageWin.toFixed(2)}` : 'No winning trades yet.'],
-                              ['Average loss', averageLoss !== null ? `${averageLoss.toFixed(2)}` : 'No losing trades yet.'],
-                              ['Largest win', largestWin !== null ? `${largestWin >= 0 ? '+' : ''}${largestWin.toFixed(2)}` : 'No winning trades yet.'],
-                              ['Largest loss', largestLoss !== null ? `${largestLoss.toFixed(2)}` : 'No losing trades yet.'],
+                              ['Top setup', setupBreakdown ? `${setupBreakdown[0]} • ${setupBreakdown[1]} entries` : 'No journal entries yet.'],
+                              ['Top strategy', strategyBreakdown ? `${strategyBreakdown[0]} • ${strategyBreakdown[1]} entries` : 'No journal entries yet.'],
+                              ['Most common emotion', emotionBreakdown ? `${emotionBreakdown[0]} • ${emotionBreakdown[1]} entries` : 'No journal entries yet.'],
+                              ['Most missed rule', mostMissedRule ? mostMissedRule[0] : 'No missed-rule data yet.'],
                             ].map((item) => (
                               <div key={item[0]} className={`rounded-[18px] border px-3 py-2.5 ${ui.innerCard}`}>
                                 <div className={`text-[8px] uppercase tracking-[0.12em] leading-4 ${ui.muted}`}>{item[0]}</div>
@@ -3335,47 +3246,25 @@ ${emotionWarning}`
                               </div>
                             ))}
                           </div>
-                        </div>
 
-                        <div className={`rounded-[22px] border p-3 xl:col-span-1 ${ui.statBox}`}>
-                          <div className="flex items-center justify-between gap-2">
-                            <div>
-                              <div className={`text-[10px] uppercase tracking-[0.18em] ${ui.muted}`}>Review quality</div>
-                              <div className={`mt-1 text-sm font-semibold ${ui.secondaryStrong}`}>How disciplined the journaling process is</div>
-                            </div>
-
-                            <div className="rounded-full border border-violet-500/20 bg-violet-500/10 px-2.5 py-1 text-[10px] font-semibold text-violet-300">
-                              Process
-                            </div>
-                          </div>
-
-                          <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-2">
-                            <div className={`rounded-[18px] border px-3 py-2.5 ${ui.innerCard}`}>
-                              <div className={`text-[8px] uppercase tracking-[0.12em] leading-4 ${ui.muted}`}>Respect streak</div>
-                              <div className="mt-1.5 text-[13px] font-semibold leading-5 md:text-sm">{currentRespectStreak} in a row</div>
-                            </div>
-                            <div className={`rounded-[18px] border px-3 py-2.5 ${ui.innerCard}`}>
-                              <div className={`text-[8px] uppercase tracking-[0.12em] leading-4 ${ui.muted}`}>Saved-me trades</div>
-                              <div className="mt-1.5 text-[13px] font-semibold leading-5 md:text-sm">{savedMeCount}</div>
-                            </div>
-                            <div className={`rounded-[18px] border px-3 py-2.5 ${ui.innerCard}`}>
-                              <div className={`text-[8px] uppercase tracking-[0.12em] leading-4 ${ui.muted}`}>No-trades logged</div>
-                              <div className="mt-1.5 text-[13px] font-semibold leading-5 md:text-sm">{noTradeCount}</div>
-                            </div>
-                            <div className={`rounded-[18px] border px-3 py-2.5 ${ui.innerCard}`}>
-                              <div className={`text-[8px] uppercase tracking-[0.12em] leading-4 ${ui.muted}`}>Most missed category</div>
-                              <div className="mt-1.5 text-[13px] font-semibold leading-5 md:text-sm">
-                                {mostMissedJournalCategory
-                                  ? `${mostMissedJournalCategory[0].charAt(0).toUpperCase()}${mostMissedJournalCategory[0].slice(1)}`
-                                  : 'No category leak yet.'}
+                          <div className="mt-3 grid grid-cols-2 gap-2">
+                            {[
+                              ['Saved me', `${savedMeCount}`],
+                              ['Respect streak', `${currentRespectStreak}`],
+                            ].map((item) => (
+                              <div key={item[0]} className={`rounded-[18px] border px-3 py-2.5 ${ui.innerCard}`}>
+                                <div className={`text-[8px] uppercase tracking-[0.12em] leading-4 ${ui.muted}`}>{item[0]}</div>
+                                <div className="mt-1.5 text-[13px] font-semibold leading-5 md:text-sm">{item[1]}</div>
                               </div>
-                            </div>
+                            ))}
                           </div>
 
-                          <div className={`mt-3 text-xs leading-5 ${ui.muted}`}>
-                            Advanced performance is now reserved for deeper recurring patterns. This main dashboard stays focused on money, execution, and discipline.
-                          </div>
+                          <p className={`mt-3 text-xs leading-5 ${ui.muted}`}>
+                            This is where your hidden habits show up. The more complete the journal below, the more useful these patterns become.
+                          </p>
                         </div>
+                      </div>
+                    </div>
                       </div>
                     </div>
                   </div>
@@ -3387,7 +3276,7 @@ ${emotionWarning}`
                   <div>
                     <div className={`text-sm font-semibold ${ui.secondaryStrong}`}>Recent journal entries</div>
                     <p className={`mt-1 max-w-2xl text-xs leading-5 ${ui.muted}`}>
-                      Every trade you log sharpens the stats above. Consistent journaling turns the dashboard into a real mirror of your habits, strengths, and leaks.
+                      This is your source of truth. If a trade is not logged here, the dashboard cannot learn from it. Keep the entries honest and the patterns above become much clearer.
                     </p>
                   </div>
 
