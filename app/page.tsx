@@ -2540,40 +2540,37 @@ ${emotionWarning}`
               </div>
 
               <div className="mt-4 md:hidden">
-                <div className={`mb-2 rounded-full border px-3 py-1 text-[10px] font-semibold ${theme === 'light' ? 'border-slate-200 bg-slate-50 text-slate-700' : 'border-white/10 bg-white/5 text-slate-300'}`}>
-                  Compare each row left to right
+                <div className={`mb-3 rounded-full border px-3 py-1.5 text-[10px] font-semibold ${theme === 'light' ? 'border-slate-200 bg-slate-50 text-slate-700' : 'border-white/10 bg-white/5 text-slate-300'}`}>
+                  Read each metric card from top to bottom
                 </div>
 
-                <div className="grid grid-cols-[76px_repeat(3,minmax(0,1fr))] gap-1.5">
-                  <div className={`rounded-[14px] border px-2 py-2 text-[9px] font-semibold uppercase tracking-[0.1em] ${ui.innerCard} ${ui.muted}`}>
-                    Metric
-                  </div>
-                  <div className={`rounded-[14px] border px-2 py-2 text-[9px] font-semibold uppercase tracking-[0.1em] ${theme === 'light' ? 'border-sky-200 bg-sky-50 text-sky-700' : 'border-sky-500/20 bg-sky-500/10 text-sky-200'}`}>
-                    Top
-                  </div>
-                  <div className={`rounded-[14px] border px-2 py-2 text-[9px] font-semibold uppercase tracking-[0.1em] ${theme === 'light' ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-emerald-500/20 bg-emerald-500/10 text-emerald-200'}`}>
-                    Win
-                  </div>
-                  <div className={`rounded-[14px] border px-2 py-2 text-[9px] font-semibold uppercase tracking-[0.1em] ${theme === 'light' ? 'border-red-200 bg-red-50 text-red-700' : 'border-red-500/20 bg-red-500/10 text-red-200'}`}>
-                    Loss
-                  </div>
-
+                <div className="space-y-3">
                   {advancedComparisonRows.map((row) => (
-                    <div key={row.label} className="contents">
-                      <div className={`rounded-[16px] border px-2.5 py-2.5 ${ui.innerCard}`}>
-                        <div className="text-[11px] font-semibold leading-4">{row.label}</div>
+                    <div key={row.label} className={`rounded-[20px] border p-3 ${ui.innerCard}`}>
+                      <div className="mb-3 flex items-center justify-between gap-3">
+                        <div className="text-sm font-bold">{row.label}</div>
+                        <div className={`rounded-full border px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.12em] ${ui.tag}`}>
+                          Compare
+                        </div>
                       </div>
-                      <div className={`rounded-[16px] border px-2.5 py-2.5 ${theme === 'light' ? 'border-sky-200 bg-sky-50/70' : 'border-sky-500/20 bg-sky-500/10'}`}>
-                        <div className={`text-[8px] uppercase tracking-[0.12em] ${ui.muted}`}>Overall</div>
-                        <div className="mt-1 text-[11px] font-semibold leading-4 break-words">{row.overall}</div>
-                      </div>
-                      <div className={`rounded-[16px] border px-2.5 py-2.5 ${theme === 'light' ? 'border-emerald-200 bg-emerald-50/70' : 'border-emerald-500/20 bg-emerald-500/10'}`}>
-                        <div className={`text-[8px] uppercase tracking-[0.12em] ${ui.muted}`}>Winning</div>
-                        <div className="mt-1 text-[11px] font-semibold leading-4 break-words">{row.winning}</div>
-                      </div>
-                      <div className={`rounded-[16px] border px-2.5 py-2.5 ${theme === 'light' ? 'border-red-200 bg-red-50/70' : 'border-red-500/20 bg-red-500/10'}`}>
-                        <div className={`text-[8px] uppercase tracking-[0.12em] ${ui.muted}`}>Losing</div>
-                        <div className="mt-1 text-[11px] font-semibold leading-4 break-words">{row.losing}</div>
+
+                      <div className="grid grid-cols-1 gap-2.5">
+                        <div className={`rounded-[16px] border px-3 py-3 ${theme === 'light' ? 'border-sky-200 bg-sky-50/70' : 'border-sky-500/20 bg-sky-500/10'}`}>
+                          <div className={`text-[9px] uppercase tracking-[0.14em] ${ui.muted}`}>Top overall</div>
+                          <div className="mt-1.5 text-[13px] font-semibold leading-5 break-words">{row.overall}</div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2.5">
+                          <div className={`rounded-[16px] border px-3 py-3 ${theme === 'light' ? 'border-emerald-200 bg-emerald-50/70' : 'border-emerald-500/20 bg-emerald-500/10'}`}>
+                            <div className={`text-[9px] uppercase tracking-[0.14em] ${ui.muted}`}>Most winning</div>
+                            <div className="mt-1.5 text-[13px] font-semibold leading-5 break-words">{row.winning}</div>
+                          </div>
+
+                          <div className={`rounded-[16px] border px-3 py-3 ${theme === 'light' ? 'border-red-200 bg-red-50/70' : 'border-red-500/20 bg-red-500/10'}`}>
+                            <div className={`text-[9px] uppercase tracking-[0.14em] ${ui.muted}`}>Most losing</div>
+                            <div className="mt-1.5 text-[13px] font-semibold leading-5 break-words">{row.losing}</div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   ))}
