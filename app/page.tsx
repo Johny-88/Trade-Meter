@@ -2471,7 +2471,7 @@ ${emotionWarning}`
 
       {showAdvancedPerformance && (
         <div className="fixed inset-0 z-[82] flex items-start justify-center overflow-y-auto bg-slate-950/65 px-4 py-4 backdrop-blur-sm sm:items-center">
-          <div className={`relative w-full max-w-4xl rounded-[28px] border p-5 shadow-2xl md:p-6 ${ui.card}`}>
+          <div className={`relative max-h-[92dvh] w-full max-w-4xl overflow-y-auto rounded-[24px] border p-4 shadow-2xl md:rounded-[28px] md:p-6 ${ui.card}`}>
             <button
               type="button"
               onClick={() => setShowAdvancedPerformance(false)}
@@ -2481,14 +2481,14 @@ ${emotionWarning}`
               ×
             </button>
 
-            <div className="px-8 sm:px-10">
+            <div className="px-2 sm:px-8 md:px-10">
               <h2 className="text-center text-xl font-bold md:text-2xl">Advanced performance snapshot</h2>
               <p className={`mt-2 text-center text-sm leading-6 ${ui.subtle}`}>
                 This is where you look for recurring winning DNA, recurring losing DNA, and the habits your journal keeps repeating.
               </p>
             </div>
 
-            <div className={`mt-5 rounded-[24px] border p-4 shadow-sm ${ui.statBox}`}>
+            <div className={`mt-5 rounded-[20px] border p-3 shadow-sm md:rounded-[24px] md:p-4 ${ui.statBox}`}>
               <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
                 <div>
                   <div className="text-sm font-bold">Side-by-side comparison</div>
@@ -2539,26 +2539,45 @@ ${emotionWarning}`
                 </div>
               </div>
 
-              <div className="mt-4 space-y-3 md:hidden">
-                {advancedComparisonRows.map((row) => (
-                  <div key={row.label} className={`rounded-[20px] border p-3 ${ui.innerCard}`}>
-                    <div className="text-sm font-semibold">{row.label}</div>
-                    <div className="mt-3 grid grid-cols-3 gap-2">
-                      <div className={`rounded-[16px] border px-2.5 py-2 ${theme === 'light' ? 'border-sky-200 bg-sky-50/70' : 'border-sky-500/20 bg-sky-500/10'}`}>
-                        <div className={`text-[9px] uppercase tracking-[0.12em] ${ui.muted}`}>Top</div>
-                        <div className="mt-1 text-[12px] font-semibold leading-5">{row.overall}</div>
+              <div className="mt-4 md:hidden">
+                <div className={`mb-2 rounded-full border px-3 py-1 text-[10px] font-semibold ${theme === 'light' ? 'border-slate-200 bg-slate-50 text-slate-700' : 'border-white/10 bg-white/5 text-slate-300'}`}>
+                  Compare each row left to right
+                </div>
+
+                <div className="grid grid-cols-[76px_repeat(3,minmax(0,1fr))] gap-1.5">
+                  <div className={`rounded-[14px] border px-2 py-2 text-[9px] font-semibold uppercase tracking-[0.1em] ${ui.innerCard} ${ui.muted}`}>
+                    Metric
+                  </div>
+                  <div className={`rounded-[14px] border px-2 py-2 text-[9px] font-semibold uppercase tracking-[0.1em] ${theme === 'light' ? 'border-sky-200 bg-sky-50 text-sky-700' : 'border-sky-500/20 bg-sky-500/10 text-sky-200'}`}>
+                    Top
+                  </div>
+                  <div className={`rounded-[14px] border px-2 py-2 text-[9px] font-semibold uppercase tracking-[0.1em] ${theme === 'light' ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-emerald-500/20 bg-emerald-500/10 text-emerald-200'}`}>
+                    Win
+                  </div>
+                  <div className={`rounded-[14px] border px-2 py-2 text-[9px] font-semibold uppercase tracking-[0.1em] ${theme === 'light' ? 'border-red-200 bg-red-50 text-red-700' : 'border-red-500/20 bg-red-500/10 text-red-200'}`}>
+                    Loss
+                  </div>
+
+                  {advancedComparisonRows.map((row) => (
+                    <div key={row.label} className="contents">
+                      <div className={`rounded-[16px] border px-2.5 py-2.5 ${ui.innerCard}`}>
+                        <div className="text-[11px] font-semibold leading-4">{row.label}</div>
                       </div>
-                      <div className={`rounded-[16px] border px-2.5 py-2 ${theme === 'light' ? 'border-emerald-200 bg-emerald-50/70' : 'border-emerald-500/20 bg-emerald-500/10'}`}>
-                        <div className={`text-[9px] uppercase tracking-[0.12em] ${ui.muted}`}>Win</div>
-                        <div className="mt-1 text-[12px] font-semibold leading-5">{row.winning}</div>
+                      <div className={`rounded-[16px] border px-2.5 py-2.5 ${theme === 'light' ? 'border-sky-200 bg-sky-50/70' : 'border-sky-500/20 bg-sky-500/10'}`}>
+                        <div className={`text-[8px] uppercase tracking-[0.12em] ${ui.muted}`}>Overall</div>
+                        <div className="mt-1 text-[11px] font-semibold leading-4 break-words">{row.overall}</div>
                       </div>
-                      <div className={`rounded-[16px] border px-2.5 py-2 ${theme === 'light' ? 'border-red-200 bg-red-50/70' : 'border-red-500/20 bg-red-500/10'}`}>
-                        <div className={`text-[9px] uppercase tracking-[0.12em] ${ui.muted}`}>Loss</div>
-                        <div className="mt-1 text-[12px] font-semibold leading-5">{row.losing}</div>
+                      <div className={`rounded-[16px] border px-2.5 py-2.5 ${theme === 'light' ? 'border-emerald-200 bg-emerald-50/70' : 'border-emerald-500/20 bg-emerald-500/10'}`}>
+                        <div className={`text-[8px] uppercase tracking-[0.12em] ${ui.muted}`}>Winning</div>
+                        <div className="mt-1 text-[11px] font-semibold leading-4 break-words">{row.winning}</div>
+                      </div>
+                      <div className={`rounded-[16px] border px-2.5 py-2.5 ${theme === 'light' ? 'border-red-200 bg-red-50/70' : 'border-red-500/20 bg-red-500/10'}`}>
+                        <div className={`text-[8px] uppercase tracking-[0.12em] ${ui.muted}`}>Losing</div>
+                        <div className="mt-1 text-[11px] font-semibold leading-4 break-words">{row.losing}</div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
 
