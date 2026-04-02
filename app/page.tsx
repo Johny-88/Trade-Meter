@@ -1877,31 +1877,70 @@ export default function Home() {
       meta: mostMissedRule ? `${mostMissedRule[1]} missed times` : 'No missed-rule data yet.',
     },
   ]
-  const advancedWinningCards = [
-    ['Emotion', topWinningEmotion ? topWinningEmotion.value : 'No winning trades yet.'],
-    ['Setup', topWinningSetup ? topWinningSetup.value : 'No winning trades yet.'],
-    ['Instrument', topWinningInstrument ? topWinningInstrument.value : 'No winning trades yet.'],
-    ['Strategy', topWinningStrategy ? topWinningStrategy.value : 'No winning trades yet.'],
-    ['Direction', topWinningDirection ? formatSimpleLabel(topWinningDirection.value) : 'No winning trades yet.'],
-    ['Session', topWinningSession ? topWinningSession.value : 'No winning trades yet.'],
+  const advancedComparisonRows = [
+    {
+      label: 'Emotion',
+      overall: topOverallEmotion ? topOverallEmotion.value : 'No data yet.',
+      winning: topWinningEmotion ? topWinningEmotion.value : 'No winning trades yet.',
+      losing: topLosingEmotion ? topLosingEmotion.value : 'No losing trades yet.',
+    },
+    {
+      label: 'Instrument',
+      overall: topOverallInstrument ? topOverallInstrument.value : 'No data yet.',
+      winning: topWinningInstrument ? topWinningInstrument.value : 'No winning trades yet.',
+      losing: topLosingInstrument ? topLosingInstrument.value : 'No losing trades yet.',
+    },
+    {
+      label: 'Setup',
+      overall: topOverallSetup ? topOverallSetup.value : 'No data yet.',
+      winning: topWinningSetup ? topWinningSetup.value : 'No winning trades yet.',
+      losing: topLosingSetup ? topLosingSetup.value : 'No losing trades yet.',
+    },
+    {
+      label: 'Strategy',
+      overall: topOverallStrategy ? topOverallStrategy.value : 'No data yet.',
+      winning: topWinningStrategy ? topWinningStrategy.value : 'No winning trades yet.',
+      losing: topLosingStrategy ? topLosingStrategy.value : 'No losing trades yet.',
+    },
+    {
+      label: 'Direction',
+      overall: topOverallDirection ? formatSimpleLabel(topOverallDirection.value) : 'No data yet.',
+      winning: topWinningDirection ? formatSimpleLabel(topWinningDirection.value) : 'No winning trades yet.',
+      losing: topLosingDirection ? formatSimpleLabel(topLosingDirection.value) : 'No losing trades yet.',
+    },
+    {
+      label: 'Session',
+      overall: topOverallSession ? topOverallSession.value : 'No data yet.',
+      winning: topWinningSession ? topWinningSession.value : 'No winning trades yet.',
+      losing: topLosingSession ? topLosingSession.value : 'No losing trades yet.',
+    },
+    {
+      label: 'Setup edge',
+      overall: setupBreakdown ? setupBreakdown[0] : 'No data yet.',
+      winning: bestSetupByAverageR ? `${bestSetupByAverageR.setup} • ${bestSetupByAverageR.avgR.toFixed(2)}R` : 'Not enough closed trades yet.',
+      losing: worstSetupByAverageR ? `${worstSetupByAverageR.setup} • ${worstSetupByAverageR.avgR.toFixed(2)}R` : 'Not enough closed trades yet.',
+    },
   ]
-  const advancedLosingCards = [
-    ['Emotion', topLosingEmotion ? topLosingEmotion.value : 'No losing trades yet.'],
-    ['Setup', topLosingSetup ? topLosingSetup.value : 'No losing trades yet.'],
-    ['Instrument', topLosingInstrument ? topLosingInstrument.value : 'No losing trades yet.'],
-    ['Strategy', topLosingStrategy ? topLosingStrategy.value : 'No losing trades yet.'],
-    ['Direction', topLosingDirection ? formatSimpleLabel(topLosingDirection.value) : 'No losing trades yet.'],
-    ['Session', topLosingSession ? topLosingSession.value : 'No losing trades yet.'],
-  ]
-  const advancedOverallCards = [
-    ['Top setup', topOverallSetup ? topOverallSetup.value : 'No data yet.'],
-    ['Top strategy', topOverallStrategy ? topOverallStrategy.value : 'No data yet.'],
-    ['Top instrument', topOverallInstrument ? topOverallInstrument.value : 'No data yet.'],
-    ['Top session', topOverallSession ? topOverallSession.value : 'No data yet.'],
-    ['Top direction', topOverallDirection ? formatSimpleLabel(topOverallDirection.value) : 'No data yet.'],
-    ['Top emotion', topOverallEmotion ? topOverallEmotion.value : 'No data yet.'],
-    ['Best avg R', bestSetupByAverageR ? `${bestSetupByAverageR.setup} • ${bestSetupByAverageR.avgR.toFixed(2)}R` : 'Not enough closed trades yet.'],
-    ['Worst avg R', worstSetupByAverageR ? `${worstSetupByAverageR.setup} • ${worstSetupByAverageR.avgR.toFixed(2)}R` : 'Not enough closed trades yet.'],
+  const advancedPatternCards = [
+    {
+      title: 'Winning profile',
+      tone: 'win',
+      text: perfectWinningCombination
+        ? `Most repeated winning profile: ${perfectWinningCombination.emotion} • ${perfectWinningCombination.setup} • ${perfectWinningCombination.instrument} • ${perfectWinningCombination.strategy} • ${formatSimpleLabel(perfectWinningCombination.direction)} • ${perfectWinningCombination.session}.`
+        : 'Not enough winning trades yet to build a reliable winning profile.',
+    },
+    {
+      title: 'Losing profile',
+      tone: 'loss',
+      text: worstLosingCombination
+        ? `Most repeated losing profile: ${worstLosingCombination.emotion} • ${worstLosingCombination.setup} • ${worstLosingCombination.instrument} • ${worstLosingCombination.strategy} • ${formatSimpleLabel(worstLosingCombination.direction)} • ${worstLosingCombination.session}.`
+        : 'Not enough losing trades yet to build a reliable losing profile.',
+    },
+    {
+      title: 'How to read it',
+      tone: 'neutral',
+      text: 'Look first for rows where the winning and losing columns clearly disagree. That gap usually tells you more than the overall column.',
+    },
   ]
 
   useEffect(() => {
@@ -2449,49 +2488,78 @@ ${emotionWarning}`
               </p>
             </div>
 
-            <div className="mt-5 grid gap-3 xl:grid-cols-3">
-              {[
-                {
-                  title: 'Winning DNA',
-                  caption: 'What shows up most often inside your winning trades.',
-                  items: advancedWinningCards,
-                  dotClass: theme === 'light' ? 'bg-emerald-500' : 'bg-emerald-400',
-                  cardClass: theme === 'light' ? 'border-emerald-200 bg-emerald-50/70' : 'border-emerald-500/20 bg-emerald-500/10',
-                },
-                {
-                  title: 'Losing DNA',
-                  caption: 'What keeps repeating when trades go wrong.',
-                  items: advancedLosingCards,
-                  dotClass: theme === 'light' ? 'bg-red-500' : 'bg-red-400',
-                  cardClass: theme === 'light' ? 'border-red-200 bg-red-50/70' : 'border-red-500/20 bg-red-500/10',
-                },
-                {
-                  title: 'Overall tendencies',
-                  caption: 'The broad tendencies your journal is producing so far.',
-                  items: advancedOverallCards,
-                  dotClass: theme === 'light' ? 'bg-sky-500' : 'bg-sky-400',
-                  cardClass: theme === 'light' ? 'border-sky-200 bg-sky-50/70' : 'border-sky-500/20 bg-sky-500/10',
-                },
-              ].map((group) => (
-                <div key={group.title} className={`rounded-[24px] border p-4 shadow-sm ${ui.statBox}`}>
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <div className="text-sm font-bold">{group.title}</div>
-                      <p className={`mt-1 text-xs leading-5 ${ui.subtle}`}>{group.caption}</p>
-                    </div>
-                    <span className={`mt-1 h-2.5 w-2.5 rounded-full ${group.dotClass}`} />
+            <div className={`mt-5 rounded-[24px] border p-4 shadow-sm ${ui.statBox}`}>
+              <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+                <div>
+                  <div className="text-sm font-bold">Side-by-side comparison</div>
+                  <p className={`mt-1 text-xs leading-5 ${ui.subtle}`}>
+                    Compare the most common overall behaviour against what shows up most in winners and most in losers.
+                  </p>
+                </div>
+
+                <div className={`rounded-full border px-3 py-1 text-[10px] font-semibold ${theme === 'light' ? 'border-slate-200 bg-slate-50 text-slate-700' : 'border-white/10 bg-white/5 text-slate-300'}`}>
+                  Read across each row
+                </div>
+              </div>
+
+              <div className="mt-4 hidden md:block">
+                <div className="grid grid-cols-[120px_repeat(3,minmax(0,1fr))] gap-2">
+                  <div className={`rounded-[16px] border px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] ${ui.innerCard} ${ui.muted}`}>
+                    Metric
+                  </div>
+                  <div className={`rounded-[16px] border px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] ${theme === 'light' ? 'border-sky-200 bg-sky-50 text-sky-700' : 'border-sky-500/20 bg-sky-500/10 text-sky-200'}`}>
+                    Top overall
+                  </div>
+                  <div className={`rounded-[16px] border px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] ${theme === 'light' ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-emerald-500/20 bg-emerald-500/10 text-emerald-200'}`}>
+                    Most winning
+                  </div>
+                  <div className={`rounded-[16px] border px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] ${theme === 'light' ? 'border-red-200 bg-red-50 text-red-700' : 'border-red-500/20 bg-red-500/10 text-red-200'}`}>
+                    Most losing
                   </div>
 
-                  <div className="mt-4 space-y-2">
-                    {group.items.map((item) => (
-                      <div key={`${group.title}-${item[0]}`} className={`rounded-[16px] border px-3 py-2.5 ${group.cardClass}`}>
-                        <div className={`text-[10px] uppercase tracking-[0.12em] ${ui.muted}`}>{item[0]}</div>
-                        <div className="mt-1 text-sm font-semibold leading-5">{item[1]}</div>
+                  {advancedComparisonRows.map((row) => (
+                    <div key={row.label} className="contents">
+                      <div className={`rounded-[18px] border px-3 py-3 ${ui.innerCard}`}>
+                        <div className="text-sm font-semibold">{row.label}</div>
                       </div>
-                    ))}
-                  </div>
+                      <div className={`rounded-[18px] border px-3 py-3 ${theme === 'light' ? 'border-sky-200 bg-sky-50/70' : 'border-sky-500/20 bg-sky-500/10'}`}>
+                        <div className={`text-[10px] uppercase tracking-[0.12em] ${ui.muted}`}>Overall</div>
+                        <div className="mt-1 text-sm font-semibold leading-5">{row.overall}</div>
+                      </div>
+                      <div className={`rounded-[18px] border px-3 py-3 ${theme === 'light' ? 'border-emerald-200 bg-emerald-50/70' : 'border-emerald-500/20 bg-emerald-500/10'}`}>
+                        <div className={`text-[10px] uppercase tracking-[0.12em] ${ui.muted}`}>Winning</div>
+                        <div className="mt-1 text-sm font-semibold leading-5">{row.winning}</div>
+                      </div>
+                      <div className={`rounded-[18px] border px-3 py-3 ${theme === 'light' ? 'border-red-200 bg-red-50/70' : 'border-red-500/20 bg-red-500/10'}`}>
+                        <div className={`text-[10px] uppercase tracking-[0.12em] ${ui.muted}`}>Losing</div>
+                        <div className="mt-1 text-sm font-semibold leading-5">{row.losing}</div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              </div>
+
+              <div className="mt-4 space-y-3 md:hidden">
+                {advancedComparisonRows.map((row) => (
+                  <div key={row.label} className={`rounded-[20px] border p-3 ${ui.innerCard}`}>
+                    <div className="text-sm font-semibold">{row.label}</div>
+                    <div className="mt-3 grid grid-cols-3 gap-2">
+                      <div className={`rounded-[16px] border px-2.5 py-2 ${theme === 'light' ? 'border-sky-200 bg-sky-50/70' : 'border-sky-500/20 bg-sky-500/10'}`}>
+                        <div className={`text-[9px] uppercase tracking-[0.12em] ${ui.muted}`}>Top</div>
+                        <div className="mt-1 text-[12px] font-semibold leading-5">{row.overall}</div>
+                      </div>
+                      <div className={`rounded-[16px] border px-2.5 py-2 ${theme === 'light' ? 'border-emerald-200 bg-emerald-50/70' : 'border-emerald-500/20 bg-emerald-500/10'}`}>
+                        <div className={`text-[9px] uppercase tracking-[0.12em] ${ui.muted}`}>Win</div>
+                        <div className="mt-1 text-[12px] font-semibold leading-5">{row.winning}</div>
+                      </div>
+                      <div className={`rounded-[16px] border px-2.5 py-2 ${theme === 'light' ? 'border-red-200 bg-red-50/70' : 'border-red-500/20 bg-red-500/10'}`}>
+                        <div className={`text-[9px] uppercase tracking-[0.12em] ${ui.muted}`}>Loss</div>
+                        <div className="mt-1 text-[12px] font-semibold leading-5">{row.losing}</div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
 
             <div className="mt-5 grid gap-4 md:grid-cols-2">
@@ -2570,6 +2638,30 @@ ${emotionWarning}`
                   <p className={`mt-2 text-sm ${ui.subtle}`}>Not enough losing trades yet.</p>
                 )}
               </div>
+            </div>
+
+            <div className="mt-4 grid gap-3 md:grid-cols-3">
+              {advancedPatternCards.map((card) => {
+                const toneClass =
+                  card.tone === 'win'
+                    ? theme === 'light'
+                      ? 'border-emerald-200 bg-emerald-50/70'
+                      : 'border-emerald-500/20 bg-emerald-500/10'
+                    : card.tone === 'loss'
+                    ? theme === 'light'
+                      ? 'border-red-200 bg-red-50/70'
+                      : 'border-red-500/20 bg-red-500/10'
+                    : theme === 'light'
+                    ? 'border-sky-200 bg-sky-50/70'
+                    : 'border-sky-500/20 bg-sky-500/10'
+
+                return (
+                  <div key={card.title} className={`rounded-[22px] border p-4 ${toneClass}`}>
+                    <div className="text-sm font-bold">{card.title}</div>
+                    <p className={`mt-2 text-sm leading-6 ${ui.subtle}`}>{card.text}</p>
+                  </div>
+                )
+              })}
             </div>
 
             <div className={`mt-4 rounded-[20px] border px-4 py-3 text-center text-sm leading-6 ${ui.statBox}`}>
