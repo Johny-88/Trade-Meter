@@ -783,7 +783,7 @@ function FixedOptionDropdown({
         onClick={() => setOpen((prev) => !prev)}
         className={`relative flex h-10 w-full items-center rounded-2xl px-3 pr-10 text-left text-sm outline-none transition ${triggerClassName}`}
       >
-        <span className="truncate text-[16px] font-medium leading-6">{formatLabel(value)}</span>
+        <span className="truncate">{formatLabel(value)}</span>
         <span
           className={`pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[11px] leading-none transition ${mutedClassName} ${
             open ? 'rotate-180' : ''
@@ -890,15 +890,6 @@ function formatSimpleLabel(value: string) {
   return value
     .replace(/-/g, ' ')
     .replace(/\b\w/g, (char) => char.toUpperCase())
-}
-
-function getJournalOutcomeLabel(outcome: JournalOutcome) {
-  if (outcome === 'saved-me') return 'Verdict saved me'
-  if (outcome === 'no-trade') return 'No trade'
-  if (outcome === 'breakeven') return 'Breakeven'
-  if (outcome === 'win') return 'Win'
-  if (outcome === 'loss') return 'Loss'
-  return 'Unknown'
 }
 
 function normalizeJournalEntry(entry: Partial<JournalEntry>): JournalEntry {
@@ -1598,13 +1589,6 @@ export default function Home() {
     if (proTimerActive) return
     setProTimerLeft(proTimerSeconds)
   }, [proTimerSeconds, proTimerActive])
-
-  useEffect(() => {
-    setJournalPnl((prev) => {
-      if (prev === 0) return 0
-      return tradeOutcome === 'loss' ? -Math.abs(prev) : Math.abs(prev)
-    })
-  }, [tradeOutcome])
 
   const checkedCount = rules.filter((rule) => rule.checked).length
   const totalCount = rules.length
@@ -2343,7 +2327,7 @@ export default function Home() {
       marketCondition: journalMarketCondition,
       emotion: journalEmotion,
       direction: journalDirection,
-      pnl: tradeOutcome === 'loss' ? -Math.abs(journalPnl) : Math.abs(journalPnl),
+      pnl: journalPnl,
       rMultiple: journalRMultiple,
       missingRuleTexts: rules.filter((rule) => !rule.checked).map((rule) => rule.text),
       missingCategories: rules.filter((rule) => !rule.checked).map((rule) => rule.category),
@@ -3104,42 +3088,17 @@ ${emotionWarning}`
 
                       <FixedOptionDropdown
                         label="Outcome"
-                        value={getJournalOutcomeLabel(tradeOutcome)}
-                        options={['Win', 'Loss', 'Breakeven', 'No trade', 'Verdict saved me']}
+                        value={tradeOutcome === 'win' ? 'Win' : tradeOutcome === 'loss' ? 'Loss' : 'Breakeven'}
+                        options={['Win', 'Loss', 'Breakeven']}
                         onSelect={(item) =>
-                          setTradeOutcome(
-                            item === 'No trade'
-                              ? 'no-trade'
-                              : item === 'Verdict saved me'
-                              ? 'saved-me'
-                              : item.toLowerCase() === 'breakeven'
-                              ? 'breakeven'
-                              : (item.toLowerCase() as JournalOutcome)
-                          )
+                          setTradeOutcome(item.toLowerCase() === 'breakeven' ? 'breakeven' : (item.toLowerCase() as JournalOutcome))
                         }
                         theme={theme}
                         triggerClassName={ui.select}
                         mutedClassName={ui.muted}
                       />
 
-                      <div className="relative">
-                        {tradeOutcome === 'loss' && (
-                          <span className={`pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm font-semibold ${ui.muted}`}>
-                            −
-                          </span>
-                        )}
-                        <input
-                          type="number"
-                          min="0"
-                          value={journalPnl ? Math.abs(journalPnl) : ''}
-                          onChange={(e) => {
-                            const nextValue = Math.abs(Number(e.target.value) || 0)
-                            setJournalPnl(tradeOutcome === 'loss' ? -nextValue : nextValue)
-                          }}
-                          className={`rounded-2xl py-2.5 text-sm outline-none transition ${ui.input} ${tradeOutcome === 'loss' ? 'pl-7 pr-3' : 'px-3'}`}
-                          placeholder="Net P&L"
-                        />
-                      </div>
+                      <input type="number" value={journalPnl || ''} onChange={(e) => setJournalPnl(Number(e.target.value) || 0)} className={`rounded-2xl px-3 py-2.5 text-sm outline-none transition ${ui.input}`} placeholder="Net P&L" />
                       <input type="number" step="0.1" value={journalRMultiple || ''} onChange={(e) => setJournalRMultiple(Number(e.target.value) || 0)} className={`rounded-2xl px-3 py-2.5 text-sm outline-none transition ${ui.input}`} placeholder="Result in R" />
                     </div>
 
@@ -3238,13 +3197,12 @@ ${emotionWarning}`
                             </div>
                           </div>
 
-                          <div className="mt-3 grid grid-cols-2 gap-2 lg:grid-cols-5">
+                          <div className="mt-3 grid grid-cols-2 gap-2 md:grid-cols-4">
                             {[
                               ['Wins', `${winCount}`, `${winRate}%`],
                               ['Losses', `${lossCount}`, `${lossRate}%`],
                               ['Breakeven', `${breakevenCount}`, `${breakevenRate}%`],
                               ['No trade', `${noTradeCount}`, totalReviewedTrades > 0 ? `${Math.round((noTradeCount / totalReviewedTrades) * 100)}%` : '0%'],
-                              ['Verdict saved me', `${savedMeCount}`, totalReviewedTrades > 0 ? `${Math.round((savedMeCount / totalReviewedTrades) * 100)}%` : '0%'],
                             ].map((item) => (
                               <div key={item[0]} className={`rounded-[16px] border px-3 py-2 ${theme === 'light' ? 'border-slate-200 bg-white/90' : 'border-white/10 bg-slate-950/40'}`}>
                                 <div className={`text-[10px] uppercase tracking-[0.12em] ${ui.muted}`}>{item[0]}</div>
@@ -3356,8 +3314,6 @@ ${emotionWarning}`
                           ? 'bg-red-400'
                           : entry.outcome === 'breakeven'
                           ? 'bg-amber-400'
-                          : entry.outcome === 'no-trade'
-                          ? 'bg-slate-400'
                           : 'bg-sky-400'
                       const entryOutcomeClass =
                         entry.outcome === 'win'
@@ -3366,9 +3322,7 @@ ${emotionWarning}`
                           ? 'border-red-500/20 bg-red-500/10 text-red-200'
                           : entry.outcome === 'breakeven'
                           ? 'border-amber-500/20 bg-amber-500/10 text-amber-200'
-                          : entry.outcome === 'no-trade'
-                          ? 'border-slate-500/20 bg-slate-500/10 text-slate-200'
-                          : 'border-sky-500/20 bg-sky-500/10 text-sky-200'
+                          : qualificationStyles.badge
                       const entryDirectionClass =
                         entry.direction === 'long'
                           ? 'border-sky-500/20 bg-sky-500/10 text-sky-200'
@@ -3392,7 +3346,7 @@ ${emotionWarning}`
                                   {entry.strategy}
                                 </div>
                                 <div className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold ${entryOutcomeClass}`}>
-                                  {getJournalOutcomeLabel(entry.outcome)}
+                                  {entry.outcome}
                                 </div>
                                 <div className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold ${entryDirectionClass}`}>
                                   {entry.direction}
