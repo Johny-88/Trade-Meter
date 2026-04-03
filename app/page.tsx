@@ -2522,49 +2522,94 @@ ${emotionWarning}`
               </p>
             </div>
 
-            <div className="mt-5 grid gap-3 xl:grid-cols-3">
-              {[
-                {
-                  title: 'Winning DNA',
-                  caption: 'What shows up most often inside your winning trades.',
-                  items: advancedWinningCards,
-                  dotClass: theme === 'light' ? 'bg-emerald-500' : 'bg-emerald-400',
-                  cardClass: theme === 'light' ? 'border-emerald-200 bg-emerald-50/70' : 'border-emerald-500/20 bg-emerald-500/10',
-                },
-                {
-                  title: 'Losing DNA',
-                  caption: 'What keeps repeating when trades go wrong.',
-                  items: advancedLosingCards,
-                  dotClass: theme === 'light' ? 'bg-red-500' : 'bg-red-400',
-                  cardClass: theme === 'light' ? 'border-red-200 bg-red-50/70' : 'border-red-500/20 bg-red-500/10',
-                },
-                {
-                  title: 'Overall tendencies',
-                  caption: 'The broad tendencies your journal is producing so far.',
-                  items: advancedOverallCards,
-                  dotClass: theme === 'light' ? 'bg-sky-500' : 'bg-sky-400',
-                  cardClass: theme === 'light' ? 'border-sky-200 bg-sky-50/70' : 'border-sky-500/20 bg-sky-500/10',
-                },
-              ].map((group) => (
-                <div key={group.title} className={`rounded-[24px] border p-4 shadow-sm ${ui.statBox}`}>
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <div className="text-sm font-bold">{group.title}</div>
-                      <p className={`mt-1 text-xs leading-5 ${ui.subtle}`}>{group.caption}</p>
-                    </div>
-                    <span className={`mt-1 h-2.5 w-2.5 rounded-full ${group.dotClass}`} />
-                  </div>
-
-                  <div className="mt-4 space-y-2">
-                    {group.items.map((item) => (
-                      <div key={`${group.title}-${item[0]}`} className={`rounded-[16px] border px-3 py-2.5 ${group.cardClass}`}>
-                        <div className={`text-[10px] uppercase tracking-[0.12em] ${ui.muted}`}>{item[0]}</div>
-                        <div className="mt-1 text-sm font-semibold leading-5">{item[1]}</div>
-                      </div>
-                    ))}
-                  </div>
+            <div className={`mt-5 rounded-[24px] border p-4 shadow-sm ${ui.statBox}`}>
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="text-sm font-bold">Side-by-side comparison</div>
+                  <p className={`mt-1 text-xs leading-5 ${ui.subtle}`}>
+                    Compare the top overall pattern against what shows up most in winners and most in losers.
+                  </p>
                 </div>
-              ))}
+              </div>
+
+              <div className={`mt-3 rounded-full border px-3 py-2 text-xs font-semibold ${ui.tag}`}>
+                Top = overall • Win = most common in winners • Loss = most common in losers
+              </div>
+
+              <div className="mt-4 space-y-3">
+                {[
+                  {
+                    label: 'Emotion',
+                    top: topOverallEmotion ? topOverallEmotion.value : 'No data',
+                    win: topWinningEmotion ? topWinningEmotion.value : 'No wins',
+                    loss: topLosingEmotion ? topLosingEmotion.value : 'No losses',
+                  },
+                  {
+                    label: 'Instrument',
+                    top: topOverallInstrument ? topOverallInstrument.value : 'No data',
+                    win: topWinningInstrument ? topWinningInstrument.value : 'No wins',
+                    loss: topLosingInstrument ? topLosingInstrument.value : 'No losses',
+                  },
+                  {
+                    label: 'Setup',
+                    top: topOverallSetup ? topOverallSetup.value : 'No data',
+                    win: topWinningSetup ? topWinningSetup.value : 'No wins',
+                    loss: topLosingSetup ? topLosingSetup.value : 'No losses',
+                  },
+                  {
+                    label: 'Strategy',
+                    top: topOverallStrategy ? topOverallStrategy.value : 'No data',
+                    win: topWinningStrategy ? topWinningStrategy.value : 'No wins',
+                    loss: topLosingStrategy ? topLosingStrategy.value : 'No losses',
+                  },
+                  {
+                    label: 'Direction',
+                    top: topOverallDirection ? formatSimpleLabel(topOverallDirection.value) : 'No data',
+                    win: topWinningDirection ? formatSimpleLabel(topWinningDirection.value) : 'No wins',
+                    loss: topLosingDirection ? formatSimpleLabel(topLosingDirection.value) : 'No losses',
+                  },
+                  {
+                    label: 'Session',
+                    top: topOverallSession ? topOverallSession.value : 'No data',
+                    win: topWinningSession ? topWinningSession.value : 'No wins',
+                    loss: topLosingSession ? topLosingSession.value : 'No losses',
+                  },
+                ].map((row) => (
+                  <div key={row.label} className={`rounded-[20px] border p-3 ${ui.innerCard}`}>
+                    <div className="mb-2 text-sm font-bold md:hidden">{row.label}</div>
+
+                    <div className="hidden md:grid md:grid-cols-[112px_repeat(3,minmax(0,1fr))] md:gap-2">
+                      <div className={`rounded-[16px] border px-3 py-3 ${ui.statBox}`}>
+                        <div className="text-sm font-semibold">{row.label}</div>
+                      </div>
+
+                      {[
+                        { key: 'top', title: 'Top', value: row.top, cellClass: theme === 'light' ? 'border-sky-200 bg-sky-50/70' : 'border-sky-500/20 bg-sky-500/10' },
+                        { key: 'win', title: 'Win', value: row.win, cellClass: theme === 'light' ? 'border-emerald-200 bg-emerald-50/70' : 'border-emerald-500/20 bg-emerald-500/10' },
+                        { key: 'loss', title: 'Loss', value: row.loss, cellClass: theme === 'light' ? 'border-red-200 bg-red-50/70' : 'border-red-500/20 bg-red-500/10' },
+                      ].map((cell) => (
+                        <div key={`${row.label}-${cell.key}`} className={`rounded-[16px] border px-3 py-3 ${cell.cellClass}`}>
+                          <div className={`text-[10px] uppercase tracking-[0.16em] ${ui.muted}`}>{cell.title}</div>
+                          <div className="mt-1 text-sm font-semibold leading-5">{cell.value}</div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-2 md:hidden">
+                      {[
+                        { key: 'top', title: 'Top', value: row.top, cellClass: theme === 'light' ? 'border-sky-200 bg-sky-50/70' : 'border-sky-500/20 bg-sky-500/10' },
+                        { key: 'win', title: 'Win', value: row.win, cellClass: theme === 'light' ? 'border-emerald-200 bg-emerald-50/70' : 'border-emerald-500/20 bg-emerald-500/10' },
+                        { key: 'loss', title: 'Loss', value: row.loss, cellClass: theme === 'light' ? 'border-red-200 bg-red-50/70' : 'border-red-500/20 bg-red-500/10' },
+                      ].map((cell) => (
+                        <div key={`${row.label}-mobile-${cell.key}`} className={`rounded-[16px] border px-2.5 py-3 ${cell.cellClass}`}>
+                          <div className={`text-[10px] uppercase tracking-[0.16em] ${ui.muted}`}>{cell.title}</div>
+                          <div className="mt-1 text-[13px] font-semibold leading-5 break-words">{cell.value}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
 
             <div className="mt-5 grid gap-4 md:grid-cols-2">
