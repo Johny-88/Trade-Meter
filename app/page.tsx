@@ -892,6 +892,53 @@ function formatSimpleLabel(value: string) {
     .replace(/\w/g, (char) => char.toUpperCase())
 }
 
+const advancedVisualPalette = ['#38bdf8', '#22c55e', '#f87171', '#f59e0b', '#a78bfa', '#14b8a6', '#f472b6', '#60a5fa']
+
+function getDistribution(values: string[]) {
+  const cleaned = values.map((value) => value.trim()).filter(Boolean)
+  if (cleaned.length === 0) return []
+
+  const counts = cleaned.reduce<Record<string, number>>((acc, value) => {
+    acc[value] = (acc[value] ?? 0) + 1
+    return acc
+  }, {})
+
+  return Object.entries(counts)
+    .sort((a, b) => b[1] - a[1])
+    .map(([label, count]) => ({ label, count }))
+}
+
+function polarToCartesian(cx: number, cy: number, radius: number, angleInDegrees: number) {
+  const angleInRadians = ((angleInDegrees - 90) * Math.PI) / 180
+  return {
+    x: cx + radius * Math.cos(angleInRadians),
+    y: cy + radius * Math.sin(angleInRadians),
+  }
+}
+
+function createDonutSegmentPath(
+  cx: number,
+  cy: number,
+  outerRadius: number,
+  innerRadius: number,
+  startAngle: number,
+  endAngle: number
+) {
+  const outerStart = polarToCartesian(cx, cy, outerRadius, endAngle)
+  const outerEnd = polarToCartesian(cx, cy, outerRadius, startAngle)
+  const innerStart = polarToCartesian(cx, cy, innerRadius, startAngle)
+  const innerEnd = polarToCartesian(cx, cy, innerRadius, endAngle)
+  const largeArcFlag = endAngle - startAngle <= 180 ? '0' : '1'
+
+  return [
+    `M ${outerStart.x} ${outerStart.y}`,
+    `A ${outerRadius} ${outerRadius} 0 ${largeArcFlag} 0 ${outerEnd.x} ${outerEnd.y}`,
+    `L ${innerStart.x} ${innerStart.y}`,
+    `A ${innerRadius} ${innerRadius} 0 ${largeArcFlag} 1 ${innerEnd.x} ${innerEnd.y}`,
+    'Z',
+  ].join(' ')
+}
+
 function getJournalOutcomeLabel(outcome: JournalOutcome) {
   if (outcome === 'saved-me') return 'Verdict saved me'
   if (outcome === 'no-trade') return 'No trade'
@@ -1855,50 +1902,80 @@ export default function Home() {
       losing: topLosingSession ? topLosingSession.value : 'No losing trades yet.',
     },
   ]
-  const advancedVisualGaugeCards = [
+  const advancedVisualRows = [
     {
-      label: 'Win rate',
-      value: winRate,
-      meta: closedTrades.length > 0 ? `${winCount} of ${closedTrades.length} closed trades` : 'No closed trades yet.',
-      ringClass: theme === 'light' ? 'text-emerald-500' : 'text-emerald-400',
-      panelClass: theme === 'light' ? 'border-emerald-200 bg-emerald-50/70' : 'border-emerald-500/20 bg-emerald-500/10',
-      dotClass: theme === 'light' ? 'bg-emerald-500' : 'bg-emerald-400',
+      label: 'Emotion',
+      overallTop: topOverallEmotion ? topOverallEmotion.value : 'No data yet.',
+      winningTop: topWinningEmotion ? topWinningEmotion.value : 'No winning trades yet.',
+      losingTop: topLosingEmotion ? topLosingEmotion.value : 'No losing trades yet.',
+      overallSlices: getDistribution(journal.map((entry) => entry.emotion)),
+      winningSlices: getDistribution(winningTrades.map((entry) => entry.emotion)),
+      losingSlices: getDistribution(losingTrades.map((entry) => entry.emotion)),
     },
     {
-      label: 'Verdict respect',
-      value: respectRate,
-      meta: journal.length > 0 ? `${respectedVerdictCount} of ${journal.length} respected` : 'No journal data yet.',
-      ringClass: theme === 'light' ? 'text-sky-500' : 'text-sky-400',
-      panelClass: theme === 'light' ? 'border-sky-200 bg-sky-50/70' : 'border-sky-500/20 bg-sky-500/10',
-      dotClass: theme === 'light' ? 'bg-sky-500' : 'bg-sky-400',
+      label: 'Instrument',
+      overallTop: topOverallInstrument ? topOverallInstrument.value : 'No data yet.',
+      winningTop: topWinningInstrument ? topWinningInstrument.value : 'No winning trades yet.',
+      losingTop: topLosingInstrument ? topLosingInstrument.value : 'No losing trades yet.',
+      overallSlices: getDistribution(journal.map((entry) => entry.instrument)),
+      winningSlices: getDistribution(winningTrades.map((entry) => entry.instrument)),
+      losingSlices: getDistribution(losingTrades.map((entry) => entry.instrument)),
     },
     {
-      label: 'Breakeven rate',
-      value: breakevenRate,
-      meta: closedTrades.length > 0 ? `${breakevenCount} of ${closedTrades.length} closed trades` : 'No closed trades yet.',
-      ringClass: theme === 'light' ? 'text-amber-500' : 'text-amber-400',
-      panelClass: theme === 'light' ? 'border-amber-200 bg-amber-50/70' : 'border-amber-500/20 bg-amber-500/10',
-      dotClass: theme === 'light' ? 'bg-amber-500' : 'bg-amber-400',
+      label: 'Setup',
+      overallTop: topOverallSetup ? topOverallSetup.value : 'No data yet.',
+      winningTop: topWinningSetup ? topWinningSetup.value : 'No winning trades yet.',
+      losingTop: topLosingSetup ? topLosingSetup.value : 'No losing trades yet.',
+      overallSlices: getDistribution(journal.map((entry) => entry.setupType)),
+      winningSlices: getDistribution(winningTrades.map((entry) => entry.setupType)),
+      losingSlices: getDistribution(losingTrades.map((entry) => entry.setupType)),
+    },
+    {
+      label: 'Strategy',
+      overallTop: topOverallStrategy ? topOverallStrategy.value : 'No data yet.',
+      winningTop: topWinningStrategy ? topWinningStrategy.value : 'No winning trades yet.',
+      losingTop: topLosingStrategy ? topLosingStrategy.value : 'No losing trades yet.',
+      overallSlices: getDistribution(journal.map((entry) => entry.strategy)),
+      winningSlices: getDistribution(winningTrades.map((entry) => entry.strategy)),
+      losingSlices: getDistribution(losingTrades.map((entry) => entry.strategy)),
+    },
+    {
+      label: 'Direction',
+      overallTop: topOverallDirection ? formatSimpleLabel(topOverallDirection.value) : 'No data yet.',
+      winningTop: topWinningDirection ? formatSimpleLabel(topWinningDirection.value) : 'No winning trades yet.',
+      losingTop: topLosingDirection ? formatSimpleLabel(topLosingDirection.value) : 'No losing trades yet.',
+      overallSlices: getDistribution(journal.map((entry) => formatSimpleLabel(entry.direction))),
+      winningSlices: getDistribution(winningTrades.map((entry) => formatSimpleLabel(entry.direction))),
+      losingSlices: getDistribution(losingTrades.map((entry) => formatSimpleLabel(entry.direction))),
+    },
+    {
+      label: 'Session',
+      overallTop: topOverallSession ? topOverallSession.value : 'No data yet.',
+      winningTop: topWinningSession ? topWinningSession.value : 'No winning trades yet.',
+      losingTop: topLosingSession ? topLosingSession.value : 'No losing trades yet.',
+      overallSlices: getDistribution(journal.map((entry) => entry.session)),
+      winningSlices: getDistribution(winningTrades.map((entry) => entry.session)),
+      losingSlices: getDistribution(losingTrades.map((entry) => entry.session)),
     },
   ]
-  const advancedWinningPatternItems = perfectWinningCombination
+  const advancedWinningPatternCells = perfectWinningCombination
     ? [
-        `Emotion: ${perfectWinningCombination.emotion}`,
-        `Setup: ${perfectWinningCombination.setup}`,
-        `Instrument: ${perfectWinningCombination.instrument}`,
-        `Strategy: ${perfectWinningCombination.strategy}`,
-        `Direction: ${formatSimpleLabel(perfectWinningCombination.direction)}`,
-        `Session: ${perfectWinningCombination.session}`,
+        { label: 'Emotion', value: perfectWinningCombination.emotion },
+        { label: 'Setup', value: perfectWinningCombination.setup },
+        { label: 'Instrument', value: perfectWinningCombination.instrument },
+        { label: 'Strategy', value: perfectWinningCombination.strategy },
+        { label: 'Direction', value: formatSimpleLabel(perfectWinningCombination.direction) },
+        { label: 'Session', value: perfectWinningCombination.session },
       ]
     : []
-  const advancedLosingPatternItems = worstLosingCombination
+  const advancedLosingPatternCells = worstLosingCombination
     ? [
-        `Emotion: ${worstLosingCombination.emotion}`,
-        `Setup: ${worstLosingCombination.setup}`,
-        `Instrument: ${worstLosingCombination.instrument}`,
-        `Strategy: ${worstLosingCombination.strategy}`,
-        `Direction: ${formatSimpleLabel(worstLosingCombination.direction)}`,
-        `Session: ${worstLosingCombination.session}`,
+        { label: 'Emotion', value: worstLosingCombination.emotion },
+        { label: 'Setup', value: worstLosingCombination.setup },
+        { label: 'Instrument', value: worstLosingCombination.instrument },
+        { label: 'Strategy', value: worstLosingCombination.strategy },
+        { label: 'Direction', value: formatSimpleLabel(worstLosingCombination.direction) },
+        { label: 'Session', value: worstLosingCombination.session },
       ]
     : []
   const snapshotHeroCards = [
@@ -2814,137 +2891,74 @@ ${emotionWarning}`
               </>
             ) : (
               <>
-                <div className="mt-5 grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
-                  <div className={`rounded-[24px] border p-4 shadow-sm ${ui.statBox}`}>
-                    <div className="text-sm font-bold">Visual summary</div>
-                    <p className={`mt-1 text-xs leading-5 ${ui.subtle}`}>
-                      Same advanced data, shown as fast-read visuals for people who spot patterns quicker through shape, balance, and colour.
-                    </p>
-
-                    <div className="mt-4 grid gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
-                      {advancedVisualGaugeCards.map((item) => {
-                        const radius = 34
-                        const circumference = 2 * Math.PI * radius
-                        const safeValue = Math.max(0, Math.min(100, item.value))
-                        const dashOffset = circumference - (safeValue / 100) * circumference
-
-                        return (
-                          <div key={item.label} className={`rounded-[22px] border p-4 text-center ${item.panelClass}`}>
-                            <div className={`mx-auto flex h-24 w-24 items-center justify-center ${item.ringClass}`}>
-                              <svg viewBox="0 0 100 100" className="h-24 w-24 -rotate-90">
-                                <circle
-                                  cx="50"
-                                  cy="50"
-                                  r={radius}
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeOpacity="0.16"
-                                  strokeWidth="8"
-                                />
-                                <circle
-                                  cx="50"
-                                  cy="50"
-                                  r={radius}
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth="8"
-                                  strokeLinecap="round"
-                                  strokeDasharray={circumference}
-                                  strokeDashoffset={dashOffset}
-                                />
-                              </svg>
-
-                              <div className="pointer-events-none absolute text-center">
-                                <div className="text-2xl font-bold leading-none">{safeValue}%</div>
-                              </div>
-                            </div>
-
-                            <div className="mt-3 text-sm font-bold">{item.label}</div>
-                            <div className={`mt-1 text-xs leading-5 ${ui.subtle}`}>{item.meta}</div>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </div>
-
-                  <div className={`rounded-[24px] border p-4 shadow-sm ${ui.statBox}`}>
-                    <div className="flex items-center justify-between gap-3">
-                      <div>
-                        <div className="text-sm font-bold">Outcome balance</div>
-                        <p className={`mt-1 text-xs leading-5 ${ui.subtle}`}>
-                          See the shape of your closed-trade outcomes before reading the category-level patterns below.
-                        </p>
-                      </div>
-
-                      <div className={`rounded-full border px-3 py-1 text-[10px] font-semibold ${theme === 'light' ? 'border-slate-200 bg-white text-slate-700' : 'border-white/10 bg-white/5 text-slate-300'}`}>
-                        {closedTrades.length} closed
-                      </div>
-                    </div>
-
-                    <div className={`mt-4 overflow-hidden rounded-full ${ui.barTrack}`}>
-                      <div className="flex h-3 w-full">
-                        <div className="bg-emerald-400" style={{ width: `${winRate}%` }} />
-                        <div className="bg-red-400" style={{ width: `${lossRate}%` }} />
-                        <div className="bg-amber-400" style={{ width: `${breakevenRate}%` }} />
-                      </div>
-                    </div>
-
-                    <div className="mt-4 grid grid-cols-3 gap-2">
-                      {[
-                        { label: 'Wins', value: winCount, percent: winRate, tone: theme === 'light' ? 'border-emerald-200 bg-emerald-50/70 text-emerald-800' : 'border-emerald-500/20 bg-emerald-500/10 text-emerald-200' },
-                        { label: 'Losses', value: lossCount, percent: lossRate, tone: theme === 'light' ? 'border-red-200 bg-red-50/70 text-red-800' : 'border-red-500/20 bg-red-500/10 text-red-200' },
-                        { label: 'Breakeven', value: breakevenCount, percent: breakevenRate, tone: theme === 'light' ? 'border-amber-200 bg-amber-50/70 text-amber-800' : 'border-amber-500/20 bg-amber-500/10 text-amber-200' },
-                      ].map((item) => (
-                        <div key={item.label} className={`rounded-[18px] border px-3 py-3 text-center ${item.tone}`}>
-                          <div className="text-[10px] uppercase tracking-[0.16em] opacity-80">{item.label}</div>
-                          <div className="mt-1 text-lg font-bold leading-none">{item.value}</div>
-                          <div className="mt-1 text-xs">{item.percent}%</div>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className={`mt-4 rounded-[18px] border px-3 py-3 text-xs leading-5 ${theme === 'light' ? 'border-slate-200 bg-white/90 text-slate-700' : 'border-white/10 bg-slate-950/40 text-slate-300'}`}>
-                      The visual goal is simple: if green is thin, red is thick, or discipline is weak, your edge is not clean yet.
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-5 grid gap-4 md:grid-cols-2">
-                  {advancedComparisonRows.map((row) => (
+                <div className="mt-5 space-y-4">
+                  {advancedVisualRows.map((row) => (
                     <div key={row.label} className={`rounded-[24px] border p-4 shadow-sm ${ui.statBox}`}>
                       <div className="text-sm font-bold">{row.label}</div>
 
-                      <div className="mt-4 flex flex-col items-center">
-                        <div
-                          className={`flex h-[132px] w-[132px] items-center justify-center rounded-full border px-4 text-center shadow-sm ${
-                            theme === 'light' ? 'border-sky-200 bg-sky-50/80' : 'border-sky-500/20 bg-sky-500/10'
-                          }`}
-                        >
-                          <div>
-                            <div className={`text-[10px] uppercase tracking-[0.16em] ${ui.muted}`}>Top {row.label}</div>
-                            <div className="mt-2 text-base font-semibold leading-6 break-words">{row.overall}</div>
-                          </div>
-                        </div>
+                      <div className="mt-4 grid gap-3 md:grid-cols-3">
+                        {[
+                          {
+                            key: 'overall',
+                            title: `Top ${row.label}`,
+                            value: row.overallTop,
+                            slices: row.overallSlices,
+                            panelClass: theme === 'light' ? 'border-sky-200 bg-sky-50/70' : 'border-sky-500/20 bg-sky-500/10',
+                          },
+                          {
+                            key: 'winning',
+                            title: `Winning ${row.label}`,
+                            value: row.winningTop,
+                            slices: row.winningSlices,
+                            panelClass: theme === 'light' ? 'border-emerald-200 bg-emerald-50/70' : 'border-emerald-500/20 bg-emerald-500/10',
+                          },
+                          {
+                            key: 'losing',
+                            title: `Losing ${row.label}`,
+                            value: row.losingTop,
+                            slices: row.losingSlices,
+                            panelClass: theme === 'light' ? 'border-red-200 bg-red-50/70' : 'border-red-500/20 bg-red-500/10',
+                          },
+                        ].map((chart) => {
+                          const total = chart.slices.reduce((sum, slice) => sum + slice.count, 0)
+                          let startAngle = 0
 
-                        <div className="mt-3 grid w-full grid-cols-2 gap-3">
-                          <div
-                            className={`rounded-[20px] border px-3 py-3 ${
-                              theme === 'light' ? 'border-emerald-200 bg-emerald-50/70' : 'border-emerald-500/20 bg-emerald-500/10'
-                            }`}
-                          >
-                            <div className={`text-[10px] uppercase tracking-[0.16em] ${ui.muted}`}>Winning</div>
-                            <div className="mt-2 text-sm font-semibold leading-6 break-words">{row.winning}</div>
-                          </div>
+                          return (
+                            <div key={`${row.label}-${chart.key}`} className={`rounded-[20px] border p-3 ${chart.panelClass}`}>
+                              <div className={`text-[10px] uppercase tracking-[0.16em] ${ui.muted}`}>{chart.title}</div>
 
-                          <div
-                            className={`rounded-[20px] border px-3 py-3 ${
-                              theme === 'light' ? 'border-red-200 bg-red-50/70' : 'border-red-500/20 bg-red-500/10'
-                            }`}
-                          >
-                            <div className={`text-[10px] uppercase tracking-[0.16em] ${ui.muted}`}>Losing</div>
-                            <div className="mt-2 text-sm font-semibold leading-6 break-words">{row.losing}</div>
-                          </div>
-                        </div>
+                              <div className="mt-3 flex items-center justify-center">
+                                <div className="relative h-32 w-32">
+                                  <svg viewBox="0 0 120 120" className="h-32 w-32">
+                                    {chart.slices.length > 0 ? (
+                                      chart.slices.map((slice, index) => {
+                                        const sweepAngle = total > 0 ? (slice.count / total) * 360 : 0
+                                        const path = createDonutSegmentPath(60, 60, 50, 28, startAngle, startAngle + sweepAngle)
+                                        startAngle += sweepAngle
+
+                                        return <path key={`${row.label}-${chart.key}-${slice.label}`} d={path} fill={advancedVisualPalette[index % advancedVisualPalette.length]} />
+                                      })
+                                    ) : (
+                                      <circle
+                                        cx="60"
+                                        cy="60"
+                                        r="39"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeOpacity="0.14"
+                                        strokeWidth="22"
+                                      />
+                                    )}
+                                  </svg>
+
+                                  <div className="absolute inset-0 flex items-center justify-center px-4 text-center">
+                                    <div className="text-sm font-semibold leading-5 break-words">{chart.value}</div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          )
+                        })}
                       </div>
                     </div>
                   ))}
@@ -2953,32 +2967,28 @@ ${emotionWarning}`
                 <div className="mt-5 grid gap-4 md:grid-cols-2">
                   <div className={`rounded-[24px] border p-4 shadow-sm ${ui.statBox}`}>
                     <div className="flex items-center justify-between gap-3">
-                      <div className="text-sm font-bold">Winning pattern cloud</div>
+                      <div className="text-sm font-bold">Perfect winning combination</div>
                       <div className={`rounded-full border px-2.5 py-0.5 text-[10px] font-semibold ${theme === 'light' ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-emerald-500/20 bg-emerald-500/10 text-emerald-200'}`}>
                         Win pattern
                       </div>
                     </div>
 
-                    {advancedWinningPatternItems.length > 0 ? (
+                    {advancedWinningPatternCells.length > 0 ? (
                       <>
-                        <p className={`mt-2 text-xs leading-5 ${ui.subtle}`}>
-                          The strongest repeated winning profile from your journal so far.
-                        </p>
-
-                        <div className="mt-4 flex flex-wrap gap-2">
-                          {advancedWinningPatternItems.map((item) => (
+                        <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                          {advancedWinningPatternCells.map((item, index) => (
                             <div
-                              key={item}
-                              className={`rounded-full border px-3 py-1.5 text-[11px] font-semibold ${
-                                theme === 'light' ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-emerald-500/20 bg-emerald-500/10 text-emerald-200'
-                              }`}
+                              key={`win-pattern-${item.label}`}
+                              className={`rounded-[18px] border p-3 ${theme === 'light' ? 'bg-white/90 text-slate-900' : 'bg-slate-950/40 text-white'}`}
+                              style={{ borderColor: `${advancedVisualPalette[index % advancedVisualPalette.length]}55` }}
                             >
-                              {item}
+                              <div className={`text-[10px] uppercase tracking-[0.16em] ${ui.muted}`}>{item.label}</div>
+                              <div className="mt-2 text-sm font-semibold leading-5 break-words">{item.value}</div>
                             </div>
                           ))}
                         </div>
 
-                        <div className={`mt-4 rounded-[16px] border px-3 py-2 text-xs ${theme === 'light' ? 'border-emerald-200 bg-emerald-50/70 text-emerald-800' : 'border-emerald-500/20 bg-emerald-500/10 text-emerald-200'}`}>
+                        <div className={`mt-3 rounded-[16px] border px-3 py-2 text-xs ${theme === 'light' ? 'border-emerald-200 bg-emerald-50/70 text-emerald-800' : 'border-emerald-500/20 bg-emerald-500/10 text-emerald-200'}`}>
                           Exact combo matches: <span className="font-semibold">{perfectWinningCombination?.exactComboCount}</span> of {perfectWinningCombination?.sourceCount} winning trades
                         </div>
                       </>
@@ -2989,32 +2999,28 @@ ${emotionWarning}`
 
                   <div className={`rounded-[24px] border p-4 shadow-sm ${ui.statBox}`}>
                     <div className="flex items-center justify-between gap-3">
-                      <div className="text-sm font-bold">Losing pattern cloud</div>
+                      <div className="text-sm font-bold">Worst losing combination</div>
                       <div className={`rounded-full border px-2.5 py-0.5 text-[10px] font-semibold ${theme === 'light' ? 'border-red-200 bg-red-50 text-red-700' : 'border-red-500/20 bg-red-500/10 text-red-200'}`}>
                         Loss pattern
                       </div>
                     </div>
 
-                    {advancedLosingPatternItems.length > 0 ? (
+                    {advancedLosingPatternCells.length > 0 ? (
                       <>
-                        <p className={`mt-2 text-xs leading-5 ${ui.subtle}`}>
-                          The most repeated losing profile from your journal so far.
-                        </p>
-
-                        <div className="mt-4 flex flex-wrap gap-2">
-                          {advancedLosingPatternItems.map((item) => (
+                        <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                          {advancedLosingPatternCells.map((item, index) => (
                             <div
-                              key={item}
-                              className={`rounded-full border px-3 py-1.5 text-[11px] font-semibold ${
-                                theme === 'light' ? 'border-red-200 bg-red-50 text-red-700' : 'border-red-500/20 bg-red-500/10 text-red-200'
-                              }`}
+                              key={`loss-pattern-${item.label}`}
+                              className={`rounded-[18px] border p-3 ${theme === 'light' ? 'bg-white/90 text-slate-900' : 'bg-slate-950/40 text-white'}`}
+                              style={{ borderColor: `${advancedVisualPalette[index % advancedVisualPalette.length]}55` }}
                             >
-                              {item}
+                              <div className={`text-[10px] uppercase tracking-[0.16em] ${ui.muted}`}>{item.label}</div>
+                              <div className="mt-2 text-sm font-semibold leading-5 break-words">{item.value}</div>
                             </div>
                           ))}
                         </div>
 
-                        <div className={`mt-4 rounded-[16px] border px-3 py-2 text-xs ${theme === 'light' ? 'border-red-200 bg-red-50/70 text-red-800' : 'border-red-500/20 bg-red-500/10 text-red-200'}`}>
+                        <div className={`mt-3 rounded-[16px] border px-3 py-2 text-xs ${theme === 'light' ? 'border-red-200 bg-red-50/70 text-red-800' : 'border-red-500/20 bg-red-500/10 text-red-200'}`}>
                           Exact combo matches: <span className="font-semibold">{worstLosingCombination?.exactComboCount}</span> of {worstLosingCombination?.sourceCount} losing trades
                         </div>
                       </>
@@ -3023,12 +3029,9 @@ ${emotionWarning}`
                     )}
                   </div>
                 </div>
-
-                <div className={`mt-4 rounded-[20px] border px-4 py-3 text-center text-sm leading-6 ${ui.statBox}`}>
-                  <span className="font-semibold">How to read the visuals:</span> start with the gauges, then look for rows where winning and losing clearly disagree. That visual gap usually shows your real edge or your repeated mistake faster than raw text alone.
-                </div>
               </>
             )}
+
 
 <div className={`mt-4 rounded-[20px] border px-4 py-3 text-center text-sm leading-6 ${ui.statBox}`}>
               <span className="font-semibold">Important note:</span> the more consistently you journal your trades, the more accurate and reliable these advanced performance patterns become over time.
