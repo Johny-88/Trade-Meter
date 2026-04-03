@@ -663,9 +663,9 @@ function ManagedOptionDropdown({
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className={`relative flex h-10 w-full items-center rounded-2xl px-3 pr-10 text-left text-sm outline-none transition ${triggerClassName}`}
+        className={`relative flex h-10 w-full items-center rounded-2xl px-3 pr-10 text-left text-sm font-normal outline-none transition ${triggerClassName}`}
       >
-        <span className="truncate">
+        <span className="truncate text-[16px] font-normal leading-6">
           {label}: {value}
         </span>
         <span
@@ -781,9 +781,9 @@ function FixedOptionDropdown({
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className={`relative flex h-10 w-full items-center rounded-2xl px-3 pr-10 text-left text-sm outline-none transition ${triggerClassName}`}
+        className={`relative flex h-10 w-full items-center rounded-2xl px-3 pr-10 text-left text-sm font-normal outline-none transition ${triggerClassName}`}
       >
-        <span className="truncate text-[16px] font-medium leading-6">{formatLabel(value)}</span>
+        <span className="truncate text-[16px] font-normal leading-6">{formatLabel(value)}</span>
         <span
           className={`pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[11px] leading-none transition ${mutedClassName} ${
             open ? 'rotate-180' : ''
@@ -3286,14 +3286,9 @@ ${emotionWarning}`
 
                       <div className="grid gap-2 xl:grid-cols-[1.15fr_0.95fr_1fr]">
                         <div className={`rounded-[20px] border p-3 ${ui.statBox}`}>
-                          <div className="flex items-center justify-between gap-3">
-                            <div>
-                              <div className="text-sm font-semibold">Outcome mix</div>
-                              <p className={`mt-1 text-xs leading-5 ${ui.muted}`}>A quick read of what your logged outcomes actually look like.</p>
-                            </div>
-                            <div className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold ${theme === 'light' ? 'border-slate-200 bg-white text-slate-700' : 'border-white/10 bg-white/5 text-slate-200'}`}>
-                              {closedTrades.length} closed
-                            </div>
+                          <div>
+                            <div className="text-sm font-semibold">Outcome mix</div>
+                            <p className={`mt-1 text-xs leading-5 ${ui.muted}`}>A quick read of what your logged outcomes actually look like.</p>
                           </div>
 
                           <div className={`mt-3 overflow-hidden rounded-full ${ui.barTrack}`}>
@@ -3304,18 +3299,43 @@ ${emotionWarning}`
                             </div>
                           </div>
 
-                          <div className="mt-3 grid grid-cols-2 gap-2 lg:grid-cols-5">
+                          <div className="mt-3 grid grid-cols-2 gap-2 lg:grid-cols-4">
                             {[
-                              ['Wins', `${winCount}`, `${winRate}%`],
-                              ['Losses', `${lossCount}`, `${lossRate}%`],
-                              ['Breakeven', `${breakevenCount}`, `${breakevenRate}%`],
-                              ['No trade', `${noTradeCount}`, totalReviewedTrades > 0 ? `${Math.round((noTradeCount / totalReviewedTrades) * 100)}%` : '0%'],
-                              ['Verdict saved me', `${savedMeCount}`, totalReviewedTrades > 0 ? `${Math.round((savedMeCount / totalReviewedTrades) * 100)}%` : '0%'],
+                              {
+                                label: 'Wins',
+                                value: `${winCount}`,
+                                meta: `${winRate}%`,
+                                accent: 'bg-emerald-400',
+                              },
+                              {
+                                label: 'Losses',
+                                value: `${lossCount}`,
+                                meta: `${lossRate}%`,
+                                accent: 'bg-red-400',
+                              },
+                              {
+                                label: 'Breakeven',
+                                value: `${breakevenCount}`,
+                                meta: `${breakevenRate}%`,
+                                accent: 'bg-amber-400',
+                              },
+                              {
+                                label: 'No trade',
+                                value: `${noTradeCount}`,
+                                meta: totalReviewedTrades > 0 ? `${Math.round((noTradeCount / totalReviewedTrades) * 100)}%` : '0%',
+                                accent: theme === 'light' ? 'bg-slate-300' : 'bg-slate-500',
+                              },
                             ].map((item) => (
-                              <div key={item[0]} className={`rounded-[16px] border px-3 py-2 ${theme === 'light' ? 'border-slate-200 bg-white/90' : 'border-white/10 bg-slate-950/40'}`}>
-                                <div className={`text-[10px] uppercase tracking-[0.12em] ${ui.muted}`}>{item[0]}</div>
-                                <div className="mt-1 text-base font-semibold">{item[1]}</div>
-                                <div className={`text-[11px] ${ui.muted}`}>{item[2]}</div>
+                              <div
+                                key={item.label}
+                                className={`relative overflow-hidden rounded-[16px] border px-3 py-2 ${theme === 'light' ? 'border-slate-200 bg-white/90' : 'border-white/10 bg-slate-950/40'}`}
+                              >
+                                <span className={`absolute inset-y-0 left-0 w-1.5 ${item.accent}`} />
+                                <div className="pl-2">
+                                  <div className={`text-[10px] uppercase tracking-[0.12em] ${ui.muted}`}>{item.label}</div>
+                                  <div className="mt-1 text-base font-semibold">{item.value}</div>
+                                  <div className={`text-[11px] ${ui.muted}`}>{item.meta}</div>
+                                </div>
                               </div>
                             ))}
                           </div>
