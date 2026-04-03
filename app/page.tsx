@@ -1864,95 +1864,57 @@ export default function Home() {
   const respectRate = journal.length > 0 ? Math.round((respectedVerdictCount / journal.length) * 100) : 0
   const longClosedCount = longWins + longLosses
   const shortClosedCount = shortWins + shortLosses
-  const advancedComparisonRows = [
-    {
-      label: 'Emotion',
-      overall: topOverallEmotion ? topOverallEmotion.value : 'No data yet.',
-      winning: topWinningEmotion ? topWinningEmotion.value : 'No winning trades yet.',
-      losing: topLosingEmotion ? topLosingEmotion.value : 'No losing trades yet.',
-    },
-    {
-      label: 'Instrument',
-      overall: topOverallInstrument ? topOverallInstrument.value : 'No data yet.',
-      winning: topWinningInstrument ? topWinningInstrument.value : 'No winning trades yet.',
-      losing: topLosingInstrument ? topLosingInstrument.value : 'No losing trades yet.',
-    },
-    {
-      label: 'Setup',
-      overall: topOverallSetup ? topOverallSetup.value : 'No data yet.',
-      winning: topWinningSetup ? topWinningSetup.value : 'No winning trades yet.',
-      losing: topLosingSetup ? topLosingSetup.value : 'No losing trades yet.',
-    },
-    {
-      label: 'Strategy',
-      overall: topOverallStrategy ? topOverallStrategy.value : 'No data yet.',
-      winning: topWinningStrategy ? topWinningStrategy.value : 'No winning trades yet.',
-      losing: topLosingStrategy ? topLosingStrategy.value : 'No losing trades yet.',
-    },
-    {
-      label: 'Direction',
-      overall: topOverallDirection ? formatSimpleLabel(topOverallDirection.value) : 'No data yet.',
-      winning: topWinningDirection ? formatSimpleLabel(topWinningDirection.value) : 'No winning trades yet.',
-      losing: topLosingDirection ? formatSimpleLabel(topLosingDirection.value) : 'No losing trades yet.',
-    },
-    {
-      label: 'Session',
-      overall: topOverallSession ? topOverallSession.value : 'No data yet.',
-      winning: topWinningSession ? topWinningSession.value : 'No winning trades yet.',
-      losing: topLosingSession ? topLosingSession.value : 'No losing trades yet.',
-    },
-  ]
   const advancedVisualRows = [
     {
       label: 'Emotion',
-      overallTop: topOverallEmotion ? topOverallEmotion.value : 'No data yet.',
-      winningTop: topWinningEmotion ? topWinningEmotion.value : 'No winning trades yet.',
-      losingTop: topLosingEmotion ? topLosingEmotion.value : 'No losing trades yet.',
+      overallTop: topOverallEmotion ? topOverallEmotion.value : 'No data',
+      winningTop: topWinningEmotion ? topWinningEmotion.value : 'No wins',
+      losingTop: topLosingEmotion ? topLosingEmotion.value : 'No losses',
       overallSlices: getDistribution(journal.map((entry) => entry.emotion)),
       winningSlices: getDistribution(winningTrades.map((entry) => entry.emotion)),
       losingSlices: getDistribution(losingTrades.map((entry) => entry.emotion)),
     },
     {
       label: 'Instrument',
-      overallTop: topOverallInstrument ? topOverallInstrument.value : 'No data yet.',
-      winningTop: topWinningInstrument ? topWinningInstrument.value : 'No winning trades yet.',
-      losingTop: topLosingInstrument ? topLosingInstrument.value : 'No losing trades yet.',
+      overallTop: topOverallInstrument ? topOverallInstrument.value : 'No data',
+      winningTop: topWinningInstrument ? topWinningInstrument.value : 'No wins',
+      losingTop: topLosingInstrument ? topLosingInstrument.value : 'No losses',
       overallSlices: getDistribution(journal.map((entry) => entry.instrument)),
       winningSlices: getDistribution(winningTrades.map((entry) => entry.instrument)),
       losingSlices: getDistribution(losingTrades.map((entry) => entry.instrument)),
     },
     {
       label: 'Setup',
-      overallTop: topOverallSetup ? topOverallSetup.value : 'No data yet.',
-      winningTop: topWinningSetup ? topWinningSetup.value : 'No winning trades yet.',
-      losingTop: topLosingSetup ? topLosingSetup.value : 'No losing trades yet.',
+      overallTop: topOverallSetup ? topOverallSetup.value : 'No data',
+      winningTop: topWinningSetup ? topWinningSetup.value : 'No wins',
+      losingTop: topLosingSetup ? topLosingSetup.value : 'No losses',
       overallSlices: getDistribution(journal.map((entry) => entry.setupType)),
       winningSlices: getDistribution(winningTrades.map((entry) => entry.setupType)),
       losingSlices: getDistribution(losingTrades.map((entry) => entry.setupType)),
     },
     {
       label: 'Strategy',
-      overallTop: topOverallStrategy ? topOverallStrategy.value : 'No data yet.',
-      winningTop: topWinningStrategy ? topWinningStrategy.value : 'No winning trades yet.',
-      losingTop: topLosingStrategy ? topLosingStrategy.value : 'No losing trades yet.',
+      overallTop: topOverallStrategy ? topOverallStrategy.value : 'No data',
+      winningTop: topWinningStrategy ? topWinningStrategy.value : 'No wins',
+      losingTop: topLosingStrategy ? topLosingStrategy.value : 'No losses',
       overallSlices: getDistribution(journal.map((entry) => entry.strategy)),
       winningSlices: getDistribution(winningTrades.map((entry) => entry.strategy)),
       losingSlices: getDistribution(losingTrades.map((entry) => entry.strategy)),
     },
     {
       label: 'Direction',
-      overallTop: topOverallDirection ? formatSimpleLabel(topOverallDirection.value) : 'No data yet.',
-      winningTop: topWinningDirection ? formatSimpleLabel(topWinningDirection.value) : 'No winning trades yet.',
-      losingTop: topLosingDirection ? formatSimpleLabel(topLosingDirection.value) : 'No losing trades yet.',
+      overallTop: topOverallDirection ? formatSimpleLabel(topOverallDirection.value) : 'No data',
+      winningTop: topWinningDirection ? formatSimpleLabel(topWinningDirection.value) : 'No wins',
+      losingTop: topLosingDirection ? formatSimpleLabel(topLosingDirection.value) : 'No losses',
       overallSlices: getDistribution(journal.map((entry) => formatSimpleLabel(entry.direction))),
       winningSlices: getDistribution(winningTrades.map((entry) => formatSimpleLabel(entry.direction))),
       losingSlices: getDistribution(losingTrades.map((entry) => formatSimpleLabel(entry.direction))),
     },
     {
       label: 'Session',
-      overallTop: topOverallSession ? topOverallSession.value : 'No data yet.',
-      winningTop: topWinningSession ? topWinningSession.value : 'No winning trades yet.',
-      losingTop: topLosingSession ? topLosingSession.value : 'No losing trades yet.',
+      overallTop: topOverallSession ? topOverallSession.value : 'No data',
+      winningTop: topWinningSession ? topWinningSession.value : 'No wins',
+      losingTop: topLosingSession ? topLosingSession.value : 'No losses',
       overallSlices: getDistribution(journal.map((entry) => entry.session)),
       winningSlices: getDistribution(winningTrades.map((entry) => entry.session)),
       losingSlices: getDistribution(losingTrades.map((entry) => entry.session)),
@@ -1978,6 +1940,7 @@ export default function Home() {
         { label: 'Session', value: worstLosingCombination.session },
       ]
     : []
+
   const snapshotHeroCards = [
     {
       label: 'Trades logged',
@@ -2684,7 +2647,8 @@ ${emotionWarning}`
               </p>
             </div>
 
-                        <div className="mt-4 flex justify-center">
+
+            <div className="mt-4 flex justify-center">
               <div className={`inline-flex rounded-full border p-1 ${ui.toggleShell}`}>
                 <button
                   type="button"
@@ -2705,7 +2669,7 @@ ${emotionWarning}`
 
             {advancedView === 'data' ? (
               <>
-<div className={`mt-5 rounded-[24px] border p-4 shadow-sm ${ui.statBox}`}>
+            <div className={`mt-5 rounded-[24px] border p-4 shadow-sm ${ui.statBox}`}>
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <div className="text-sm font-bold">Side-by-side comparison</div>
@@ -2887,7 +2851,10 @@ ${emotionWarning}`
               </div>
             </div>
 
-            
+            <div className={`mt-4 rounded-[20px] border px-4 py-3 text-center text-sm leading-6 ${ui.statBox}`}>
+              <span className="font-semibold">Important note:</span> the more consistently you journal your trades, the more accurate and reliable these advanced performance patterns become over time.
+            </div>
+
               </>
             ) : (
               <>
@@ -2896,42 +2863,41 @@ ${emotionWarning}`
                     <div key={row.label} className={`rounded-[24px] border p-4 shadow-sm ${ui.statBox}`}>
                       <div className="text-sm font-bold">{row.label}</div>
 
-                      <div className="mt-4 grid gap-3 md:grid-cols-3">
+                      <div className="mt-4 grid gap-3 xl:grid-cols-3">
                         {[
                           {
                             key: 'overall',
                             title: `Top ${row.label}`,
                             topValue: row.overallTop,
                             slices: row.overallSlices,
-                            panelClass: theme === 'light' ? 'border-sky-200 bg-sky-50/70' : 'border-sky-500/20 bg-sky-500/10',
-                            emptyLabel: 'No data yet.',
+                            cellClass: theme === 'light' ? 'border-sky-200 bg-sky-50/70' : 'border-sky-500/20 bg-sky-500/10',
+                            emptyLabel: 'No data',
                           },
                           {
                             key: 'winning',
                             title: `Winning ${row.label}`,
                             topValue: row.winningTop,
                             slices: row.winningSlices,
-                            panelClass: theme === 'light' ? 'border-emerald-200 bg-emerald-50/70' : 'border-emerald-500/20 bg-emerald-500/10',
-                            emptyLabel: 'No winning trades yet.',
+                            cellClass: theme === 'light' ? 'border-emerald-200 bg-emerald-50/70' : 'border-emerald-500/20 bg-emerald-500/10',
+                            emptyLabel: 'No wins',
                           },
                           {
                             key: 'losing',
                             title: `Losing ${row.label}`,
                             topValue: row.losingTop,
                             slices: row.losingSlices,
-                            panelClass: theme === 'light' ? 'border-red-200 bg-red-50/70' : 'border-red-500/20 bg-red-500/10',
-                            emptyLabel: 'No losing trades yet.',
+                            cellClass: theme === 'light' ? 'border-red-200 bg-red-50/70' : 'border-red-500/20 bg-red-500/10',
+                            emptyLabel: 'No losses',
                           },
                         ].map((chart) => {
                           const total = chart.slices.reduce((sum, slice) => sum + slice.count, 0)
                           let startAngle = 0
-                          const topLegendItems = chart.slices.slice(0, 4)
 
                           return (
-                            <div key={`${row.label}-${chart.key}`} className={`rounded-[20px] border p-3 ${chart.panelClass}`}>
+                            <div key={`${row.label}-${chart.key}`} className={`rounded-[20px] border p-3 ${chart.cellClass}`}>
                               <div className={`text-[10px] uppercase tracking-[0.16em] ${ui.muted}`}>{chart.title}</div>
 
-                              <div className="mt-3 grid grid-cols-[112px_minmax(0,1fr)] items-center gap-3">
+                              <div className="mt-3 grid gap-3 sm:grid-cols-[110px_minmax(0,1fr)] xl:grid-cols-[96px_minmax(0,1fr)] xl:items-center">
                                 <div className="relative mx-auto h-28 w-28">
                                   <svg viewBox="0 0 120 120" className="h-28 w-28">
                                     {chart.slices.length > 0 ? (
@@ -2956,7 +2922,7 @@ ${emotionWarning}`
                                           r="39"
                                           fill="none"
                                           stroke="currentColor"
-                                          strokeOpacity="0.14"
+                                          strokeOpacity="0.12"
                                           strokeWidth="22"
                                         />
                                         <circle
@@ -2975,18 +2941,17 @@ ${emotionWarning}`
 
                                   <div className="absolute inset-0 flex items-center justify-center px-3 text-center">
                                     <div>
-                                      <div className={`text-[10px] uppercase tracking-[0.14em] ${ui.muted}`}>Top</div>
-                                      <div className="mt-1 text-[11px] font-semibold leading-4 break-words">
-                                        {chart.topValue}
-                                      </div>
+                                      <div className={`text-[10px] uppercase tracking-[0.16em] ${ui.muted}`}>Top</div>
+                                      <div className="mt-1 text-[11px] font-semibold leading-4 break-words">{chart.topValue}</div>
                                     </div>
                                   </div>
                                 </div>
 
                                 <div className="space-y-2">
-                                  {topLegendItems.length > 0 ? (
-                                    topLegendItems.map((slice, index) => {
+                                  {chart.slices.length > 0 ? (
+                                    chart.slices.map((slice, index) => {
                                       const percent = total > 0 ? Math.round((slice.count / total) * 100) : 0
+
                                       return (
                                         <div
                                           key={`${row.label}-${chart.key}-legend-${slice.label}`}
@@ -2995,7 +2960,7 @@ ${emotionWarning}`
                                           }`}
                                         >
                                           <span
-                                            className="h-2.5 w-2.5 rounded-full flex-none"
+                                            className="h-2.5 w-2.5 flex-none rounded-full"
                                             style={{ backgroundColor: advancedVisualPalette[index % advancedVisualPalette.length] }}
                                           />
                                           <span className="min-w-0 flex-1 truncate text-[12px] font-medium leading-5">{slice.label}</span>
@@ -3005,7 +2970,7 @@ ${emotionWarning}`
                                     })
                                   ) : (
                                     <div
-                                      className={`rounded-[14px] border px-2.5 py-2 text-[12px] leading-5 ${
+                                      className={`rounded-[14px] border px-2.5 py-2 text-[12px] ${
                                         theme === 'light' ? 'border-white/80 bg-white/85 text-slate-600' : 'border-white/10 bg-slate-950/35 text-slate-300'
                                       }`}
                                     >
@@ -3023,7 +2988,7 @@ ${emotionWarning}`
                 </div>
 
                 <div className="mt-5 grid gap-4 md:grid-cols-2">
-                  <div className={`rounded-[24px] border p-4 shadow-sm ${ui.statBox}`}>
+                  <div className={`rounded-[24px] border px-4 py-4 shadow-sm ${ui.statBox}`}>
                     <div className="flex items-center justify-between gap-3">
                       <div className="text-sm font-bold">Perfect winning combination</div>
                       <div className={`rounded-full border px-2.5 py-0.5 text-[10px] font-semibold ${theme === 'light' ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-emerald-500/20 bg-emerald-500/10 text-emerald-200'}`}>
@@ -3031,15 +2996,13 @@ ${emotionWarning}`
                       </div>
                     </div>
 
-                    {advancedWinningPatternCells.length > 0 ? (
+                    {perfectWinningCombination ? (
                       <>
                         <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
                           {advancedWinningPatternCells.map((item, index) => (
                             <div
-                              key={`win-pattern-${item.label}`}
-                              className={`rounded-[18px] border p-3 ${
-                                theme === 'light' ? 'border-white/80 bg-white/90 text-slate-900' : 'border-white/10 bg-slate-950/40 text-white'
-                              }`}
+                              key={`winning-pattern-${item.label}`}
+                              className={`rounded-[18px] border p-3 ${theme === 'light' ? 'border-slate-200 bg-white/90 text-slate-900' : 'border-white/10 bg-slate-950/40 text-white'}`}
                             >
                               <div className="mb-2 h-1.5 w-10 rounded-full" style={{ backgroundColor: advancedVisualPalette[index % advancedVisualPalette.length] }} />
                               <div className={`text-[10px] uppercase tracking-[0.16em] ${ui.muted}`}>{item.label}</div>
@@ -3049,7 +3012,7 @@ ${emotionWarning}`
                         </div>
 
                         <div className={`mt-3 rounded-[16px] border px-3 py-2 text-xs ${theme === 'light' ? 'border-emerald-200 bg-emerald-50/70 text-emerald-800' : 'border-emerald-500/20 bg-emerald-500/10 text-emerald-200'}`}>
-                          Exact combo matches: <span className="font-semibold">{perfectWinningCombination?.exactComboCount}</span> of {perfectWinningCombination?.sourceCount} winning trades
+                          Exact combo matches: <span className="font-semibold">{perfectWinningCombination.exactComboCount}</span> of {perfectWinningCombination.sourceCount} winning trades
                         </div>
                       </>
                     ) : (
@@ -3057,7 +3020,7 @@ ${emotionWarning}`
                     )}
                   </div>
 
-                  <div className={`rounded-[24px] border p-4 shadow-sm ${ui.statBox}`}>
+                  <div className={`rounded-[24px] border px-4 py-4 shadow-sm ${ui.statBox}`}>
                     <div className="flex items-center justify-between gap-3">
                       <div className="text-sm font-bold">Worst losing combination</div>
                       <div className={`rounded-full border px-2.5 py-0.5 text-[10px] font-semibold ${theme === 'light' ? 'border-red-200 bg-red-50 text-red-700' : 'border-red-500/20 bg-red-500/10 text-red-200'}`}>
@@ -3065,15 +3028,13 @@ ${emotionWarning}`
                       </div>
                     </div>
 
-                    {advancedLosingPatternCells.length > 0 ? (
+                    {worstLosingCombination ? (
                       <>
                         <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
                           {advancedLosingPatternCells.map((item, index) => (
                             <div
-                              key={`loss-pattern-${item.label}`}
-                              className={`rounded-[18px] border p-3 ${
-                                theme === 'light' ? 'border-white/80 bg-white/90 text-slate-900' : 'border-white/10 bg-slate-950/40 text-white'
-                              }`}
+                              key={`losing-pattern-${item.label}`}
+                              className={`rounded-[18px] border p-3 ${theme === 'light' ? 'border-slate-200 bg-white/90 text-slate-900' : 'border-white/10 bg-slate-950/40 text-white'}`}
                             >
                               <div className="mb-2 h-1.5 w-10 rounded-full" style={{ backgroundColor: advancedVisualPalette[index % advancedVisualPalette.length] }} />
                               <div className={`text-[10px] uppercase tracking-[0.16em] ${ui.muted}`}>{item.label}</div>
@@ -3083,7 +3044,7 @@ ${emotionWarning}`
                         </div>
 
                         <div className={`mt-3 rounded-[16px] border px-3 py-2 text-xs ${theme === 'light' ? 'border-red-200 bg-red-50/70 text-red-800' : 'border-red-500/20 bg-red-500/10 text-red-200'}`}>
-                          Exact combo matches: <span className="font-semibold">{worstLosingCombination?.exactComboCount}</span> of {worstLosingCombination?.sourceCount} losing trades
+                          Exact combo matches: <span className="font-semibold">{worstLosingCombination.exactComboCount}</span> of {worstLosingCombination.sourceCount} losing trades
                         </div>
                       </>
                     ) : (
