@@ -3096,6 +3096,7 @@ ${emotionWarning}`
                   <span className="font-semibold">Important note:</span> the more consistently you journal your trades, the more accurate and reliable these advanced performance patterns become over time.
                 </div>
               </>
+            )}
           </div>
         </div>
       )}
