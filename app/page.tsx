@@ -2532,10 +2532,6 @@ ${emotionWarning}`
                 </div>
               </div>
 
-              <div className={`mt-3 rounded-full border px-3 py-2 text-xs font-semibold ${ui.tag}`}>
-                Top = overall • Win = most common in winners • Loss = most common in losers
-              </div>
-
               <div className="mt-4 space-y-3">
                 {[
                   {
@@ -2611,7 +2607,7 @@ ${emotionWarning}`
                             theme === 'light' ? 'border-emerald-200 bg-emerald-50/70' : 'border-emerald-500/20 bg-emerald-500/10'
                           }`}
                         >
-                          <div className={`text-[10px] uppercase tracking-[0.16em] ${ui.muted}`}>Winning {row.label}</div>
+                          <div className={`text-[10px] uppercase tracking-[0.16em] ${ui.muted}`}>Winning</div>
                           <div className="mt-1 text-[14px] font-semibold leading-6 break-words">{row.win}</div>
                         </div>
 
@@ -2620,7 +2616,7 @@ ${emotionWarning}`
                             theme === 'light' ? 'border-red-200 bg-red-50/70' : 'border-red-500/20 bg-red-500/10'
                           }`}
                         >
-                          <div className={`text-[10px] uppercase tracking-[0.16em] ${ui.muted}`}>Losing {row.label}</div>
+                          <div className={`text-[10px] uppercase tracking-[0.16em] ${ui.muted}`}>Losing</div>
                           <div className="mt-1 text-[14px] font-semibold leading-6 break-words">{row.loss}</div>
                         </div>
                       </div>
