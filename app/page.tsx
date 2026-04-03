@@ -3091,12 +3091,11 @@ ${emotionWarning}`
                     )}
                   </div>
                 </div>
+
+                <div className={`mt-4 rounded-[20px] border px-4 py-3 text-center text-sm leading-6 ${ui.statBox}`}>
+                  <span className="font-semibold">Important note:</span> the more consistently you journal your trades, the more accurate and reliable these advanced performance patterns become over time.
+                </div>
               </>
-
-
-<div className={`mt-4 rounded-[20px] border px-4 py-3 text-center text-sm leading-6 ${ui.statBox}`}>
-              <span className="font-semibold">Important note:</span> the more consistently you journal your trades, the more accurate and reliable these advanced performance patterns become over time.
-            </div>
           </div>
         </div>
       )}
