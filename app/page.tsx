@@ -2595,17 +2595,35 @@ ${emotionWarning}`
                       ))}
                     </div>
 
-                    <div className="grid grid-cols-3 gap-2 md:hidden">
-                      {[
-                        { key: 'top', title: 'Top', value: row.top, cellClass: theme === 'light' ? 'border-sky-200 bg-sky-50/70' : 'border-sky-500/20 bg-sky-500/10' },
-                        { key: 'win', title: 'Win', value: row.win, cellClass: theme === 'light' ? 'border-emerald-200 bg-emerald-50/70' : 'border-emerald-500/20 bg-emerald-500/10' },
-                        { key: 'loss', title: 'Loss', value: row.loss, cellClass: theme === 'light' ? 'border-red-200 bg-red-50/70' : 'border-red-500/20 bg-red-500/10' },
-                      ].map((cell) => (
-                        <div key={`${row.label}-mobile-${cell.key}`} className={`rounded-[16px] border px-2.5 py-3 ${cell.cellClass}`}>
-                          <div className={`text-[10px] uppercase tracking-[0.16em] ${ui.muted}`}>{cell.title}</div>
-                          <div className="mt-1 text-[13px] font-semibold leading-5 break-words">{cell.value}</div>
+                    <div className="space-y-2 md:hidden">
+                      <div
+                        className={`rounded-[18px] border px-3 py-3 ${
+                          theme === 'light' ? 'border-sky-200 bg-sky-50/70' : 'border-sky-500/20 bg-sky-500/10'
+                        }`}
+                      >
+                        <div className={`text-[10px] uppercase tracking-[0.16em] ${ui.muted}`}>Top {row.label}</div>
+                        <div className="mt-1 text-[15px] font-semibold leading-6 break-words">{row.top}</div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <div
+                          className={`rounded-[18px] border px-3 py-3 ${
+                            theme === 'light' ? 'border-emerald-200 bg-emerald-50/70' : 'border-emerald-500/20 bg-emerald-500/10'
+                          }`}
+                        >
+                          <div className={`text-[10px] uppercase tracking-[0.16em] ${ui.muted}`}>Winning {row.label}</div>
+                          <div className="mt-1 text-[14px] font-semibold leading-6 break-words">{row.win}</div>
                         </div>
-                      ))}
+
+                        <div
+                          className={`rounded-[18px] border px-3 py-3 ${
+                            theme === 'light' ? 'border-red-200 bg-red-50/70' : 'border-red-500/20 bg-red-500/10'
+                          }`}
+                        >
+                          <div className={`text-[10px] uppercase tracking-[0.16em] ${ui.muted}`}>Losing {row.label}</div>
+                          <div className="mt-1 text-[14px] font-semibold leading-6 break-words">{row.loss}</div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 ))}
