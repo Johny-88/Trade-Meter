@@ -783,7 +783,7 @@ function FixedOptionDropdown({
         onClick={() => setOpen((prev) => !prev)}
         className={`relative flex h-10 w-full items-center rounded-2xl px-3 pr-10 text-left text-sm outline-none transition ${triggerClassName}`}
       >
-        <span className="truncate">{formatLabel(value)}</span>
+        <span className="truncate text-[16px] font-medium leading-6">{formatLabel(value)}</span>
         <span
           className={`pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[11px] leading-none transition ${mutedClassName} ${
             open ? 'rotate-180' : ''
@@ -889,7 +889,16 @@ function formatSignedNumber(value: number, decimals = 2, suffix = '') {
 function formatSimpleLabel(value: string) {
   return value
     .replace(/-/g, ' ')
-    .replace(/\b\w/g, (char) => char.toUpperCase())
+    .replace(/\w/g, (char) => char.toUpperCase())
+}
+
+function getJournalOutcomeLabel(outcome: JournalOutcome) {
+  if (outcome === 'saved-me') return 'Verdict saved me'
+  if (outcome === 'no-trade') return 'No trade'
+  if (outcome === 'breakeven') return 'Breakeven'
+  if (outcome === 'win') return 'Win'
+  if (outcome === 'loss') return 'Loss'
+  return 'Unknown'
 }
 
 function normalizeJournalEntry(entry: Partial<JournalEntry>): JournalEntry {
@@ -1308,6 +1317,7 @@ export default function Home() {
   const [showInstructions, setShowInstructions] = useState(false)
   const [showAdvancedPerformance, setShowAdvancedPerformance] = useState(false)
   const [selectedJournalEntry, setSelectedJournalEntry] = useState<JournalEntry | null>(null)
+  const [editingJournalEntryId, setEditingJournalEntryId] = useState<string | null>(null)
   const [showFocusMode, setShowFocusMode] = useState(false)
   const [proView, setProView] = useState<'prep' | 'tools' | 'review'>('prep')
   const [minScore, setMinScore] = useState(50)
@@ -1589,6 +1599,13 @@ export default function Home() {
     if (proTimerActive) return
     setProTimerLeft(proTimerSeconds)
   }, [proTimerSeconds, proTimerActive])
+
+  useEffect(() => {
+    setJournalPnl((prev) => {
+      if (prev === 0) return 0
+      return tradeOutcome === 'loss' ? -Math.abs(prev) : Math.abs(prev)
+    })
+  }, [tradeOutcome])
 
   const checkedCount = rules.filter((rule) => rule.checked).length
   const totalCount = rules.length
@@ -1877,70 +1894,31 @@ export default function Home() {
       meta: mostMissedRule ? `${mostMissedRule[1]} missed times` : 'No missed-rule data yet.',
     },
   ]
-  const advancedComparisonRows = [
-    {
-      label: 'Emotion',
-      overall: topOverallEmotion ? topOverallEmotion.value : 'No data yet.',
-      winning: topWinningEmotion ? topWinningEmotion.value : 'No winning trades yet.',
-      losing: topLosingEmotion ? topLosingEmotion.value : 'No losing trades yet.',
-    },
-    {
-      label: 'Instrument',
-      overall: topOverallInstrument ? topOverallInstrument.value : 'No data yet.',
-      winning: topWinningInstrument ? topWinningInstrument.value : 'No winning trades yet.',
-      losing: topLosingInstrument ? topLosingInstrument.value : 'No losing trades yet.',
-    },
-    {
-      label: 'Setup',
-      overall: topOverallSetup ? topOverallSetup.value : 'No data yet.',
-      winning: topWinningSetup ? topWinningSetup.value : 'No winning trades yet.',
-      losing: topLosingSetup ? topLosingSetup.value : 'No losing trades yet.',
-    },
-    {
-      label: 'Strategy',
-      overall: topOverallStrategy ? topOverallStrategy.value : 'No data yet.',
-      winning: topWinningStrategy ? topWinningStrategy.value : 'No winning trades yet.',
-      losing: topLosingStrategy ? topLosingStrategy.value : 'No losing trades yet.',
-    },
-    {
-      label: 'Direction',
-      overall: topOverallDirection ? formatSimpleLabel(topOverallDirection.value) : 'No data yet.',
-      winning: topWinningDirection ? formatSimpleLabel(topWinningDirection.value) : 'No winning trades yet.',
-      losing: topLosingDirection ? formatSimpleLabel(topLosingDirection.value) : 'No losing trades yet.',
-    },
-    {
-      label: 'Session',
-      overall: topOverallSession ? topOverallSession.value : 'No data yet.',
-      winning: topWinningSession ? topWinningSession.value : 'No winning trades yet.',
-      losing: topLosingSession ? topLosingSession.value : 'No losing trades yet.',
-    },
-    {
-      label: 'Setup edge',
-      overall: setupBreakdown ? setupBreakdown[0] : 'No data yet.',
-      winning: bestSetupByAverageR ? `${bestSetupByAverageR.setup} • ${bestSetupByAverageR.avgR.toFixed(2)}R` : 'Not enough closed trades yet.',
-      losing: worstSetupByAverageR ? `${worstSetupByAverageR.setup} • ${worstSetupByAverageR.avgR.toFixed(2)}R` : 'Not enough closed trades yet.',
-    },
+  const advancedWinningCards = [
+    ['Emotion', topWinningEmotion ? topWinningEmotion.value : 'No winning trades yet.'],
+    ['Setup', topWinningSetup ? topWinningSetup.value : 'No winning trades yet.'],
+    ['Instrument', topWinningInstrument ? topWinningInstrument.value : 'No winning trades yet.'],
+    ['Strategy', topWinningStrategy ? topWinningStrategy.value : 'No winning trades yet.'],
+    ['Direction', topWinningDirection ? formatSimpleLabel(topWinningDirection.value) : 'No winning trades yet.'],
+    ['Session', topWinningSession ? topWinningSession.value : 'No winning trades yet.'],
   ]
-  const advancedPatternCards = [
-    {
-      title: 'Winning profile',
-      tone: 'win',
-      text: perfectWinningCombination
-        ? `Most repeated winning profile: ${perfectWinningCombination.emotion} • ${perfectWinningCombination.setup} • ${perfectWinningCombination.instrument} • ${perfectWinningCombination.strategy} • ${formatSimpleLabel(perfectWinningCombination.direction)} • ${perfectWinningCombination.session}.`
-        : 'Not enough winning trades yet to build a reliable winning profile.',
-    },
-    {
-      title: 'Losing profile',
-      tone: 'loss',
-      text: worstLosingCombination
-        ? `Most repeated losing profile: ${worstLosingCombination.emotion} • ${worstLosingCombination.setup} • ${worstLosingCombination.instrument} • ${worstLosingCombination.strategy} • ${formatSimpleLabel(worstLosingCombination.direction)} • ${worstLosingCombination.session}.`
-        : 'Not enough losing trades yet to build a reliable losing profile.',
-    },
-    {
-      title: 'How to read it',
-      tone: 'neutral',
-      text: 'Look first for rows where the winning and losing columns clearly disagree. That gap usually tells you more than the overall column.',
-    },
+  const advancedLosingCards = [
+    ['Emotion', topLosingEmotion ? topLosingEmotion.value : 'No losing trades yet.'],
+    ['Setup', topLosingSetup ? topLosingSetup.value : 'No losing trades yet.'],
+    ['Instrument', topLosingInstrument ? topLosingInstrument.value : 'No losing trades yet.'],
+    ['Strategy', topLosingStrategy ? topLosingStrategy.value : 'No losing trades yet.'],
+    ['Direction', topLosingDirection ? formatSimpleLabel(topLosingDirection.value) : 'No losing trades yet.'],
+    ['Session', topLosingSession ? topLosingSession.value : 'No losing trades yet.'],
+  ]
+  const advancedOverallCards = [
+    ['Top setup', topOverallSetup ? topOverallSetup.value : 'No data yet.'],
+    ['Top strategy', topOverallStrategy ? topOverallStrategy.value : 'No data yet.'],
+    ['Top instrument', topOverallInstrument ? topOverallInstrument.value : 'No data yet.'],
+    ['Top session', topOverallSession ? topOverallSession.value : 'No data yet.'],
+    ['Top direction', topOverallDirection ? formatSimpleLabel(topOverallDirection.value) : 'No data yet.'],
+    ['Top emotion', topOverallEmotion ? topOverallEmotion.value : 'No data yet.'],
+    ['Best avg R', bestSetupByAverageR ? `${bestSetupByAverageR.setup} • ${bestSetupByAverageR.avgR.toFixed(2)}R` : 'Not enough closed trades yet.'],
+    ['Worst avg R', worstSetupByAverageR ? `${worstSetupByAverageR.setup} • ${worstSetupByAverageR.avgR.toFixed(2)}R` : 'Not enough closed trades yet.'],
   ]
 
   useEffect(() => {
@@ -2347,33 +2325,8 @@ export default function Home() {
     setNewRuleError('')
   }
 
-  const saveJournalEntry = () => {
-    const entry: JournalEntry = {
-      id: makeId(),
-      createdAt: new Date().toISOString(),
-      score,
-      threshold: minScore,
-      verdict: rating.decisionLabel,
-      quality: scoreBand.label,
-      outcome: tradeOutcome,
-      followedVerdict,
-      note: tradeNote.trim(),
-      screenshotDataUrl,
-      session: proSession,
-      instrument: journalInstrument,
-      setupType: journalSetup,
-      strategy: journalStrategy,
-      marketCondition: journalMarketCondition,
-      emotion: journalEmotion,
-      direction: journalDirection,
-      pnl: journalPnl,
-      rMultiple: journalRMultiple,
-      missingRuleTexts: rules.filter((rule) => !rule.checked).map((rule) => rule.text),
-      missingCategories: rules.filter((rule) => !rule.checked).map((rule) => rule.category),
-      respectedVerdict: followedVerdict === 'yes',
-    }
-
-    setJournal((prev) => [entry, ...prev])
+  const resetJournalEntryForm = () => {
+    setEditingJournalEntryId(null)
     setTradeNote('')
     setTradeOutcome('breakeven')
     setFollowedVerdict('yes')
@@ -2381,6 +2334,87 @@ export default function Home() {
     setJournalPnl(0)
     setJournalRMultiple(0)
     setScreenshotDataUrl('')
+  }
+
+  const startEditingJournalEntry = (entry: JournalEntry) => {
+    setEditingJournalEntryId(entry.id)
+    setJournalInstrumentOptions((prev) => addUniqueOption(entry.instrument, prev))
+    setJournalSetupOptions((prev) => addUniqueOption(entry.setupType, prev))
+    setJournalMarketConditionOptions((prev) => addUniqueOption(entry.marketCondition, prev))
+    setJournalEmotionOptions((prev) => addUniqueOption(entry.emotion, prev))
+    setStrategyOptions((prev) => addUniqueOption(entry.strategy, prev))
+    setJournalInstrument(entry.instrument)
+    setJournalSetup(entry.setupType)
+    setJournalStrategy(entry.strategy)
+    setJournalMarketCondition(entry.marketCondition)
+    setJournalEmotion(entry.emotion)
+    setProSession(entry.session)
+    setTradeOutcome(entry.outcome)
+    setFollowedVerdict(entry.followedVerdict)
+    setJournalDirection(entry.direction)
+    setJournalPnl(entry.pnl)
+    setJournalRMultiple(entry.rMultiple)
+    setTradeNote(entry.note)
+    setScreenshotDataUrl(entry.screenshotDataUrl)
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }
+
+  const saveJournalEntry = () => {
+    const existingEntry = editingJournalEntryId ? journal.find((entry) => entry.id === editingJournalEntryId) ?? null : null
+
+    const entry: JournalEntry = existingEntry
+      ? {
+          ...existingEntry,
+          outcome: tradeOutcome,
+          followedVerdict,
+          note: tradeNote.trim(),
+          screenshotDataUrl,
+          session: proSession,
+          instrument: journalInstrument,
+          setupType: journalSetup,
+          strategy: journalStrategy,
+          marketCondition: journalMarketCondition,
+          emotion: journalEmotion,
+          direction: journalDirection,
+          pnl: journalPnl,
+          rMultiple: journalRMultiple,
+          respectedVerdict: followedVerdict === 'yes',
+        }
+      : {
+          id: makeId(),
+          createdAt: new Date().toISOString(),
+          score,
+          threshold: minScore,
+          verdict: rating.decisionLabel,
+          quality: scoreBand.label,
+          outcome: tradeOutcome,
+          followedVerdict,
+          note: tradeNote.trim(),
+          screenshotDataUrl,
+          session: proSession,
+          instrument: journalInstrument,
+          setupType: journalSetup,
+          strategy: journalStrategy,
+          marketCondition: journalMarketCondition,
+          emotion: journalEmotion,
+          direction: journalDirection,
+          pnl: journalPnl,
+          rMultiple: journalRMultiple,
+          missingRuleTexts: rules.filter((rule) => !rule.checked).map((rule) => rule.text),
+          missingCategories: rules.filter((rule) => !rule.checked).map((rule) => rule.category),
+          respectedVerdict: followedVerdict === 'yes',
+        }
+
+    if (existingEntry) {
+      setJournal((prev) => prev.map((item) => (item.id === entry.id ? entry : item)))
+      setSelectedJournalEntry((prev) => (prev?.id === entry.id ? entry : prev))
+    } else {
+      setJournal((prev) => [entry, ...prev])
+    }
+
+    resetJournalEntryForm()
   }
 
   const shareSummary = async () => {
@@ -2471,7 +2505,7 @@ ${emotionWarning}`
 
       {showAdvancedPerformance && (
         <div className="fixed inset-0 z-[82] flex items-start justify-center overflow-y-auto bg-slate-950/65 px-4 py-4 backdrop-blur-sm sm:items-center">
-          <div className={`relative max-h-[92dvh] w-full max-w-4xl overflow-y-auto rounded-[24px] border p-4 shadow-2xl md:rounded-[28px] md:p-6 ${ui.card}`}>
+          <div className={`relative w-full max-w-4xl rounded-[28px] border p-5 shadow-2xl md:p-6 ${ui.card}`}>
             <button
               type="button"
               onClick={() => setShowAdvancedPerformance(false)}
@@ -2481,101 +2515,56 @@ ${emotionWarning}`
               ×
             </button>
 
-            <div className="px-2 sm:px-8 md:px-10">
+            <div className="px-8 sm:px-10">
               <h2 className="text-center text-xl font-bold md:text-2xl">Advanced performance snapshot</h2>
               <p className={`mt-2 text-center text-sm leading-6 ${ui.subtle}`}>
                 This is where you look for recurring winning DNA, recurring losing DNA, and the habits your journal keeps repeating.
               </p>
             </div>
 
-            <div className={`mt-5 rounded-[20px] border p-3 shadow-sm md:rounded-[24px] md:p-4 ${ui.statBox}`}>
-              <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-                <div>
-                  <div className="text-sm font-bold">Side-by-side comparison</div>
-                  <p className={`mt-1 text-xs leading-5 ${ui.subtle}`}>
-                    Compare the most common overall behaviour against what shows up most in winners and most in losers.
-                  </p>
-                </div>
-
-                <div className={`rounded-full border px-3 py-1 text-[10px] font-semibold ${theme === 'light' ? 'border-slate-200 bg-slate-50 text-slate-700' : 'border-white/10 bg-white/5 text-slate-300'}`}>
-                  Read across each row
-                </div>
-              </div>
-
-              <div className="mt-4 hidden md:block">
-                <div className="grid grid-cols-[120px_repeat(3,minmax(0,1fr))] gap-2">
-                  <div className={`rounded-[16px] border px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] ${ui.innerCard} ${ui.muted}`}>
-                    Metric
-                  </div>
-                  <div className={`rounded-[16px] border px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] ${theme === 'light' ? 'border-sky-200 bg-sky-50 text-sky-700' : 'border-sky-500/20 bg-sky-500/10 text-sky-200'}`}>
-                    Top overall
-                  </div>
-                  <div className={`rounded-[16px] border px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] ${theme === 'light' ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-emerald-500/20 bg-emerald-500/10 text-emerald-200'}`}>
-                    Most winning
-                  </div>
-                  <div className={`rounded-[16px] border px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] ${theme === 'light' ? 'border-red-200 bg-red-50 text-red-700' : 'border-red-500/20 bg-red-500/10 text-red-200'}`}>
-                    Most losing
-                  </div>
-
-                  {advancedComparisonRows.map((row) => (
-                    <div key={row.label} className="contents">
-                      <div className={`rounded-[18px] border px-3 py-3 ${ui.innerCard}`}>
-                        <div className="text-sm font-semibold">{row.label}</div>
-                      </div>
-                      <div className={`rounded-[18px] border px-3 py-3 ${theme === 'light' ? 'border-sky-200 bg-sky-50/70' : 'border-sky-500/20 bg-sky-500/10'}`}>
-                        <div className={`text-[10px] uppercase tracking-[0.12em] ${ui.muted}`}>Overall</div>
-                        <div className="mt-1 text-sm font-semibold leading-5">{row.overall}</div>
-                      </div>
-                      <div className={`rounded-[18px] border px-3 py-3 ${theme === 'light' ? 'border-emerald-200 bg-emerald-50/70' : 'border-emerald-500/20 bg-emerald-500/10'}`}>
-                        <div className={`text-[10px] uppercase tracking-[0.12em] ${ui.muted}`}>Winning</div>
-                        <div className="mt-1 text-sm font-semibold leading-5">{row.winning}</div>
-                      </div>
-                      <div className={`rounded-[18px] border px-3 py-3 ${theme === 'light' ? 'border-red-200 bg-red-50/70' : 'border-red-500/20 bg-red-500/10'}`}>
-                        <div className={`text-[10px] uppercase tracking-[0.12em] ${ui.muted}`}>Losing</div>
-                        <div className="mt-1 text-sm font-semibold leading-5">{row.losing}</div>
-                      </div>
+            <div className="mt-5 grid gap-3 xl:grid-cols-3">
+              {[
+                {
+                  title: 'Winning DNA',
+                  caption: 'What shows up most often inside your winning trades.',
+                  items: advancedWinningCards,
+                  dotClass: theme === 'light' ? 'bg-emerald-500' : 'bg-emerald-400',
+                  cardClass: theme === 'light' ? 'border-emerald-200 bg-emerald-50/70' : 'border-emerald-500/20 bg-emerald-500/10',
+                },
+                {
+                  title: 'Losing DNA',
+                  caption: 'What keeps repeating when trades go wrong.',
+                  items: advancedLosingCards,
+                  dotClass: theme === 'light' ? 'bg-red-500' : 'bg-red-400',
+                  cardClass: theme === 'light' ? 'border-red-200 bg-red-50/70' : 'border-red-500/20 bg-red-500/10',
+                },
+                {
+                  title: 'Overall tendencies',
+                  caption: 'The broad tendencies your journal is producing so far.',
+                  items: advancedOverallCards,
+                  dotClass: theme === 'light' ? 'bg-sky-500' : 'bg-sky-400',
+                  cardClass: theme === 'light' ? 'border-sky-200 bg-sky-50/70' : 'border-sky-500/20 bg-sky-500/10',
+                },
+              ].map((group) => (
+                <div key={group.title} className={`rounded-[24px] border p-4 shadow-sm ${ui.statBox}`}>
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="text-sm font-bold">{group.title}</div>
+                      <p className={`mt-1 text-xs leading-5 ${ui.subtle}`}>{group.caption}</p>
                     </div>
-                  ))}
-                </div>
-              </div>
+                    <span className={`mt-1 h-2.5 w-2.5 rounded-full ${group.dotClass}`} />
+                  </div>
 
-              <div className="mt-4 md:hidden">
-                <div className={`mb-3 rounded-full border px-3 py-1.5 text-[10px] font-semibold ${theme === 'light' ? 'border-slate-200 bg-slate-50 text-slate-700' : 'border-white/10 bg-white/5 text-slate-300'}`}>
-                  Read each metric card from top to bottom
-                </div>
-
-                <div className="space-y-3">
-                  {advancedComparisonRows.map((row) => (
-                    <div key={row.label} className={`rounded-[20px] border p-3 ${ui.innerCard}`}>
-                      <div className="mb-3 flex items-center justify-between gap-3">
-                        <div className="text-sm font-bold">{row.label}</div>
-                        <div className={`rounded-full border px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.12em] ${ui.tag}`}>
-                          Compare
-                        </div>
+                  <div className="mt-4 space-y-2">
+                    {group.items.map((item) => (
+                      <div key={`${group.title}-${item[0]}`} className={`rounded-[16px] border px-3 py-2.5 ${group.cardClass}`}>
+                        <div className={`text-[10px] uppercase tracking-[0.12em] ${ui.muted}`}>{item[0]}</div>
+                        <div className="mt-1 text-sm font-semibold leading-5">{item[1]}</div>
                       </div>
-
-                      <div className="grid grid-cols-1 gap-2.5">
-                        <div className={`rounded-[16px] border px-3 py-3 ${theme === 'light' ? 'border-sky-200 bg-sky-50/70' : 'border-sky-500/20 bg-sky-500/10'}`}>
-                          <div className={`text-[9px] uppercase tracking-[0.14em] ${ui.muted}`}>Top overall</div>
-                          <div className="mt-1.5 text-[13px] font-semibold leading-5 break-words">{row.overall}</div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-2.5">
-                          <div className={`rounded-[16px] border px-3 py-3 ${theme === 'light' ? 'border-emerald-200 bg-emerald-50/70' : 'border-emerald-500/20 bg-emerald-500/10'}`}>
-                            <div className={`text-[9px] uppercase tracking-[0.14em] ${ui.muted}`}>Most winning</div>
-                            <div className="mt-1.5 text-[13px] font-semibold leading-5 break-words">{row.winning}</div>
-                          </div>
-
-                          <div className={`rounded-[16px] border px-3 py-3 ${theme === 'light' ? 'border-red-200 bg-red-50/70' : 'border-red-500/20 bg-red-500/10'}`}>
-                            <div className={`text-[9px] uppercase tracking-[0.14em] ${ui.muted}`}>Most losing</div>
-                            <div className="mt-1.5 text-[13px] font-semibold leading-5 break-words">{row.losing}</div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
+              ))}
             </div>
 
             <div className="mt-5 grid gap-4 md:grid-cols-2">
@@ -2656,30 +2645,6 @@ ${emotionWarning}`
               </div>
             </div>
 
-            <div className="mt-4 grid gap-3 md:grid-cols-3">
-              {advancedPatternCards.map((card) => {
-                const toneClass =
-                  card.tone === 'win'
-                    ? theme === 'light'
-                      ? 'border-emerald-200 bg-emerald-50/70'
-                      : 'border-emerald-500/20 bg-emerald-500/10'
-                    : card.tone === 'loss'
-                    ? theme === 'light'
-                      ? 'border-red-200 bg-red-50/70'
-                      : 'border-red-500/20 bg-red-500/10'
-                    : theme === 'light'
-                    ? 'border-sky-200 bg-sky-50/70'
-                    : 'border-sky-500/20 bg-sky-500/10'
-
-                return (
-                  <div key={card.title} className={`rounded-[22px] border p-4 ${toneClass}`}>
-                    <div className="text-sm font-bold">{card.title}</div>
-                    <p className={`mt-2 text-sm leading-6 ${ui.subtle}`}>{card.text}</p>
-                  </div>
-                )
-              })}
-            </div>
-
             <div className={`mt-4 rounded-[20px] border px-4 py-3 text-center text-sm leading-6 ${ui.statBox}`}>
               <span className="font-semibold">Important note:</span> the more consistently you journal your trades, the more accurate and reliable these advanced performance patterns become over time.
             </div>
@@ -2706,7 +2671,7 @@ ${emotionWarning}`
 
             <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
               {[
-                ['Outcome', selectedJournalEntry.outcome],
+                ['Outcome', getJournalOutcomeLabel(selectedJournalEntry.outcome)],
                 ['Verdict', selectedJournalEntry.verdict],
                 ['Quality', selectedJournalEntry.quality],
                 ['Score / threshold', `${selectedJournalEntry.score}% / ${selectedJournalEntry.threshold}%`],
@@ -3196,17 +3161,42 @@ ${emotionWarning}`
 
                       <FixedOptionDropdown
                         label="Outcome"
-                        value={tradeOutcome === 'win' ? 'Win' : tradeOutcome === 'loss' ? 'Loss' : 'Breakeven'}
-                        options={['Win', 'Loss', 'Breakeven']}
+                        value={getJournalOutcomeLabel(tradeOutcome)}
+                        options={['Win', 'Loss', 'Breakeven', 'No trade', 'Verdict saved me']}
                         onSelect={(item) =>
-                          setTradeOutcome(item.toLowerCase() === 'breakeven' ? 'breakeven' : (item.toLowerCase() as JournalOutcome))
+                          setTradeOutcome(
+                            item === 'No trade'
+                              ? 'no-trade'
+                              : item === 'Verdict saved me'
+                              ? 'saved-me'
+                              : item.toLowerCase() === 'breakeven'
+                              ? 'breakeven'
+                              : (item.toLowerCase() as JournalOutcome)
+                          )
                         }
                         theme={theme}
                         triggerClassName={ui.select}
                         mutedClassName={ui.muted}
                       />
 
-                      <input type="number" value={journalPnl || ''} onChange={(e) => setJournalPnl(Number(e.target.value) || 0)} className={`rounded-2xl px-3 py-2.5 text-sm outline-none transition ${ui.input}`} placeholder="Net P&L" />
+                      <div className="relative">
+                        {tradeOutcome === 'loss' && (
+                          <span className={`pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm font-semibold ${ui.muted}`}>
+                            −
+                          </span>
+                        )}
+                        <input
+                          type="number"
+                          min="0"
+                          value={journalPnl ? Math.abs(journalPnl) : ''}
+                          onChange={(e) => {
+                            const nextValue = Math.abs(Number(e.target.value) || 0)
+                            setJournalPnl(tradeOutcome === 'loss' ? -nextValue : nextValue)
+                          }}
+                          className={`rounded-2xl py-2.5 text-sm outline-none transition ${ui.input} ${tradeOutcome === 'loss' ? 'pl-7 pr-3' : 'px-3'}`}
+                          placeholder="Net P&L"
+                        />
+                      </div>
                       <input type="number" step="0.1" value={journalRMultiple || ''} onChange={(e) => setJournalRMultiple(Number(e.target.value) || 0)} className={`rounded-2xl px-3 py-2.5 text-sm outline-none transition ${ui.input}`} placeholder="Result in R" />
                     </div>
 
@@ -3240,8 +3230,17 @@ ${emotionWarning}`
 
                     <textarea value={tradeNote} onChange={(e) => setTradeNote(e.target.value)} placeholder="What happened? Why did you take it, skip it, or break the verdict?" className={`mt-2 min-h-[108px] w-full rounded-[22px] px-3 py-3 text-sm outline-none transition ${ui.input}`} />
 
+                    {editingJournalEntryId && (
+                      <div className={`mt-2 rounded-[18px] border px-3 py-2 text-xs ${ui.statBox}`}>
+                        Editing journal entry. Save will update this record.
+                      </div>
+                    )}
+
                     <div className="mt-2 flex flex-wrap items-center gap-2">
-                      <button type="button" onClick={saveJournalEntry} className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${styles.button}`}>Save journal entry</button>
+                      <button type="button" onClick={saveJournalEntry} className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${styles.button}`}>{editingJournalEntryId ? 'Update entry' : 'Save journal entry'}</button>
+                      {editingJournalEntryId && (
+                        <button type="button" onClick={resetJournalEntryForm} className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${ui.secondaryBtn}`}>Cancel edit</button>
+                      )}
                       <button type="button" onClick={shareSummary} className={`rounded-2xl px-3 py-2 text-xs font-semibold transition ${ui.secondaryBtn}`}>{copiedSummary ? 'Copied' : 'Copy summary'}</button>
                     </div>
 
@@ -3305,12 +3304,13 @@ ${emotionWarning}`
                             </div>
                           </div>
 
-                          <div className="mt-3 grid grid-cols-2 gap-2 md:grid-cols-4">
+                          <div className="mt-3 grid grid-cols-2 gap-2 lg:grid-cols-5">
                             {[
                               ['Wins', `${winCount}`, `${winRate}%`],
                               ['Losses', `${lossCount}`, `${lossRate}%`],
                               ['Breakeven', `${breakevenCount}`, `${breakevenRate}%`],
                               ['No trade', `${noTradeCount}`, totalReviewedTrades > 0 ? `${Math.round((noTradeCount / totalReviewedTrades) * 100)}%` : '0%'],
+                              ['Verdict saved me', `${savedMeCount}`, totalReviewedTrades > 0 ? `${Math.round((savedMeCount / totalReviewedTrades) * 100)}%` : '0%'],
                             ].map((item) => (
                               <div key={item[0]} className={`rounded-[16px] border px-3 py-2 ${theme === 'light' ? 'border-slate-200 bg-white/90' : 'border-white/10 bg-slate-950/40'}`}>
                                 <div className={`text-[10px] uppercase tracking-[0.12em] ${ui.muted}`}>{item[0]}</div>
@@ -3454,7 +3454,7 @@ ${emotionWarning}`
                                   {entry.strategy}
                                 </div>
                                 <div className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold ${entryOutcomeClass}`}>
-                                  {entry.outcome}
+                                  {getJournalOutcomeLabel(entry.outcome)}
                                 </div>
                                 <div className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold ${entryDirectionClass}`}>
                                   {entry.direction}
@@ -3464,54 +3464,40 @@ ${emotionWarning}`
                               <div className={`mt-1 text-xs leading-5 ${ui.muted}`}>
                                 {formatDate(entry.createdAt)} • {entry.session} • {entry.marketCondition} • {entry.emotion}
                               </div>
-
-                              <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
-                                {[
-                                  ['Score', `${entry.score}%`],
-                                  ['Verdict', `${entry.verdict}`],
-                                  ['P&L', formatSignedNumber(entry.pnl)],
-                                  ['R-multiple', formatSignedNumber(entry.rMultiple, 2, 'R')],
-                                ].map((item) => (
-                                  <div key={item[0]} className={`rounded-[16px] border px-3 py-2 ${theme === 'light' ? 'border-slate-200 bg-white/90' : 'border-white/10 bg-slate-950/40'}`}>
-                                    <div className={`text-[10px] uppercase tracking-[0.12em] ${ui.muted}`}>{item[0]}</div>
-                                    <div className="mt-1 text-sm font-semibold leading-5">{item[1]}</div>
-                                  </div>
-                                ))}
-                              </div>
-
-                              <div className={`mt-3 flex flex-wrap gap-2 text-xs ${ui.muted}`}>
-                                <span className={`rounded-full border px-2.5 py-1 ${theme === 'light' ? 'border-slate-200 bg-white text-slate-700' : 'border-white/10 bg-white/5 text-slate-200'}`}>
-                                  {followedLabel}
-                                </span>
-                              </div>
-
-                              {entry.note && <p className="mt-3 text-sm leading-6">{entry.note}</p>}
                             </div>
 
-                            <div className="flex items-center gap-3 lg:items-start">
-                              {entry.screenshotDataUrl && (
-                                <div className={`hidden overflow-hidden rounded-[18px] border md:block ${theme === 'light' ? 'border-slate-200 bg-white' : 'border-white/10 bg-slate-950/40'}`}>
-                                  <img src={entry.screenshotDataUrl} alt="Trade screenshot" className="h-24 w-24 object-cover" />
-                                </div>
-                              )}
+                            <div className="flex flex-wrap items-center gap-2 lg:flex-col lg:items-end">
+                              <button
+                                type="button"
+                                onClick={() => setSelectedJournalEntry(entry)}
+                                className={`rounded-xl px-3 py-2 text-xs font-semibold transition ${ui.secondaryBtn}`}
+                              >
+                                Show
+                              </button>
 
-                              <div className="flex gap-2 lg:flex-col">
-                                <button
-                                  type="button"
-                                  onClick={() => setSelectedJournalEntry(entry)}
-                                  className={`rounded-xl px-3 py-2 text-xs font-semibold transition ${ui.secondaryBtn}`}
-                                >
-                                  Show
-                                </button>
+                              <button
+                                type="button"
+                                onClick={() => startEditingJournalEntry(entry)}
+                                className={`rounded-xl px-3 py-2 text-xs font-semibold transition ${ui.secondaryBtn}`}
+                              >
+                                Edit
+                              </button>
 
-                                <button
-                                  type="button"
-                                  onClick={() => setJournal((prev) => prev.filter((item) => item.id !== entry.id))}
-                                  className={`rounded-xl px-3 py-2 text-xs font-semibold transition ${ui.deleteRule}`}
-                                >
-                                  Delete
-                                </button>
-                              </div>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setJournal((prev) => prev.filter((item) => item.id !== entry.id))
+                                  if (editingJournalEntryId === entry.id) {
+                                    resetJournalEntryForm()
+                                  }
+                                  if (selectedJournalEntry?.id === entry.id) {
+                                    setSelectedJournalEntry(null)
+                                  }
+                                }}
+                                className={`rounded-xl px-3 py-2 text-xs font-semibold transition ${ui.deleteRule}`}
+                              >
+                                Delete
+                              </button>
                             </div>
                           </div>
                         </div>
