@@ -2901,59 +2901,117 @@ ${emotionWarning}`
                           {
                             key: 'overall',
                             title: `Top ${row.label}`,
-                            value: row.overallTop,
+                            topValue: row.overallTop,
                             slices: row.overallSlices,
                             panelClass: theme === 'light' ? 'border-sky-200 bg-sky-50/70' : 'border-sky-500/20 bg-sky-500/10',
+                            emptyLabel: 'No data yet.',
                           },
                           {
                             key: 'winning',
                             title: `Winning ${row.label}`,
-                            value: row.winningTop,
+                            topValue: row.winningTop,
                             slices: row.winningSlices,
                             panelClass: theme === 'light' ? 'border-emerald-200 bg-emerald-50/70' : 'border-emerald-500/20 bg-emerald-500/10',
+                            emptyLabel: 'No winning trades yet.',
                           },
                           {
                             key: 'losing',
                             title: `Losing ${row.label}`,
-                            value: row.losingTop,
+                            topValue: row.losingTop,
                             slices: row.losingSlices,
                             panelClass: theme === 'light' ? 'border-red-200 bg-red-50/70' : 'border-red-500/20 bg-red-500/10',
+                            emptyLabel: 'No losing trades yet.',
                           },
                         ].map((chart) => {
                           const total = chart.slices.reduce((sum, slice) => sum + slice.count, 0)
                           let startAngle = 0
+                          const topLegendItems = chart.slices.slice(0, 4)
 
                           return (
                             <div key={`${row.label}-${chart.key}`} className={`rounded-[20px] border p-3 ${chart.panelClass}`}>
                               <div className={`text-[10px] uppercase tracking-[0.16em] ${ui.muted}`}>{chart.title}</div>
 
-                              <div className="mt-3 flex items-center justify-center">
-                                <div className="relative h-32 w-32">
-                                  <svg viewBox="0 0 120 120" className="h-32 w-32">
+                              <div className="mt-3 grid grid-cols-[112px_minmax(0,1fr)] items-center gap-3">
+                                <div className="relative mx-auto h-28 w-28">
+                                  <svg viewBox="0 0 120 120" className="h-28 w-28">
                                     {chart.slices.length > 0 ? (
                                       chart.slices.map((slice, index) => {
                                         const sweepAngle = total > 0 ? (slice.count / total) * 360 : 0
                                         const path = createDonutSegmentPath(60, 60, 50, 28, startAngle, startAngle + sweepAngle)
                                         startAngle += sweepAngle
 
-                                        return <path key={`${row.label}-${chart.key}-${slice.label}`} d={path} fill={advancedVisualPalette[index % advancedVisualPalette.length]} />
+                                        return (
+                                          <path
+                                            key={`${row.label}-${chart.key}-${slice.label}`}
+                                            d={path}
+                                            fill={advancedVisualPalette[index % advancedVisualPalette.length]}
+                                          />
+                                        )
                                       })
                                     ) : (
-                                      <circle
-                                        cx="60"
-                                        cy="60"
-                                        r="39"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeOpacity="0.14"
-                                        strokeWidth="22"
-                                      />
+                                      <>
+                                        <circle
+                                          cx="60"
+                                          cy="60"
+                                          r="39"
+                                          fill="none"
+                                          stroke="currentColor"
+                                          strokeOpacity="0.14"
+                                          strokeWidth="22"
+                                        />
+                                        <circle
+                                          cx="60"
+                                          cy="60"
+                                          r="39"
+                                          fill="none"
+                                          stroke="currentColor"
+                                          strokeOpacity="0.08"
+                                          strokeWidth="2"
+                                          strokeDasharray="4 6"
+                                        />
+                                      </>
                                     )}
                                   </svg>
 
-                                  <div className="absolute inset-0 flex items-center justify-center px-4 text-center">
-                                    <div className="text-sm font-semibold leading-5 break-words">{chart.value}</div>
+                                  <div className="absolute inset-0 flex items-center justify-center px-3 text-center">
+                                    <div>
+                                      <div className={`text-[10px] uppercase tracking-[0.14em] ${ui.muted}`}>Top</div>
+                                      <div className="mt-1 text-[11px] font-semibold leading-4 break-words">
+                                        {chart.topValue}
+                                      </div>
+                                    </div>
                                   </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                  {topLegendItems.length > 0 ? (
+                                    topLegendItems.map((slice, index) => {
+                                      const percent = total > 0 ? Math.round((slice.count / total) * 100) : 0
+                                      return (
+                                        <div
+                                          key={`${row.label}-${chart.key}-legend-${slice.label}`}
+                                          className={`flex items-center gap-2 rounded-[14px] border px-2.5 py-2 ${
+                                            theme === 'light' ? 'border-white/80 bg-white/85' : 'border-white/10 bg-slate-950/35'
+                                          }`}
+                                        >
+                                          <span
+                                            className="h-2.5 w-2.5 rounded-full flex-none"
+                                            style={{ backgroundColor: advancedVisualPalette[index % advancedVisualPalette.length] }}
+                                          />
+                                          <span className="min-w-0 flex-1 truncate text-[12px] font-medium leading-5">{slice.label}</span>
+                                          <span className={`text-[11px] font-semibold ${ui.muted}`}>{percent}%</span>
+                                        </div>
+                                      )
+                                    })
+                                  ) : (
+                                    <div
+                                      className={`rounded-[14px] border px-2.5 py-2 text-[12px] leading-5 ${
+                                        theme === 'light' ? 'border-white/80 bg-white/85 text-slate-600' : 'border-white/10 bg-slate-950/35 text-slate-300'
+                                      }`}
+                                    >
+                                      {chart.emptyLabel}
+                                    </div>
+                                  )}
                                 </div>
                               </div>
                             </div>
@@ -2979,9 +3037,11 @@ ${emotionWarning}`
                           {advancedWinningPatternCells.map((item, index) => (
                             <div
                               key={`win-pattern-${item.label}`}
-                              className={`rounded-[18px] border p-3 ${theme === 'light' ? 'bg-white/90 text-slate-900' : 'bg-slate-950/40 text-white'}`}
-                              style={{ borderColor: `${advancedVisualPalette[index % advancedVisualPalette.length]}55` }}
+                              className={`rounded-[18px] border p-3 ${
+                                theme === 'light' ? 'border-white/80 bg-white/90 text-slate-900' : 'border-white/10 bg-slate-950/40 text-white'
+                              }`}
                             >
+                              <div className="mb-2 h-1.5 w-10 rounded-full" style={{ backgroundColor: advancedVisualPalette[index % advancedVisualPalette.length] }} />
                               <div className={`text-[10px] uppercase tracking-[0.16em] ${ui.muted}`}>{item.label}</div>
                               <div className="mt-2 text-sm font-semibold leading-5 break-words">{item.value}</div>
                             </div>
@@ -3011,9 +3071,11 @@ ${emotionWarning}`
                           {advancedLosingPatternCells.map((item, index) => (
                             <div
                               key={`loss-pattern-${item.label}`}
-                              className={`rounded-[18px] border p-3 ${theme === 'light' ? 'bg-white/90 text-slate-900' : 'bg-slate-950/40 text-white'}`}
-                              style={{ borderColor: `${advancedVisualPalette[index % advancedVisualPalette.length]}55` }}
+                              className={`rounded-[18px] border p-3 ${
+                                theme === 'light' ? 'border-white/80 bg-white/90 text-slate-900' : 'border-white/10 bg-slate-950/40 text-white'
+                              }`}
                             >
+                              <div className="mb-2 h-1.5 w-10 rounded-full" style={{ backgroundColor: advancedVisualPalette[index % advancedVisualPalette.length] }} />
                               <div className={`text-[10px] uppercase tracking-[0.16em] ${ui.muted}`}>{item.label}</div>
                               <div className="mt-2 text-sm font-semibold leading-5 break-words">{item.value}</div>
                             </div>
@@ -3030,7 +3092,6 @@ ${emotionWarning}`
                   </div>
                 </div>
               </>
-            )}
 
 
 <div className={`mt-4 rounded-[20px] border px-4 py-3 text-center text-sm leading-6 ${ui.statBox}`}>
