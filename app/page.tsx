@@ -2872,7 +2872,7 @@ ${emotionWarning}`
                     <div className="mt-4 space-y-3">
                       {advancedVisualRows.map((row) => (
                         <div key={`desktop-visual-${row.label}`} className={`rounded-[20px] border p-3 ${ui.innerCard}`}>
-                          <div className="grid grid-cols-[112px_repeat(3,minmax(0,1fr))] gap-2">
+                          <div className="grid grid-cols-[96px_repeat(3,minmax(0,1fr))] gap-2">
                             <div className={`rounded-[16px] border px-3 py-3 ${ui.statBox}`}>
                               <div className="text-sm font-semibold">{row.label}</div>
                             </div>
@@ -2905,15 +2905,15 @@ ${emotionWarning}`
                             ].map((chart) => {
                               const total = chart.slices.reduce((sum, slice) => sum + slice.count, 0)
                               let startAngle = 0
-                              const legendItems = chart.slices.slice(0, 3)
+                              const legendItems = chart.slices.slice(0, 4)
 
                               return (
                                 <div key={`desktop-${row.label}-${chart.key}`} className={`rounded-[16px] border px-3 py-3 ${chart.cellClass}`}>
                                   <div className={`text-[10px] uppercase tracking-[0.16em] ${ui.muted}`}>{chart.title}</div>
 
-                                  <div className="mt-3 grid grid-cols-[96px_minmax(0,1fr)] items-center gap-3">
-                                    <div className="relative mx-auto h-24 w-24">
-                                      <svg viewBox="0 0 120 120" className="h-24 w-24">
+                                  <div className="mt-3 grid grid-cols-[88px_minmax(0,1fr)] items-start gap-3">
+                                    <div className="relative mx-auto h-[88px] w-[88px] shrink-0">
+                                      <svg viewBox="0 0 120 120" className="h-[88px] w-[88px]">
                                         {chart.slices.length > 0 ? (
                                           chart.slices.map((slice, index) => {
                                             const sweepAngle = total > 0 ? (slice.count / total) * 360 : 0
@@ -2953,15 +2953,23 @@ ${emotionWarning}`
                                         )}
                                       </svg>
 
-                                      <div className="absolute inset-0 flex items-center justify-center px-3 text-center">
+                                      <div className="absolute inset-0 flex items-center justify-center px-2 text-center">
                                         <div>
-                                          <div className={`text-[10px] uppercase tracking-[0.14em] ${ui.muted}`}>Top</div>
-                                          <div className="mt-1 text-[11px] font-semibold leading-4 break-words">{chart.topValue}</div>
+                                          <div className={`text-[9px] uppercase tracking-[0.14em] ${ui.muted}`}>Chart</div>
                                         </div>
                                       </div>
                                     </div>
 
                                     <div className="space-y-2">
+                                      <div
+                                        className={`rounded-[14px] border px-2.5 py-2 ${
+                                          theme === 'light' ? 'border-white/80 bg-white/90 text-slate-900' : 'border-white/10 bg-slate-950/35 text-white'
+                                        }`}
+                                      >
+                                        <div className={`text-[10px] uppercase tracking-[0.14em] ${ui.muted}`}>Top value</div>
+                                        <div className="mt-1 text-[13px] font-semibold leading-5 break-words">{chart.topValue}</div>
+                                      </div>
+
                                       {legendItems.length > 0 ? (
                                         legendItems.map((slice, index) => {
                                           const percent = total > 0 ? Math.round((slice.count / total) * 100) : 0
@@ -2969,22 +2977,22 @@ ${emotionWarning}`
                                           return (
                                             <div
                                               key={`desktop-${row.label}-${chart.key}-legend-${slice.label}`}
-                                              className={`flex items-center gap-2 rounded-[14px] border px-2.5 py-2 ${
+                                              className={`flex items-start gap-2 rounded-[14px] border px-2.5 py-2 ${
                                                 theme === 'light' ? 'border-white/80 bg-white/85' : 'border-white/10 bg-slate-950/35'
                                               }`}
                                             >
                                               <span
-                                                className="h-2.5 w-2.5 flex-none rounded-full"
+                                                className="mt-1 h-2.5 w-2.5 flex-none rounded-full"
                                                 style={{ backgroundColor: advancedVisualPalette[index % advancedVisualPalette.length] }}
                                               />
-                                              <span className="min-w-0 flex-1 truncate text-[12px] font-medium leading-5">{slice.label}</span>
-                                              <span className={`text-[11px] font-semibold ${ui.muted}`}>{percent}%</span>
+                                              <span className="min-w-0 flex-1 whitespace-normal break-words text-[12px] font-medium leading-4">{slice.label}</span>
+                                              <span className={`mt-0.5 flex-none text-[11px] font-semibold ${ui.muted}`}>{percent}%</span>
                                             </div>
                                           )
                                         })
                                       ) : (
                                         <div
-                                          className={`rounded-[14px] border px-2.5 py-2 text-[12px] ${
+                                          className={`rounded-[14px] border px-2.5 py-2 text-[12px] leading-5 ${
                                             theme === 'light' ? 'border-white/80 bg-white/85 text-slate-600' : 'border-white/10 bg-slate-950/35 text-slate-300'
                                           }`}
                                         >
