@@ -2727,9 +2727,9 @@ ${emotionWarning}`
                       </div>
 
                       {[
-                        { key: 'top', title: 'Top', value: row.top, cellClass: theme === 'light' ? 'border-sky-200 bg-sky-50/70' : 'border-sky-500/20 bg-sky-500/10' },
-                        { key: 'win', title: 'Win', value: row.win, cellClass: theme === 'light' ? 'border-emerald-200 bg-emerald-50/70' : 'border-emerald-500/20 bg-emerald-500/10' },
-                        { key: 'loss', title: 'Loss', value: row.loss, cellClass: theme === 'light' ? 'border-red-200 bg-red-50/70' : 'border-red-500/20 bg-red-500/10' },
+                        { key: 'top', title: `Top ${row.label}`, value: row.top, cellClass: theme === 'light' ? 'border-sky-200 bg-sky-50/70' : 'border-sky-500/20 bg-sky-500/10' },
+                        { key: 'win', title: `Win ${row.label}`, value: row.win, cellClass: theme === 'light' ? 'border-emerald-200 bg-emerald-50/70' : 'border-emerald-500/20 bg-emerald-500/10' },
+                        { key: 'loss', title: `Loss ${row.label}`, value: row.loss, cellClass: theme === 'light' ? 'border-red-200 bg-red-50/70' : 'border-red-500/20 bg-red-500/10' },
                       ].map((cell) => (
                         <div key={`${row.label}-${cell.key}`} className={`rounded-[16px] border px-3 py-3 ${cell.cellClass}`}>
                           <div className={`text-[10px] uppercase tracking-[0.16em] ${ui.muted}`}>{cell.title}</div>
@@ -2872,11 +2872,7 @@ ${emotionWarning}`
                     <div className="mt-4 space-y-3">
                       {advancedVisualRows.map((row) => (
                         <div key={`desktop-visual-${row.label}`} className={`rounded-[20px] border p-3 ${ui.innerCard}`}>
-                          <div className="grid grid-cols-[88px_repeat(3,minmax(0,1fr))] gap-2">
-                            <div className={`rounded-[16px] border px-3 py-3 ${ui.statBox}`}>
-                              <div className="text-sm font-semibold">{row.label}</div>
-                            </div>
-
+                          <div className="grid grid-cols-3 gap-2">
                             {[
                               {
                                 key: 'overall',
