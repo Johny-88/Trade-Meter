@@ -2907,9 +2907,9 @@ ${emotionWarning}`
                                 <div key={`desktop-${row.label}-${chart.key}`} className={`rounded-[16px] border px-3 py-3 ${chart.cellClass}`}>
                                   <div className={`text-[10px] uppercase tracking-[0.16em] ${ui.muted}`}>{chart.title}</div>
 
-                                  <div className="mt-3 flex flex-col items-center">
-                                    <div className="relative h-[112px] w-[112px] shrink-0">
-                                      <svg viewBox="0 0 120 120" className="h-[112px] w-[112px]">
+                                  <div className="mt-2 flex flex-col items-center">
+                                    <div className="relative h-[148px] w-[148px] shrink-0">
+                                      <svg viewBox="0 0 120 120" className="h-[148px] w-[148px]">
                                         {chart.slices.length > 0 ? (
                                           chart.slices.map((slice, index) => {
                                             const sweepAngle = total > 0 ? (slice.count / total) * 360 : 0
