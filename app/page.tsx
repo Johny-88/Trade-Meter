@@ -2864,7 +2864,7 @@ ${emotionWarning}`
                       <div>
                         <div className="text-sm font-bold">Visual comparison</div>
                         <p className={`mt-1 text-xs leading-5 ${ui.subtle}`}>
-                          Same advanced data, organised like the raw view, but shown with donut charts and ranked slices for faster visual reading.
+                          Same advanced data, organised like the raw view, but shown with donut charts and readable ranked slices.
                         </p>
                       </div>
                     </div>
@@ -2911,9 +2911,9 @@ ${emotionWarning}`
                                 <div key={`desktop-${row.label}-${chart.key}`} className={`rounded-[16px] border px-3 py-3 ${chart.cellClass}`}>
                                   <div className={`text-[10px] uppercase tracking-[0.16em] ${ui.muted}`}>{chart.title}</div>
 
-                                  <div className="mt-3 grid grid-cols-[104px_minmax(0,1fr)] items-start gap-3">
-                                    <div className="relative mx-auto h-[104px] w-[104px] shrink-0">
-                                      <svg viewBox="0 0 120 120" className="h-[104px] w-[104px]">
+                                  <div className="mt-3 flex flex-col items-center">
+                                    <div className="relative h-[112px] w-[112px] shrink-0">
+                                      <svg viewBox="0 0 120 120" className="h-[112px] w-[112px]">
                                         {chart.slices.length > 0 ? (
                                           chart.slices.map((slice, index) => {
                                             const sweepAngle = total > 0 ? (slice.count / total) * 360 : 0
@@ -2961,18 +2961,7 @@ ${emotionWarning}`
                                       </div>
                                     </div>
 
-                                    <div className="space-y-2">
-                                      <div
-                                        className={`rounded-[14px] border px-2.5 py-2 ${
-                                          theme === 'light' ? 'border-white/80 bg-white/90 text-slate-900' : 'border-white/10 bg-slate-950/35 text-white'
-                                        }`}
-                                      >
-                                        <div className={`text-[10px] uppercase tracking-[0.14em] ${ui.muted}`}>Distribution</div>
-                                        <div className={`mt-1 text-[11px] leading-5 ${ui.subtle}`}>
-                                          {legendItems.length > 0 ? 'Most frequent slices in this group.' : chart.emptyLabel}
-                                        </div>
-                                      </div>
-
+                                    <div className="mt-3 w-full space-y-2">
                                       {legendItems.length > 0 ? (
                                         legendItems.map((slice, index) => {
                                           const percent = total > 0 ? Math.round((slice.count / total) * 100) : 0
