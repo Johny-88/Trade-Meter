@@ -2872,7 +2872,7 @@ ${emotionWarning}`
                     <div className="mt-4 space-y-3">
                       {advancedVisualRows.map((row) => (
                         <div key={`desktop-visual-${row.label}`} className={`rounded-[20px] border p-3 ${ui.innerCard}`}>
-                          <div className="grid grid-cols-[96px_repeat(3,minmax(0,1fr))] gap-2">
+                          <div className="grid grid-cols-[88px_repeat(3,minmax(0,1fr))] gap-2">
                             <div className={`rounded-[16px] border px-3 py-3 ${ui.statBox}`}>
                               <div className="text-sm font-semibold">{row.label}</div>
                             </div>
@@ -2884,7 +2884,7 @@ ${emotionWarning}`
                                 topValue: row.overallTop,
                                 slices: row.overallSlices,
                                 cellClass: theme === 'light' ? 'border-sky-200 bg-sky-50/70' : 'border-sky-500/20 bg-sky-500/10',
-                                emptyLabel: 'No data',
+                                emptyLabel: 'No data yet.',
                               },
                               {
                                 key: 'winning',
@@ -2892,7 +2892,7 @@ ${emotionWarning}`
                                 topValue: row.winningTop,
                                 slices: row.winningSlices,
                                 cellClass: theme === 'light' ? 'border-emerald-200 bg-emerald-50/70' : 'border-emerald-500/20 bg-emerald-500/10',
-                                emptyLabel: 'No wins',
+                                emptyLabel: 'No winning trades yet.',
                               },
                               {
                                 key: 'losing',
@@ -2900,7 +2900,7 @@ ${emotionWarning}`
                                 topValue: row.losingTop,
                                 slices: row.losingSlices,
                                 cellClass: theme === 'light' ? 'border-red-200 bg-red-50/70' : 'border-red-500/20 bg-red-500/10',
-                                emptyLabel: 'No losses',
+                                emptyLabel: 'No losing trades yet.',
                               },
                             ].map((chart) => {
                               const total = chart.slices.reduce((sum, slice) => sum + slice.count, 0)
@@ -2911,9 +2911,9 @@ ${emotionWarning}`
                                 <div key={`desktop-${row.label}-${chart.key}`} className={`rounded-[16px] border px-3 py-3 ${chart.cellClass}`}>
                                   <div className={`text-[10px] uppercase tracking-[0.16em] ${ui.muted}`}>{chart.title}</div>
 
-                                  <div className="mt-3 grid grid-cols-[88px_minmax(0,1fr)] items-start gap-3">
-                                    <div className="relative mx-auto h-[88px] w-[88px] shrink-0">
-                                      <svg viewBox="0 0 120 120" className="h-[88px] w-[88px]">
+                                  <div className="mt-3 grid grid-cols-[104px_minmax(0,1fr)] items-start gap-3">
+                                    <div className="relative mx-auto h-[104px] w-[104px] shrink-0">
+                                      <svg viewBox="0 0 120 120" className="h-[104px] w-[104px]">
                                         {chart.slices.length > 0 ? (
                                           chart.slices.map((slice, index) => {
                                             const sweepAngle = total > 0 ? (slice.count / total) * 360 : 0
@@ -2953,9 +2953,10 @@ ${emotionWarning}`
                                         )}
                                       </svg>
 
-                                      <div className="absolute inset-0 flex items-center justify-center px-2 text-center">
+                                      <div className="absolute inset-0 flex items-center justify-center px-3 text-center">
                                         <div>
-                                          <div className={`text-[9px] uppercase tracking-[0.14em] ${ui.muted}`}>Chart</div>
+                                          <div className={`text-[10px] uppercase tracking-[0.14em] ${ui.muted}`}>Top</div>
+                                          <div className="mt-1 text-[12px] font-semibold leading-4 break-words">{chart.topValue}</div>
                                         </div>
                                       </div>
                                     </div>
@@ -2966,8 +2967,10 @@ ${emotionWarning}`
                                           theme === 'light' ? 'border-white/80 bg-white/90 text-slate-900' : 'border-white/10 bg-slate-950/35 text-white'
                                         }`}
                                       >
-                                        <div className={`text-[10px] uppercase tracking-[0.14em] ${ui.muted}`}>Top value</div>
-                                        <div className="mt-1 text-[13px] font-semibold leading-5 break-words">{chart.topValue}</div>
+                                        <div className={`text-[10px] uppercase tracking-[0.14em] ${ui.muted}`}>Distribution</div>
+                                        <div className={`mt-1 text-[11px] leading-5 ${ui.subtle}`}>
+                                          {legendItems.length > 0 ? 'Most frequent slices in this group.' : chart.emptyLabel}
+                                        </div>
                                       </div>
 
                                       {legendItems.length > 0 ? (
@@ -2985,7 +2988,9 @@ ${emotionWarning}`
                                                 className="mt-1 h-2.5 w-2.5 flex-none rounded-full"
                                                 style={{ backgroundColor: advancedVisualPalette[index % advancedVisualPalette.length] }}
                                               />
-                                              <span className="min-w-0 flex-1 whitespace-normal break-words text-[12px] font-medium leading-4">{slice.label}</span>
+                                              <span className="min-w-0 flex-1 whitespace-normal break-words text-[12px] font-medium leading-4">
+                                                {slice.label}
+                                              </span>
                                               <span className={`mt-0.5 flex-none text-[11px] font-semibold ${ui.muted}`}>{percent}%</span>
                                             </div>
                                           )
@@ -3011,8 +3016,7 @@ ${emotionWarning}`
                   </div>
                 </div>
 
-
-                <div className="mt-5 space-y-4 md:hidden">
+<div className="mt-5 space-y-4 md:hidden">
                   {advancedVisualRows.map((row) => (
                     <div key={row.label} className={`rounded-[24px] border p-4 shadow-sm ${ui.statBox}`}>
                       <div className="text-sm font-bold">{row.label}</div>
