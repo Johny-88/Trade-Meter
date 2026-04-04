@@ -2876,7 +2876,7 @@ ${emotionWarning}`
                             {[
                               {
                                 key: 'overall',
-                                title: 'Top',
+                                title: `Top ${row.label}`,
                                 topValue: row.overallTop,
                                 slices: row.overallSlices,
                                 cellClass: theme === 'light' ? 'border-sky-200 bg-sky-50/70' : 'border-sky-500/20 bg-sky-500/10',
@@ -2884,7 +2884,7 @@ ${emotionWarning}`
                               },
                               {
                                 key: 'winning',
-                                title: 'Win',
+                                title: `Win ${row.label}`,
                                 topValue: row.winningTop,
                                 slices: row.winningSlices,
                                 cellClass: theme === 'light' ? 'border-emerald-200 bg-emerald-50/70' : 'border-emerald-500/20 bg-emerald-500/10',
@@ -2892,7 +2892,7 @@ ${emotionWarning}`
                               },
                               {
                                 key: 'losing',
-                                title: 'Loss',
+                                title: `Loss ${row.label}`,
                                 topValue: row.losingTop,
                                 slices: row.losingSlices,
                                 cellClass: theme === 'light' ? 'border-red-200 bg-red-50/70' : 'border-red-500/20 bg-red-500/10',
