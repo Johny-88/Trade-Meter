@@ -3625,9 +3625,9 @@ ${emotionWarning}`
         <div className="space-y-4">
           {mode === 'stats' && (
             <>
-              <div ref={journalSectionRef} className={`mt-4 rounded-[24px] p-3 md:p-4 ${ui.card}`}>
+              <div className={`mt-4 rounded-[24px] p-3 md:p-4 ${ui.card}`}>
                 <div className="grid gap-3 xl:grid-cols-[1.05fr_0.95fr]">
-                  <div className={`order-2 rounded-[22px] p-3 xl:order-1 ${ui.innerCard}`}>
+                  <div ref={journalSectionRef} className={`order-2 rounded-[22px] p-3 xl:order-1 ${ui.innerCard}`}>
                     <div className={`mb-2 text-sm font-semibold ${ui.secondaryStrong}`}>Journal entry</div>
                     <p className={`mb-3 text-xs ${ui.muted}`}>Log the trade, the emotion, and the result. Keep it honest and fast.</p>
 
