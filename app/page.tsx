@@ -1409,6 +1409,7 @@ export default function Home() {
   )
   const [topOffset, setTopOffset] = useState(0)
   const liveScoreRef = useRef<HTMLDivElement | null>(null)
+  const journalSectionRef = useRef<HTMLDivElement | null>(null)
   const importanceSelectRef = useRef<HTMLSelectElement | null>(null)
   const previousSnapshotRef = useRef<SetupSnapshot | null>(null)
 
@@ -1642,6 +1643,17 @@ export default function Home() {
     const timer = window.setTimeout(() => setCopiedSummary(false), 1800)
     return () => window.clearTimeout(timer)
   }, [copiedSummary])
+
+  const scrollToJournalSection = () => {
+    if (typeof window === 'undefined') return
+
+    window.requestAnimationFrame(() => {
+      journalSectionRef.current?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      })
+    })
+  }
 
   useEffect(() => {
     if (proTimerActive) return
@@ -2481,9 +2493,7 @@ export default function Home() {
     setJournalRMultiple(entry.rMultiple)
     setTradeNote(entry.note)
     setScreenshotDataUrl(entry.screenshotDataUrl)
-    if (typeof window !== 'undefined') {
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-    }
+    scrollToJournalSection()
   }
 
   const saveJournalEntry = () => {
@@ -3962,7 +3972,7 @@ ${emotionWarning}`
                 </div>
               </div>
 
-              <div className={`rounded-[24px] p-3 md:p-4 ${ui.card}`}>
+              <div ref={journalSectionRef} className={`rounded-[24px] p-3 md:p-4 ${ui.card}`}>
                 <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
                   <div>
                     <div className={`text-sm font-semibold ${ui.secondaryStrong}`}>Recent journal entries</div>
