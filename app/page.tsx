@@ -4418,7 +4418,9 @@ ${emotionWarning}`
 
             {rules.length === 0 ? (
               <div className={`rounded-[24px] p-8 text-center ${ui.empty}`}>
-                No rules yet. Add rules using the + button above.
+                {visibleStrategyOptions.length === 0
+                  ? 'No strategy added yet. Create your first strategy using the section above, then add rules to build your checklist.'
+                  : `No rules have been added under "${selectedStrategy}" yet. Add rules using the section above to build this strategy.`}
               </div>
             ) : (
               <div className="space-y-2">
