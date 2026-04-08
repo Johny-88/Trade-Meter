@@ -3115,19 +3115,30 @@ ${emotionWarning}`
                                     <div className="relative h-[148px] w-[148px] shrink-0">
                                       <svg viewBox="0 0 120 120" className="h-[148px] w-[148px]">
                                         {chart.slices.length > 0 ? (
-                                          chart.slices.map((slice, index) => {
-                                            const sweepAngle = total > 0 ? (slice.count / total) * 360 : 0
-                                            const path = createDonutSegmentPath(60, 60, 50, 28, startAngle, startAngle + sweepAngle)
-                                            startAngle += sweepAngle
+                                          chart.slices.length === 1 ? (
+                                            <circle
+                                              cx="60"
+                                              cy="60"
+                                              r="39"
+                                              fill="none"
+                                              stroke={getAdvancedSliceColor(row.label, chart.slices[0].label, 0)}
+                                              strokeWidth="22"
+                                            />
+                                          ) : (
+                                            chart.slices.map((slice, index) => {
+                                              const sweepAngle = total > 0 ? (slice.count / total) * 360 : 0
+                                              const path = createDonutSegmentPath(60, 60, 50, 28, startAngle, startAngle + sweepAngle)
+                                              startAngle += sweepAngle
 
-                                            return (
-                                              <path
-                                                key={`desktop-${row.label}-${chart.key}-${slice.label}`}
-                                                d={path}
-                                                fill={getAdvancedSliceColor(row.label, slice.label, index)}
-                                              />
-                                            )
-                                          })
+                                              return (
+                                                <path
+                                                  key={`desktop-${row.label}-${chart.key}-${slice.label}`}
+                                                  d={path}
+                                                  fill={getAdvancedSliceColor(row.label, slice.label, index)}
+                                                />
+                                              )
+                                            })
+                                          )
                                         ) : (
                                           <>
                                             <circle
@@ -3248,19 +3259,30 @@ ${emotionWarning}`
                                 <div className="relative mx-auto h-28 w-28">
                                   <svg viewBox="0 0 120 120" className="h-28 w-28">
                                     {chart.slices.length > 0 ? (
-                                      chart.slices.map((slice, index) => {
-                                        const sweepAngle = total > 0 ? (slice.count / total) * 360 : 0
-                                        const path = createDonutSegmentPath(60, 60, 50, 28, startAngle, startAngle + sweepAngle)
-                                        startAngle += sweepAngle
+                                      chart.slices.length === 1 ? (
+                                        <circle
+                                          cx="60"
+                                          cy="60"
+                                          r="39"
+                                          fill="none"
+                                          stroke={getAdvancedSliceColor(row.label, chart.slices[0].label, 0)}
+                                          strokeWidth="22"
+                                        />
+                                      ) : (
+                                        chart.slices.map((slice, index) => {
+                                          const sweepAngle = total > 0 ? (slice.count / total) * 360 : 0
+                                          const path = createDonutSegmentPath(60, 60, 50, 28, startAngle, startAngle + sweepAngle)
+                                          startAngle += sweepAngle
 
-                                        return (
-                                          <path
-                                            key={`${row.label}-${chart.key}-${slice.label}`}
-                                            d={path}
-                                            fill={getAdvancedSliceColor(row.label, slice.label, index)}
-                                          />
-                                        )
-                                      })
+                                          return (
+                                            <path
+                                              key={`${row.label}-${chart.key}-${slice.label}`}
+                                              d={path}
+                                              fill={getAdvancedSliceColor(row.label, slice.label, index)}
+                                            />
+                                          )
+                                        })
+                                      )
                                     ) : (
                                       <>
                                         <circle
