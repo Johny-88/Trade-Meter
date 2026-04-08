@@ -4032,13 +4032,24 @@ ${emotionWarning}`
                         mutedClassName={ui.muted}
                       />
 
-                      <div className={`rounded-[20px] border px-3 py-2 ${ui.input}`}>
-                        <div className={`text-[10px] uppercase tracking-[0.14em] ${ui.muted}`}>Trade date</div>
+                      <div className="relative">
+                        <div className={`relative flex h-10 w-full items-center rounded-2xl px-3 pr-10 text-left text-sm font-normal outline-none transition ${ui.select}`}>
+                          <span className="truncate text-[16px] font-normal leading-6">
+                            {`Trade date: ${journalTradeDate === getTodayDateValue() ? 'Today' : formatTradeDate(journalTradeDate)}`}
+                          </span>
+                          <span
+                            className={`pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[11px] leading-none transition ${ui.muted}`}
+                          >
+                            ▼
+                          </span>
+                        </div>
+
                         <input
                           type="date"
+                          aria-label="Trade date"
                           value={journalTradeDate}
                           onChange={(e) => setJournalTradeDate(e.target.value || getTodayDateValue())}
-                          className={`mt-1 w-full bg-transparent text-sm outline-none ${theme === 'light' ? 'text-slate-950' : 'text-white'}`}
+                          className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
                         />
                       </div>
 
