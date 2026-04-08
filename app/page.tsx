@@ -896,6 +896,13 @@ function formatTradeDate(dateValue: string) {
   })
 }
 
+function formatWeekdayName(dateValue: string) {
+  if (!dateValue) return 'Unknown'
+  return new Date(`${dateValue}T12:00:00`).toLocaleDateString([], {
+    weekday: 'long',
+  })
+}
+
 function formatCalendarMonth(date: Date) {
   return date.toLocaleDateString([], {
     month: 'long',
@@ -914,6 +921,24 @@ function formatSimpleLabel(value: string) {
 }
 
 const advancedVisualPalette = ['#38bdf8', '#22c55e', '#f87171', '#f59e0b', '#a78bfa', '#14b8a6', '#f472b6', '#60a5fa']
+const weekdayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] as const
+const weekdayColorMap: Record<string, string> = {
+  Monday: '#38bdf8',
+  Tuesday: '#22c55e',
+  Wednesday: '#f59e0b',
+  Thursday: '#a78bfa',
+  Friday: '#f87171',
+  Saturday: '#14b8a6',
+  Sunday: '#f472b6',
+}
+
+function getAdvancedSliceColor(groupLabel: string, sliceLabel: string, index: number) {
+  if (groupLabel === 'Day') {
+    return weekdayColorMap[sliceLabel] ?? advancedVisualPalette[index % advancedVisualPalette.length]
+  }
+
+  return advancedVisualPalette[index % advancedVisualPalette.length]
+}
 
 function getDistribution(values: string[]) {
   const cleaned = values.map((value) => value.trim()).filter(Boolean)
@@ -1849,6 +1874,9 @@ export default function Home() {
   const topOverallSetup = getTopStat(journal.map((entry) => entry.setupType))
   const topOverallStrategy = getTopStat(journal.map((entry) => entry.strategy))
   const topOverallEmotion = getTopStat(journal.map((entry) => entry.emotion))
+  const topOverallDay = getTopStat(journal.map((entry) => formatWeekdayName(entry.tradeDate || entry.createdAt.slice(0, 10))))
+  const topWinningDay = getTopStat(winningTrades.map((entry) => formatWeekdayName(entry.tradeDate || entry.createdAt.slice(0, 10))))
+  const topLosingDay = getTopStat(losingTrades.map((entry) => formatWeekdayName(entry.tradeDate || entry.createdAt.slice(0, 10))))
   const perfectWinningCombination = getCombinationSummary(winningTrades)
   const worstLosingCombination = getCombinationSummary(losingTrades)
 
@@ -1904,6 +1932,25 @@ export default function Home() {
   const topTradingDay = [...dayStats].sort((a, b) => b.logged - a.logged || b.closed - a.closed || b.date.localeCompare(a.date))[0]
   const bestTradingDay = [...dayStats].filter((day) => day.closed > 0).sort((a, b) => b.netPnl - a.netPnl || b.date.localeCompare(a.date))[0]
   const worstTradingDay = [...dayStats].filter((day) => day.closed > 0).sort((a, b) => a.netPnl - b.netPnl || b.date.localeCompare(a.date))[0]
+  const weekdayStatsMap = dayStats.reduce<Record<string, { logged: number; closed: number; netPnl: number; wins: number; losses: number; breakevens: number }>>((acc, day) => {
+    const key = formatWeekdayName(day.date)
+    const current = acc[key] ?? { logged: 0, closed: 0, netPnl: 0, wins: 0, losses: 0, breakevens: 0 }
+    current.logged += day.logged
+    current.closed += day.closed
+    current.netPnl += day.netPnl
+    current.wins += day.wins
+    current.losses += day.losses
+    current.breakevens += day.breakevens
+    acc[key] = current
+    return acc
+  }, {})
+  const weekdayStats = weekdayOrder.map((day) => ({
+    day,
+    ...(weekdayStatsMap[day] ?? { logged: 0, closed: 0, netPnl: 0, wins: 0, losses: 0, breakevens: 0 }),
+  }))
+  const topTradingWeekday = [...weekdayStats].filter((day) => day.logged > 0).sort((a, b) => b.logged - a.logged || b.closed - a.closed || weekdayOrder.indexOf(a.day) - weekdayOrder.indexOf(b.day))[0]
+  const bestTradingWeekday = [...weekdayStats].filter((day) => day.closed > 0).sort((a, b) => b.netPnl - a.netPnl || weekdayOrder.indexOf(a.day) - weekdayOrder.indexOf(b.day))[0]
+  const worstTradingWeekday = [...weekdayStats].filter((day) => day.closed > 0).sort((a, b) => a.netPnl - b.netPnl || weekdayOrder.indexOf(a.day) - weekdayOrder.indexOf(b.day))[0]
   const calendarMonthEntries = dayStats.filter((day) => {
     const date = new Date(`${day.date}T12:00:00`)
     return date.getFullYear() === calendarMonthCursor.getFullYear() && date.getMonth() === calendarMonthCursor.getMonth()
@@ -2028,6 +2075,15 @@ export default function Home() {
       overallSlices: getDistribution(journal.map((entry) => entry.session)),
       winningSlices: getDistribution(winningTrades.map((entry) => entry.session)),
       losingSlices: getDistribution(losingTrades.map((entry) => entry.session)),
+    },
+    {
+      label: 'Day',
+      overallTop: topOverallDay ? topOverallDay.value : 'No data',
+      winningTop: topWinningDay ? topWinningDay.value : 'No wins',
+      losingTop: topLosingDay ? topLosingDay.value : 'No losses',
+      overallSlices: getDistribution(journal.map((entry) => formatWeekdayName(entry.tradeDate || entry.createdAt.slice(0, 10)))),
+      winningSlices: getDistribution(winningTrades.map((entry) => formatWeekdayName(entry.tradeDate || entry.createdAt.slice(0, 10)))),
+      losingSlices: getDistribution(losingTrades.map((entry) => formatWeekdayName(entry.tradeDate || entry.createdAt.slice(0, 10)))),
     },
   ]
   const advancedWinningPatternCells = perfectWinningCombination
@@ -2830,6 +2886,12 @@ ${emotionWarning}`
                     win: topWinningSession ? topWinningSession.value : 'No wins',
                     loss: topLosingSession ? topLosingSession.value : 'No losses',
                   },
+                  {
+                    label: 'Day',
+                    top: topOverallDay ? topOverallDay.value : 'No data',
+                    win: topWinningDay ? topWinningDay.value : 'No wins',
+                    loss: topLosingDay ? topLosingDay.value : 'No losses',
+                  },
                 ].map((row) => (
                   <div key={row.label} className={`rounded-[20px] border p-3 ${ui.innerCard}`}>
                     <div className="mb-2 text-sm font-bold md:hidden">{row.label}</div>
@@ -2890,20 +2952,20 @@ ${emotionWarning}`
               {[
                 {
                   label: 'Top trading day',
-                  value: topTradingDay ? formatTradeDate(topTradingDay.date) : 'No journal data yet.',
-                  meta: topTradingDay ? `${topTradingDay.logged} trades logged` : 'Start journaling to populate this.',
+                  value: topTradingWeekday ? topTradingWeekday.day : 'No journal data yet.',
+                  meta: topTradingWeekday ? `${topTradingWeekday.logged} trades logged` : 'Start journaling to populate this.',
                   className: theme === 'light' ? 'border-sky-200 bg-sky-50/70' : 'border-sky-500/20 bg-sky-500/10',
                 },
                 {
                   label: 'Best day',
-                  value: bestTradingDay ? formatTradeDate(bestTradingDay.date) : 'No closed-trade day yet.',
-                  meta: bestTradingDay ? `${formatSignedNumber(bestTradingDay.netPnl)} • ${bestTradingDay.closed} closed trades` : 'Needs closed trades to calculate.',
+                  value: bestTradingWeekday ? bestTradingWeekday.day : 'No closed-trade day yet.',
+                  meta: bestTradingWeekday ? `${formatSignedNumber(bestTradingWeekday.netPnl)} • ${bestTradingWeekday.closed} closed trades` : 'Needs closed trades to calculate.',
                   className: theme === 'light' ? 'border-emerald-200 bg-emerald-50/70' : 'border-emerald-500/20 bg-emerald-500/10',
                 },
                 {
                   label: 'Worst day',
-                  value: worstTradingDay ? formatTradeDate(worstTradingDay.date) : 'No closed-trade day yet.',
-                  meta: worstTradingDay ? `${formatSignedNumber(worstTradingDay.netPnl)} • ${worstTradingDay.closed} closed trades` : 'Needs closed trades to calculate.',
+                  value: worstTradingWeekday ? worstTradingWeekday.day : 'No closed-trade day yet.',
+                  meta: worstTradingWeekday ? `${formatSignedNumber(worstTradingWeekday.netPnl)} • ${worstTradingWeekday.closed} closed trades` : 'Needs closed trades to calculate.',
                   className: theme === 'light' ? 'border-red-200 bg-red-50/70' : 'border-red-500/20 bg-red-500/10',
                 },
               ].map((item) => (
@@ -3062,7 +3124,7 @@ ${emotionWarning}`
                                               <path
                                                 key={`desktop-${row.label}-${chart.key}-${slice.label}`}
                                                 d={path}
-                                                fill={advancedVisualPalette[index % advancedVisualPalette.length]}
+                                                fill={getAdvancedSliceColor(row.label, slice.label, index)}
                                               />
                                             )
                                           })
@@ -3113,7 +3175,7 @@ ${emotionWarning}`
                                             >
                                               <span
                                                 className="mt-1 h-2.5 w-2.5 flex-none rounded-full"
-                                                style={{ backgroundColor: advancedVisualPalette[index % advancedVisualPalette.length] }}
+                                                style={{ backgroundColor: getAdvancedSliceColor(row.label, slice.label, index) }}
                                               />
                                               <span className="min-w-0 flex-1 whitespace-normal break-words text-[12px] font-medium leading-4">
                                                 {slice.label}
@@ -3195,7 +3257,7 @@ ${emotionWarning}`
                                           <path
                                             key={`${row.label}-${chart.key}-${slice.label}`}
                                             d={path}
-                                            fill={advancedVisualPalette[index % advancedVisualPalette.length]}
+                                            fill={getAdvancedSliceColor(row.label, slice.label, index)}
                                           />
                                         )
                                       })
@@ -3246,7 +3308,7 @@ ${emotionWarning}`
                                         >
                                           <span
                                             className="h-2.5 w-2.5 flex-none rounded-full"
-                                            style={{ backgroundColor: advancedVisualPalette[index % advancedVisualPalette.length] }}
+                                            style={{ backgroundColor: getAdvancedSliceColor(row.label, slice.label, index) }}
                                           />
                                           <span className="min-w-0 flex-1 truncate text-[12px] font-medium leading-5">{slice.label}</span>
                                           <span className={`text-[11px] font-semibold ${ui.muted}`}>{percent}%</span>
@@ -3276,20 +3338,20 @@ ${emotionWarning}`
                   {[
                     {
                       label: 'Top trading day',
-                      value: topTradingDay ? formatTradeDate(topTradingDay.date) : 'No journal data yet.',
-                      meta: topTradingDay ? `${topTradingDay.logged} trades logged` : 'Start journaling to populate this.',
+                      value: topTradingWeekday ? topTradingWeekday.day : 'No journal data yet.',
+                      meta: topTradingWeekday ? `${topTradingWeekday.logged} trades logged` : 'Start journaling to populate this.',
                       className: theme === 'light' ? 'border-sky-200 bg-sky-50/70' : 'border-sky-500/20 bg-sky-500/10',
                     },
                     {
                       label: 'Best day',
-                      value: bestTradingDay ? formatTradeDate(bestTradingDay.date) : 'No closed-trade day yet.',
-                      meta: bestTradingDay ? `${formatSignedNumber(bestTradingDay.netPnl)} • ${bestTradingDay.closed} closed trades` : 'Needs closed trades to calculate.',
+                      value: bestTradingWeekday ? bestTradingWeekday.day : 'No closed-trade day yet.',
+                      meta: bestTradingWeekday ? `${formatSignedNumber(bestTradingWeekday.netPnl)} • ${bestTradingWeekday.closed} closed trades` : 'Needs closed trades to calculate.',
                       className: theme === 'light' ? 'border-emerald-200 bg-emerald-50/70' : 'border-emerald-500/20 bg-emerald-500/10',
                     },
                     {
                       label: 'Worst day',
-                      value: worstTradingDay ? formatTradeDate(worstTradingDay.date) : 'No closed-trade day yet.',
-                      meta: worstTradingDay ? `${formatSignedNumber(worstTradingDay.netPnl)} • ${worstTradingDay.closed} closed trades` : 'Needs closed trades to calculate.',
+                      value: worstTradingWeekday ? worstTradingWeekday.day : 'No closed-trade day yet.',
+                      meta: worstTradingWeekday ? `${formatSignedNumber(worstTradingWeekday.netPnl)} • ${worstTradingWeekday.closed} closed trades` : 'Needs closed trades to calculate.',
                       className: theme === 'light' ? 'border-red-200 bg-red-50/70' : 'border-red-500/20 bg-red-500/10',
                     },
                   ].map((item) => (
