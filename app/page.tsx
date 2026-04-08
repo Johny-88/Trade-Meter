@@ -3440,16 +3440,18 @@ ${emotionWarning}`
             </div>
 
             <div className={`mt-5 rounded-[24px] border p-3 shadow-sm md:p-4 ${ui.statBox}`}>
-              <div className="grid grid-cols-7 gap-2">
-                {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
-                  <div key={day} className={`rounded-[14px] px-2 py-2 text-center text-[10px] font-semibold uppercase tracking-[0.14em] ${ui.muted}`}>
-                    {day}
+              <div className="-mx-1 overflow-x-auto px-1 pb-1 md:mx-0 md:overflow-visible md:px-0 md:pb-0">
+                <div className="min-w-[700px] md:min-w-0">
+                  <div className="grid grid-cols-7 gap-2">
+                    {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
+                      <div key={day} className={`rounded-[14px] px-2 py-2 text-center text-[10px] font-semibold uppercase tracking-[0.14em] ${ui.muted}`}>
+                        {day}
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
 
-              <div className="mt-2 grid grid-cols-7 gap-2">
-                {calendarMonthGrid.map((cell) => {
+                  <div className="mt-2 grid grid-cols-7 gap-2">
+                    {calendarMonthGrid.map((cell) => {
                   const accentClass =
                     cell.accent === 'win'
                       ? 'bg-emerald-400'
@@ -3464,7 +3466,7 @@ ${emotionWarning}`
                   return (
                     <div
                       key={cell.dateKey}
-                      className={`relative min-h-[92px] overflow-hidden rounded-[18px] border px-2.5 py-2 ${
+                      className={`relative min-h-[124px] overflow-hidden rounded-[18px] border px-2.5 py-2 md:min-h-[92px] ${
                         cell.isCurrentMonth
                           ? ui.statBox
                           : theme === 'light'
@@ -3499,6 +3501,8 @@ ${emotionWarning}`
                     </div>
                   )
                 })}
+                  </div>
+                </div>
               </div>
             </div>
 
