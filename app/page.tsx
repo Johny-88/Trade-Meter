@@ -3440,18 +3440,17 @@ ${emotionWarning}`
             </div>
 
             <div className={`mt-5 rounded-[24px] border p-3 shadow-sm md:p-4 ${ui.statBox}`}>
-              <div className="-mx-1 overflow-x-auto px-1 pb-1 md:mx-0 md:overflow-visible md:px-0 md:pb-0">
-                <div className="min-w-[700px] md:min-w-0">
-                  <div className="grid grid-cols-7 gap-2">
-                    {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
-                      <div key={day} className={`rounded-[14px] px-2 py-2 text-center text-[10px] font-semibold uppercase tracking-[0.14em] ${ui.muted}`}>
-                        {day}
-                      </div>
-                    ))}
+              <div className="grid grid-cols-7 gap-1 md:gap-2">
+                {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
+                  <div key={day} className={`rounded-[12px] px-1 py-1.5 text-center text-[9px] font-semibold uppercase tracking-[0.12em] md:rounded-[14px] md:px-2 md:py-2 md:text-[10px] md:tracking-[0.14em] ${ui.muted}`}>
+                    <span className="md:hidden">{day.slice(0, 1)}</span>
+                    <span className="hidden md:inline">{day}</span>
                   </div>
+                ))}
+              </div>
 
-                  <div className="mt-2 grid grid-cols-7 gap-2">
-                    {calendarMonthGrid.map((cell) => {
+              <div className="mt-2 grid grid-cols-7 gap-1 md:gap-2">
+                {calendarMonthGrid.map((cell) => {
                   const accentClass =
                     cell.accent === 'win'
                       ? 'bg-emerald-400'
@@ -3466,7 +3465,7 @@ ${emotionWarning}`
                   return (
                     <div
                       key={cell.dateKey}
-                      className={`relative min-h-[124px] overflow-hidden rounded-[18px] border px-2.5 py-2 md:min-h-[92px] ${
+                      className={`relative min-h-[66px] overflow-hidden rounded-[14px] border px-1.5 py-1.5 md:min-h-[92px] md:rounded-[18px] md:px-2.5 md:py-2 ${
                         cell.isCurrentMonth
                           ? ui.statBox
                           : theme === 'light'
@@ -3474,35 +3473,36 @@ ${emotionWarning}`
                           : 'border-white/10 bg-slate-950/30 text-slate-500'
                       }`}
                     >
-                      <div className={`absolute inset-x-0 top-0 h-1 ${accentClass}`} />
+                      <div className={`absolute inset-x-0 top-0 h-[3px] md:h-1 ${accentClass}`} />
 
                       <div className="flex items-start justify-between gap-2">
-                        <div className={`text-xs font-semibold ${cell.isCurrentMonth ? ui.secondaryStrong : ui.muted}`}>
+                        <div className={`text-[11px] font-semibold md:text-xs ${cell.isCurrentMonth ? ui.secondaryStrong : ui.muted}`}>
                           {cell.dayNumber}
                         </div>
 
                         {cell.stats && (
-                          <div className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold ${theme === 'light' ? 'border-slate-200 bg-white text-slate-700' : 'border-white/10 bg-white/5 text-slate-200'}`}>
+                          <div className={`rounded-full border px-1.5 py-0.5 text-[8px] font-semibold md:px-2 md:text-[10px] ${theme === 'light' ? 'border-slate-200 bg-white text-slate-700' : 'border-white/10 bg-white/5 text-slate-200'}`}>
                             {cell.stats.logged}
                           </div>
                         )}
                       </div>
 
                       {cell.stats ? (
-                        <div className="mt-3 space-y-1">
-                          <div className="text-[10px] font-semibold">{formatSignedNumber(cell.stats.netPnl)}</div>
-                          <div className={`text-[10px] leading-4 ${ui.muted}`}>
+                        <div className="mt-2 space-y-0.5 md:mt-3 md:space-y-1">
+                          <div className="text-[9px] font-semibold leading-3 md:text-[10px] md:leading-4">{formatSignedNumber(cell.stats.netPnl)}</div>
+                          <div className={`md:hidden text-[8px] leading-3 ${ui.muted}`}>
+                            {cell.stats.wins}/{cell.stats.losses}/{cell.stats.breakevens}
+                          </div>
+                          <div className={`hidden md:block text-[10px] leading-4 ${ui.muted}`}>
                             {cell.stats.wins}W • {cell.stats.losses}L • {cell.stats.breakevens}BE
                           </div>
                         </div>
                       ) : (
-                        <div className={`mt-4 text-[10px] leading-4 ${ui.muted}`}>No trades</div>
+                        <div className={`mt-3 text-[8px] leading-3 md:mt-4 md:text-[10px] md:leading-4 ${ui.muted}`}>No trade</div>
                       )}
                     </div>
                   )
                 })}
-                  </div>
-                </div>
               </div>
             </div>
 
