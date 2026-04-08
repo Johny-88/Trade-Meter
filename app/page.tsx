@@ -61,6 +61,7 @@ type SavedTemplate = {
 type JournalEntry = {
   id: string
   createdAt: string
+  tradeDate: string
   score: number
   threshold: number
   verdict: string
@@ -882,6 +883,26 @@ function formatDate(dateIso: string) {
   })
 }
 
+function getTodayDateValue() {
+  return new Date().toISOString().slice(0, 10)
+}
+
+function formatTradeDate(dateValue: string) {
+  if (!dateValue) return 'No date'
+  return new Date(`${dateValue}T12:00:00`).toLocaleDateString([], {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  })
+}
+
+function formatCalendarMonth(date: Date) {
+  return date.toLocaleDateString([], {
+    month: 'long',
+    year: 'numeric',
+  })
+}
+
 function formatSignedNumber(value: number, decimals = 2, suffix = '') {
   return `${value >= 0 ? '+' : ''}${value.toFixed(decimals)}${suffix}`
 }
@@ -952,6 +973,10 @@ function normalizeJournalEntry(entry: Partial<JournalEntry>): JournalEntry {
   return {
     id: typeof entry.id === 'string' ? entry.id : makeId(),
     createdAt: typeof entry.createdAt === 'string' ? entry.createdAt : new Date().toISOString(),
+    tradeDate:
+      typeof entry.tradeDate === 'string' && entry.tradeDate.trim().length > 0
+        ? entry.tradeDate
+        : (typeof entry.createdAt === 'string' ? entry.createdAt.slice(0, 10) : getTodayDateValue()),
     score: typeof entry.score === 'number' ? entry.score : 0,
     threshold: typeof entry.threshold === 'number' ? entry.threshold : 0,
     verdict: typeof entry.verdict === 'string' ? entry.verdict : 'NOT LOGGED',
@@ -1363,6 +1388,7 @@ export default function Home() {
   const [newRuleError, setNewRuleError] = useState('')
   const [showInstructions, setShowInstructions] = useState(false)
   const [showAdvancedPerformance, setShowAdvancedPerformance] = useState(false)
+  const [showTradingCalendar, setShowTradingCalendar] = useState(false)
   const [advancedView, setAdvancedView] = useState<'data' | 'visual'>('data')
   const [selectedJournalEntry, setSelectedJournalEntry] = useState<JournalEntry | null>(null)
   const [editingJournalEntryId, setEditingJournalEntryId] = useState<string | null>(null)
@@ -1390,6 +1416,7 @@ export default function Home() {
   const [selectedTemplateId, setSelectedTemplateId] = useState('')
   const [selectedRulePackId, setSelectedRulePackId] = useState(defaultRulePacks[0].id)
   const [tradeNote, setTradeNote] = useState('')
+  const [journalTradeDate, setJournalTradeDate] = useState(getTodayDateValue())
   const [tradeOutcome, setTradeOutcome] = useState<JournalOutcome>('breakeven')
   const [followedVerdict, setFollowedVerdict] = useState<FollowedVerdict>('yes')
   const [journalDirection, setJournalDirection] = useState<TradeDirection>('long')
@@ -1408,6 +1435,10 @@ export default function Home() {
     }))
   )
   const [topOffset, setTopOffset] = useState(0)
+  const [calendarMonthCursor, setCalendarMonthCursor] = useState(() => {
+    const today = new Date()
+    return new Date(today.getFullYear(), today.getMonth(), 1)
+  })
   const liveScoreRef = useRef<HTMLDivElement | null>(null)
   const journalSectionRef = useRef<HTMLDivElement | null>(null)
   const importanceSelectRef = useRef<HTMLSelectElement | null>(null)
@@ -1611,7 +1642,7 @@ export default function Home() {
   }, [journal])
 
   useEffect(() => {
-    if (!showInstructions && !showFocusMode && !showAdvancedPerformance && !selectedJournalEntry) return
+    if (!showInstructions && !showFocusMode && !showAdvancedPerformance && !showTradingCalendar && !selectedJournalEntry) return
 
     const previousOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
@@ -1619,7 +1650,7 @@ export default function Home() {
     return () => {
       document.body.style.overflow = previousOverflow
     }
-  }, [showInstructions, showFocusMode, showAdvancedPerformance, selectedJournalEntry])
+  }, [showInstructions, showFocusMode, showAdvancedPerformance, showTradingCalendar, selectedJournalEntry])
 
   useEffect(() => {
     if (!proTimerActive) return
@@ -1845,6 +1876,73 @@ export default function Home() {
   )
     .map(([setup, stats]) => ({ setup, avgR: stats.count > 0 ? stats.total / stats.count : 0 }))
     .sort((a, b) => a.avgR - b.avgR)[0]
+  const dayStatsMap = journal.reduce<Record<string, { logged: number; closed: number; netPnl: number; wins: number; losses: number; breakevens: number }>>((acc, entry) => {
+    const key = entry.tradeDate || entry.createdAt.slice(0, 10)
+    const current = acc[key] ?? { logged: 0, closed: 0, netPnl: 0, wins: 0, losses: 0, breakevens: 0 }
+    current.logged += 1
+
+    if (entry.outcome === 'win') {
+      current.closed += 1
+      current.wins += 1
+      current.netPnl += entry.pnl
+    } else if (entry.outcome === 'loss') {
+      current.closed += 1
+      current.losses += 1
+      current.netPnl += entry.pnl
+    } else if (entry.outcome === 'breakeven') {
+      current.closed += 1
+      current.breakevens += 1
+      current.netPnl += entry.pnl
+    }
+
+    acc[key] = current
+    return acc
+  }, {})
+  const dayStats = Object.entries(dayStatsMap)
+    .map(([date, stats]) => ({ date, ...stats }))
+    .sort((a, b) => b.date.localeCompare(a.date))
+  const topTradingDay = [...dayStats].sort((a, b) => b.logged - a.logged || b.closed - a.closed || b.date.localeCompare(a.date))[0]
+  const bestTradingDay = [...dayStats].filter((day) => day.closed > 0).sort((a, b) => b.netPnl - a.netPnl || b.date.localeCompare(a.date))[0]
+  const worstTradingDay = [...dayStats].filter((day) => day.closed > 0).sort((a, b) => a.netPnl - b.netPnl || b.date.localeCompare(a.date))[0]
+  const calendarMonthEntries = dayStats.filter((day) => {
+    const date = new Date(`${day.date}T12:00:00`)
+    return date.getFullYear() === calendarMonthCursor.getFullYear() && date.getMonth() === calendarMonthCursor.getMonth()
+  })
+  const calendarMonthLoggedTrades = calendarMonthEntries.reduce((sum, day) => sum + day.logged, 0)
+  const calendarMonthClosedTrades = calendarMonthEntries.reduce((sum, day) => sum + day.closed, 0)
+  const calendarMonthNetPnl = calendarMonthEntries.reduce((sum, day) => sum + day.netPnl, 0)
+  const calendarMonthGrid = (() => {
+    const year = calendarMonthCursor.getFullYear()
+    const month = calendarMonthCursor.getMonth()
+    const firstDayOfMonth = new Date(year, month, 1)
+    const mondayBasedWeekday = (firstDayOfMonth.getDay() + 6) % 7
+    const gridStartDate = new Date(year, month, 1 - mondayBasedWeekday)
+
+    return Array.from({ length: 42 }, (_, index) => {
+      const cellDate = new Date(gridStartDate)
+      cellDate.setDate(gridStartDate.getDate() + index)
+      const dateKey = cellDate.toISOString().slice(0, 10)
+      const stats = dayStatsMap[dateKey]
+      const accent =
+        !stats
+          ? null
+          : stats.netPnl > 0
+          ? 'win'
+          : stats.netPnl < 0
+          ? 'loss'
+          : stats.closed > 0
+          ? 'breakeven'
+          : 'neutral'
+
+      return {
+        dateKey,
+        dayNumber: cellDate.getDate(),
+        isCurrentMonth: cellDate.getMonth() === month,
+        stats,
+        accent,
+      }
+    })
+  })()
   const scoreCarryMessage =
     checkedPoints === 0
       ? 'No rules are confirmed yet.'
@@ -2464,6 +2562,7 @@ export default function Home() {
 
   const resetJournalEntryForm = () => {
     setEditingJournalEntryId(null)
+    setJournalTradeDate(getTodayDateValue())
     setTradeNote('')
     setTradeOutcome('breakeven')
     setFollowedVerdict('yes')
@@ -2482,6 +2581,7 @@ export default function Home() {
     setStrategyOptions((prev) => addUniqueOption(entry.strategy, prev))
     setJournalInstrument(entry.instrument)
     setJournalSetup(entry.setupType)
+    setJournalTradeDate(entry.tradeDate)
     setJournalStrategy(entry.strategy)
     setJournalMarketCondition(entry.marketCondition)
     setJournalEmotion(entry.emotion)
@@ -2498,10 +2598,12 @@ export default function Home() {
 
   const saveJournalEntry = () => {
     const existingEntry = editingJournalEntryId ? journal.find((entry) => entry.id === editingJournalEntryId) ?? null : null
+    const normalizedTradeDate = journalTradeDate || getTodayDateValue()
 
     const entry: JournalEntry = existingEntry
       ? {
           ...existingEntry,
+          tradeDate: normalizedTradeDate,
           outcome: tradeOutcome,
           followedVerdict,
           note: tradeNote.trim(),
@@ -2520,6 +2622,7 @@ export default function Home() {
       : {
           id: makeId(),
           createdAt: new Date().toISOString(),
+          tradeDate: normalizedTradeDate,
           score,
           threshold: minScore,
           verdict: rating.decisionLabel,
@@ -2781,6 +2884,35 @@ ${emotionWarning}`
                   </div>
                 ))}
               </div>
+            </div>
+
+            <div className="mt-5 grid gap-3 md:grid-cols-3">
+              {[
+                {
+                  label: 'Top trading day',
+                  value: topTradingDay ? formatTradeDate(topTradingDay.date) : 'No journal data yet.',
+                  meta: topTradingDay ? `${topTradingDay.logged} trades logged` : 'Start journaling to populate this.',
+                  className: theme === 'light' ? 'border-sky-200 bg-sky-50/70' : 'border-sky-500/20 bg-sky-500/10',
+                },
+                {
+                  label: 'Best day',
+                  value: bestTradingDay ? formatTradeDate(bestTradingDay.date) : 'No closed-trade day yet.',
+                  meta: bestTradingDay ? `${formatSignedNumber(bestTradingDay.netPnl)} • ${bestTradingDay.closed} closed trades` : 'Needs closed trades to calculate.',
+                  className: theme === 'light' ? 'border-emerald-200 bg-emerald-50/70' : 'border-emerald-500/20 bg-emerald-500/10',
+                },
+                {
+                  label: 'Worst day',
+                  value: worstTradingDay ? formatTradeDate(worstTradingDay.date) : 'No closed-trade day yet.',
+                  meta: worstTradingDay ? `${formatSignedNumber(worstTradingDay.netPnl)} • ${worstTradingDay.closed} closed trades` : 'Needs closed trades to calculate.',
+                  className: theme === 'light' ? 'border-red-200 bg-red-50/70' : 'border-red-500/20 bg-red-500/10',
+                },
+              ].map((item) => (
+                <div key={item.label} className={`rounded-[20px] border px-4 py-3 ${item.className}`}>
+                  <div className={`text-[10px] uppercase tracking-[0.16em] ${ui.muted}`}>{item.label}</div>
+                  <div className="mt-1 text-sm font-semibold leading-5">{item.value}</div>
+                  <div className={`mt-1 text-[11px] leading-5 ${ui.subtle}`}>{item.meta}</div>
+                </div>
+              ))}
             </div>
 
             <div className="mt-5 grid gap-4 md:grid-cols-2">
@@ -3140,6 +3272,35 @@ ${emotionWarning}`
                   ))}
                 </div>
 
+                <div className="mt-5 grid gap-3 md:grid-cols-3">
+                  {[
+                    {
+                      label: 'Top trading day',
+                      value: topTradingDay ? formatTradeDate(topTradingDay.date) : 'No journal data yet.',
+                      meta: topTradingDay ? `${topTradingDay.logged} trades logged` : 'Start journaling to populate this.',
+                      className: theme === 'light' ? 'border-sky-200 bg-sky-50/70' : 'border-sky-500/20 bg-sky-500/10',
+                    },
+                    {
+                      label: 'Best day',
+                      value: bestTradingDay ? formatTradeDate(bestTradingDay.date) : 'No closed-trade day yet.',
+                      meta: bestTradingDay ? `${formatSignedNumber(bestTradingDay.netPnl)} • ${bestTradingDay.closed} closed trades` : 'Needs closed trades to calculate.',
+                      className: theme === 'light' ? 'border-emerald-200 bg-emerald-50/70' : 'border-emerald-500/20 bg-emerald-500/10',
+                    },
+                    {
+                      label: 'Worst day',
+                      value: worstTradingDay ? formatTradeDate(worstTradingDay.date) : 'No closed-trade day yet.',
+                      meta: worstTradingDay ? `${formatSignedNumber(worstTradingDay.netPnl)} • ${worstTradingDay.closed} closed trades` : 'Needs closed trades to calculate.',
+                      className: theme === 'light' ? 'border-red-200 bg-red-50/70' : 'border-red-500/20 bg-red-500/10',
+                    },
+                  ].map((item) => (
+                    <div key={item.label} className={`rounded-[20px] border px-4 py-3 ${item.className}`}>
+                      <div className={`text-[10px] uppercase tracking-[0.16em] ${ui.muted}`}>{item.label}</div>
+                      <div className="mt-1 text-sm font-semibold leading-5">{item.value}</div>
+                      <div className={`mt-1 text-[11px] leading-5 ${ui.subtle}`}>{item.meta}</div>
+                    </div>
+                  ))}
+                </div>
+
                 <div className="mt-5 grid gap-4 md:grid-cols-2">
                   <div className={`rounded-[24px] border px-4 py-4 shadow-sm ${ui.statBox}`}>
                     <div className="flex items-center justify-between gap-3">
@@ -3215,6 +3376,150 @@ ${emotionWarning}`
         </div>
       )}
 
+      {showTradingCalendar && (
+        <div className="fixed inset-0 z-[82] flex items-start justify-center overflow-y-auto bg-slate-950/65 px-4 py-4 backdrop-blur-sm sm:items-center">
+          <div className={`relative w-full max-w-5xl rounded-[28px] border p-5 shadow-2xl md:p-6 ${ui.card}`}>
+            <button
+              type="button"
+              onClick={() => setShowTradingCalendar(false)}
+              className={`absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full text-lg font-semibold transition ${ui.secondaryBtn}`}
+              aria-label="Close trading calendar"
+            >
+              ×
+            </button>
+
+            <div className="px-2 sm:px-8 md:px-10">
+              <h2 className="text-center text-xl font-bold md:text-2xl">Trading calendar</h2>
+              <p className={`mt-2 text-center text-sm leading-6 ${ui.subtle}`}>
+                Every journal entry is plotted on the date you assign in the journal form, so you can review how active, strong, or weak each trading day was.
+              </p>
+            </div>
+
+            <div className="mt-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div className="flex flex-wrap gap-2">
+                <div className={`rounded-full border px-4 py-2 text-xs font-semibold ${theme === 'light' ? 'border-slate-200 bg-white text-slate-700' : 'border-white/10 bg-white/5 text-slate-200'}`}>
+                  {formatCalendarMonth(calendarMonthCursor)}
+                </div>
+                <div className={`rounded-full border px-4 py-2 text-xs font-semibold ${theme === 'light' ? 'border-slate-200 bg-white text-slate-700' : 'border-white/10 bg-white/5 text-slate-200'}`}>
+                  {calendarMonthLoggedTrades} logged trades
+                </div>
+                <div className={`rounded-full border px-4 py-2 text-xs font-semibold ${theme === 'light' ? 'border-slate-200 bg-white text-slate-700' : 'border-white/10 bg-white/5 text-slate-200'}`}>
+                  {calendarMonthClosedTrades} closed trades
+                </div>
+                <div className={`rounded-full border px-4 py-2 text-xs font-semibold ${calendarMonthNetPnl >= 0 ? qualificationStyles.badge : theme === 'light' ? 'border-red-200 bg-red-50 text-red-700' : 'border-red-500/20 bg-red-500/10 text-red-200'}`}>
+                  {formatSignedNumber(calendarMonthNetPnl)}
+                </div>
+              </div>
+
+              <div className={`inline-flex flex-wrap items-center gap-2 rounded-full border p-1 ${ui.toggleShell}`}>
+                <button
+                  type="button"
+                  onClick={() => setCalendarMonthCursor((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1))}
+                  className={`rounded-full px-3 py-2 text-xs font-semibold transition ${ui.toggleInactive}`}
+                >
+                  Prev
+                </button>
+                <div className={`rounded-full px-4 py-2 text-xs font-semibold ${ui.toggleActive}`}>
+                  {formatCalendarMonth(calendarMonthCursor)}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setCalendarMonthCursor((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1))}
+                  className={`rounded-full px-3 py-2 text-xs font-semibold transition ${ui.toggleInactive}`}
+                >
+                  Next
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCalendarMonthCursor(new Date(new Date().getFullYear(), new Date().getMonth(), 1))}
+                  className={`rounded-full px-3 py-2 text-xs font-semibold transition ${ui.toggleInactive}`}
+                >
+                  Today
+                </button>
+              </div>
+            </div>
+
+            <div className={`mt-5 rounded-[24px] border p-3 shadow-sm md:p-4 ${ui.statBox}`}>
+              <div className="grid grid-cols-7 gap-2">
+                {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
+                  <div key={day} className={`rounded-[14px] px-2 py-2 text-center text-[10px] font-semibold uppercase tracking-[0.14em] ${ui.muted}`}>
+                    {day}
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-2 grid grid-cols-7 gap-2">
+                {calendarMonthGrid.map((cell) => {
+                  const accentClass =
+                    cell.accent === 'win'
+                      ? 'bg-emerald-400'
+                      : cell.accent === 'loss'
+                      ? 'bg-red-400'
+                      : cell.accent === 'breakeven'
+                      ? 'bg-amber-400'
+                      : cell.accent === 'neutral'
+                      ? (theme === 'light' ? 'bg-sky-400' : 'bg-sky-300')
+                      : 'bg-transparent'
+
+                  return (
+                    <div
+                      key={cell.dateKey}
+                      className={`relative min-h-[92px] overflow-hidden rounded-[18px] border px-2.5 py-2 ${
+                        cell.isCurrentMonth
+                          ? ui.statBox
+                          : theme === 'light'
+                          ? 'border-slate-200 bg-slate-50/70 text-slate-400'
+                          : 'border-white/10 bg-slate-950/30 text-slate-500'
+                      }`}
+                    >
+                      <div className={`absolute inset-x-0 top-0 h-1 ${accentClass}`} />
+
+                      <div className="flex items-start justify-between gap-2">
+                        <div className={`text-xs font-semibold ${cell.isCurrentMonth ? ui.secondaryStrong : ui.muted}`}>
+                          {cell.dayNumber}
+                        </div>
+
+                        {cell.stats && (
+                          <div className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold ${theme === 'light' ? 'border-slate-200 bg-white text-slate-700' : 'border-white/10 bg-white/5 text-slate-200'}`}>
+                            {cell.stats.logged}
+                          </div>
+                        )}
+                      </div>
+
+                      {cell.stats ? (
+                        <div className="mt-3 space-y-1">
+                          <div className="text-[10px] font-semibold">{formatSignedNumber(cell.stats.netPnl)}</div>
+                          <div className={`text-[10px] leading-4 ${ui.muted}`}>
+                            {cell.stats.wins}W • {cell.stats.losses}L • {cell.stats.breakevens}BE
+                          </div>
+                        </div>
+                      ) : (
+                        <div className={`mt-4 text-[10px] leading-4 ${ui.muted}`}>No trades</div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            <div className="mt-4 flex flex-wrap gap-2">
+              <div className={`rounded-full border px-3 py-1.5 text-[11px] font-semibold ${theme === 'light' ? 'border-slate-200 bg-white text-slate-700' : 'border-white/10 bg-white/5 text-slate-200'}`}>
+                Cell number = trades logged that day
+              </div>
+              <div className={`rounded-full border px-3 py-1.5 text-[11px] font-semibold ${theme === 'light' ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-emerald-500/20 bg-emerald-500/10 text-emerald-200'}`}>
+                Green line = positive day
+              </div>
+              <div className={`rounded-full border px-3 py-1.5 text-[11px] font-semibold ${theme === 'light' ? 'border-red-200 bg-red-50 text-red-700' : 'border-red-500/20 bg-red-500/10 text-red-200'}`}>
+                Red line = negative day
+              </div>
+              <div className={`rounded-full border px-3 py-1.5 text-[11px] font-semibold ${theme === 'light' ? 'border-amber-200 bg-amber-50 text-amber-700' : 'border-amber-500/20 bg-amber-500/10 text-amber-200'}`}>
+                Amber line = flat closed day
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {selectedJournalEntry && (
         <div className="fixed inset-0 z-[82] flex items-start justify-center overflow-y-auto bg-slate-950/65 px-4 py-4 backdrop-blur-sm sm:items-center">
           <div className={`relative w-full max-w-3xl rounded-[28px] border p-5 shadow-2xl md:p-6 ${ui.card}`}>
@@ -3229,7 +3534,7 @@ ${emotionWarning}`
 
             <div className="pr-10">
               <h2 className="text-center text-xl font-bold md:text-2xl">Journal entry</h2>
-              <p className={`mt-2 text-center text-sm ${ui.subtle}`}>{formatDate(selectedJournalEntry.createdAt)} • {selectedJournalEntry.instrument} • {selectedJournalEntry.setupType} • {selectedJournalEntry.strategy}</p>
+              <p className={`mt-2 text-center text-sm ${ui.subtle}`}>{formatTradeDate(selectedJournalEntry.tradeDate)} • {selectedJournalEntry.instrument} • {selectedJournalEntry.setupType} • {selectedJournalEntry.strategy}</p>
             </div>
 
             <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
@@ -3237,6 +3542,7 @@ ${emotionWarning}`
                 ['Outcome', getJournalOutcomeLabel(selectedJournalEntry.outcome)],
                 ['Verdict', selectedJournalEntry.verdict],
                 ['Quality', selectedJournalEntry.quality],
+                ['Trade date', formatTradeDate(selectedJournalEntry.tradeDate)],
                 ['Score / threshold', `${selectedJournalEntry.score}% / ${selectedJournalEntry.threshold}%`],
                 ['Session', selectedJournalEntry.session],
                 ['Strategy', selectedJournalEntry.strategy],
@@ -3722,6 +4028,16 @@ ${emotionWarning}`
                         mutedClassName={ui.muted}
                       />
 
+                      <div className={`rounded-[20px] border px-3 py-2 ${ui.input}`}>
+                        <div className={`text-[10px] uppercase tracking-[0.14em] ${ui.muted}`}>Trade date</div>
+                        <input
+                          type="date"
+                          value={journalTradeDate}
+                          onChange={(e) => setJournalTradeDate(e.target.value || getTodayDateValue())}
+                          className={`mt-1 w-full bg-transparent text-sm outline-none ${theme === 'light' ? 'text-slate-950' : 'text-white'}`}
+                        />
+                      </div>
+
                       <FixedOptionDropdown
                         label="Outcome"
                         value={getJournalOutcomeLabel(tradeOutcome)}
@@ -3958,13 +4274,20 @@ ${emotionWarning}`
                         </div>
                       </div>
 
-                      <div className="flex justify-center">
+                      <div className="flex flex-wrap justify-center gap-2">
                         <button
                           type="button"
                           onClick={() => setShowAdvancedPerformance(true)}
                           className={`rounded-2xl px-4 py-2 text-xs font-semibold transition ${ui.secondaryBtn}`}
                         >
                           Advanced performance
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setShowTradingCalendar(true)}
+                          className={`rounded-2xl px-4 py-2 text-xs font-semibold transition ${ui.secondaryBtn}`}
+                        >
+                          Trading calendar
                         </button>
                       </div>
                     </div>
@@ -4045,7 +4368,7 @@ ${emotionWarning}`
                               </div>
 
                               <div className={`mt-1 text-xs leading-5 ${ui.muted}`}>
-                                {formatDate(entry.createdAt)} • {entry.session} • {entry.marketCondition} • {entry.emotion}
+                                {formatTradeDate(entry.tradeDate)} • {entry.session} • {entry.marketCondition} • {entry.emotion}
                               </div>
                             </div>
 
